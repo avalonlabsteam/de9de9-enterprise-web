@@ -1,0 +1,92 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 20% 98%;
+    --foreground: 222 28% 14%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 28% 14%;
+
+    --primary: 222 28% 16%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 16% 93%;
+    --secondary-foreground: 222 28% 18%;
+
+    --muted: 210 16% 94%;
+    --muted-foreground: 215 14% 45%;
+
+    --accent: 199 76% 53%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 358 76% 59%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214 18% 89%;
+    --input: 214 18% 86%;
+    --ring: 199 76% 53%;
+
+    --brand: 199 76% 53%;
+    --brand-foreground: 0 0% 100%;
+
+    --radius: 0.875rem;
+  }
+
+  .dark {
+    --background: 222 30% 9%;
+    --foreground: 210 20% 96%;
+
+    --card: 222 26% 13%;
+    --card-foreground: 210 20% 96%;
+
+    --primary: 210 20% 96%;
+    --primary-foreground: 222 30% 10%;
+
+    --secondary: 222 20% 18%;
+    --secondary-foreground: 210 20% 92%;
+
+    --muted: 222 20% 17%;
+    --muted-foreground: 215 14% 62%;
+
+    --accent: 199 70% 55%;
+    --accent-foreground: 222 30% 10%;
+
+    --destructive: 358 70% 62%;
+    --destructive-foreground: 222 30% 10%;
+
+    --border: 222 18% 22%;
+    --input: 222 18% 24%;
+    --ring: 199 70% 55%;
+
+    --brand: 199 70% 56%;
+    --brand-foreground: 222 30% 10%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+
+  html[dir='rtl'] body {
+    font-family: 'Cairo', 'Poppins', system-ui, sans-serif;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}

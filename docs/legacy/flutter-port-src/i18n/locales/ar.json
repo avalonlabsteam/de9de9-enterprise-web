@@ -1,0 +1,299 @@
+{
+  "common": {
+    "appName": "دق دق للمؤسسات",
+    "next": "التالي",
+    "back": "رجوع",
+    "skip": "تخطّي",
+    "start": "ابدأ",
+    "continue": "متابعة",
+    "search": "بحث",
+    "cancel": "إلغاء",
+    "save": "حفظ",
+    "loading": "جارٍ التحميل…"
+  },
+  "onboarding": {
+    "tagline": "منصة خدمات الأعمال بين الشركات في الجزائر",
+    "slide1Title": "كل خدماتك المهنية في مكان واحد",
+    "slide1Body": "16 عائلة خدمات ومئات مزوّدي الخدمات الموثوقين لمؤسستك.",
+    "slide2Title": "انشر، قارن، اختر",
+    "slide2Body": "أطلق طلب عروض واستقبل عروضًا من مزوّدين مؤهلين.",
+    "slide3Title": "تابع كل شيء بسهولة",
+    "slide3Body": "عروض الأسعار والفواتير والمدفوعات في تطبيق واحد."
+  },
+  "auth": {
+    "loginTitle": "مرحبًا بعودتك",
+    "loginSubtitle": "سجّل الدخول إلى مساحة مؤسستك",
+    "signupTitle": "إنشاء حساب",
+    "signupSubtitle": "انضم إلى منصة الأعمال الرائدة",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "company": "اسم المؤسسة",
+    "phone": "الهاتف",
+    "forgotPassword": "هل نسيت كلمة المرور؟",
+    "login": "تسجيل الدخول",
+    "signup": "تسجيل",
+    "noAccount": "ليس لديك حساب؟",
+    "haveAccount": "لديك حساب بالفعل؟",
+    "roleQuestion": "أنت…",
+    "roleCliente": "مؤسسة عميلة",
+    "roleClienteDesc": "أبحث عن مزوّدي خدمات لمؤسستي",
+    "rolePrestataire": "مؤسسة مزوّدة",
+    "rolePrestataireDesc": "أقدّم خدماتي للشركات",
+    "forgotTitle": "نسيت كلمة المرور",
+    "forgotSubtitle": "أدخل بريدك الإلكتروني لاستلام رابط إعادة التعيين",
+    "sendLink": "إرسال الرابط",
+    "backToLogin": "العودة لتسجيل الدخول"
+  },
+  "nav": {
+    "catalogue": "الكتالوج",
+    "tenders": "طلبات العروض",
+    "wallet": "المحفظة",
+    "profile": "الملف"
+  },
+  "catalogue": {
+    "title": "كتالوج الخدمات",
+    "subtitle": "اعثر على المزوّد المناسب لكل حاجة",
+    "searchPlaceholder": "ابحث عن خدمة…",
+    "familiesCount": "{{count}} عائلات",
+    "servicesCount": "{{count}} خدمة",
+    "allCategories": "الكل",
+    "noResults": "لا توجد خدمة تطابق بحثك."
+  },
+  "family": {
+    "servicesTitle": "الخدمات الفرعية",
+    "subsCount": "{{count}} خدمة فرعية",
+    "requestQuote": "طلب عرض سعر",
+    "publishTender": "نشر طلب عروض"
+  },
+  "status": {
+    "enAttente": "قيد الانتظار",
+    "contacte": "تم الاتصال",
+    "assigne": "تم التعيين",
+    "enCours": "قيد التنفيذ",
+    "termine": "منتهٍ"
+  },
+  "tenders": {
+    "title": "طلبات العروض",
+    "subtitle": "تابع تقدّم طلباتك",
+    "new": "طلب عروض جديد",
+    "empty": "لم تنشر أي طلب عروض بعد.",
+    "filterAll": "الكل",
+    "createdOn": "نُشر في {{date}}",
+    "budget": "الميزانية",
+    "noBudget": "الميزانية غير محددة",
+    "recurrence": "التكرار",
+    "delay": "المهلة",
+    "wilaya": "الولاية",
+    "type": "النوع",
+    "detailTitle": "تفاصيل طلب العروض",
+    "suiviTitle": "المتابعة",
+    "assignedBlind": "عيّنت دق دق مزوّدًا مؤهلاً. تبقى هويته سرّية حتى الانطلاق.",
+    "description": "وصف الحاجة"
+  },
+  "publish": {
+    "title": "نشر طلب عروض",
+    "subtitle": "صف حاجتك واستقبل العروض",
+    "family": "عائلة الخدمة",
+    "service": "الخدمة المطلوبة",
+    "selectFamily": "اختر عائلة",
+    "selectService": "اختر خدمة",
+    "description": "وصف الحاجة",
+    "descriptionPlaceholder": "حدّد النطاق والقيود والمكان…",
+    "wilaya": "الولاية",
+    "delai": "المهلة المطلوبة",
+    "type": "نوع الحاجة",
+    "ponctuel": "ظرفي",
+    "recurrent": "متكرر",
+    "recurrence": "الوتيرة",
+    "budget": "الميزانية التقديرية (دج، اختياري)",
+    "budgetPlaceholder": "مثال 180 000",
+    "attachments": "المرفقات",
+    "addAttachment": "إضافة ملف",
+    "submit": "نشر طلب العروض",
+    "kycLockedTitle": "التحقق مطلوب",
+    "kycLockedBody": "يجب التحقق من ملف مؤسستك قبل نشر طلب عروض.",
+    "kycLockedCta": "إكمال التحقق",
+    "successTitle": "تم نشر طلب العروض",
+    "successBody": "تم تسجيل طلبك {{id}}. ستستقبل العروض قريبًا.",
+    "viewTenders": "عرض طلباتي"
+  },
+  "wallet": {
+    "title": "المحفظة",
+    "balance": "رصيد الأرصدة",
+    "balanceDzd": "ما يعادل {{value}}",
+    "negativeWarning": "رصيدك سالب. يُرجى إعادة الشحن.",
+    "subscription": "الاشتراك",
+    "subscriptionActive": "نشط",
+    "subscriptionInactive": "غير نشط",
+    "subscriptionHint": "يفتح الاشتراك السنوي نشرًا غير محدود.",
+    "rechargeInfo": "تُشحن الأرصدة من إدارة دق دق. 1 دج = 10 أرصدة.",
+    "history": "سجل الحركات",
+    "recharge": "شحن",
+    "deduction": "خصم",
+    "viewInvoices": "عرض فواتيري"
+  },
+  "invoices": {
+    "title": "فواتيري",
+    "subtitle": "الفواتير المستلمة من مزوّديك",
+    "empty": "لا توجد فواتير حاليًا.",
+    "amount": "المبلغ",
+    "issuedOn": "صدرت في {{date}}",
+    "linkedTo": "مرتبطة بـ {{id}}",
+    "download": "تحميل"
+  },
+  "profile": {
+    "title": "ملف المؤسسة",
+    "company": "المؤسسة",
+    "email": "البريد الإلكتروني",
+    "kycSection": "التحقق (KYC)",
+    "kycValidated": "ملف موثّق",
+    "kycPending": "ملف غير مكتمل",
+    "kycManage": "إدارة التحقق",
+    "settings": "الإعدادات",
+    "language": "اللغة",
+    "theme": "السمة",
+    "logout": "تسجيل الخروج",
+    "myInvoices": "فواتيري",
+    "myWallet": "محفظتي"
+  },
+  "kyc": {
+    "title": "التحقق من المؤسسة",
+    "subtitle": "أدخل معرّفاتك القانونية لفتح النشر",
+    "rc": "السجل التجاري (RC)",
+    "nif": "رقم التعريف الجبائي (NIF)",
+    "nis": "رقم التعريف الإحصائي (NIS)",
+    "submit": "إرسال الملف",
+    "validatedTitle": "ملف موثّق",
+    "validatedBody": "تم التحقق من مؤسستك. يمكنك نشر طلبات العروض.",
+    "edit": "تعديل"
+  },
+  "prestataire": {
+    "nav": {
+      "accueil": "الرئيسية",
+      "b2c": "أفراد",
+      "b2b": "شركات",
+      "calendrier": "التقويم",
+      "profil": "الملف"
+    },
+    "accueil": {
+      "greeting": "مرحبًا،",
+      "company": "Pro Services SARL",
+      "kpiRecues": "الطلبات الواردة",
+      "kpiB2b": "مهام الشركات",
+      "createAnnonce": "إنشاء إعلان",
+      "chooseAnnonce": "نوع الإعلان",
+      "annonceB2c": "إعلان للأفراد",
+      "annonceB2cDesc": "للعملاء الأفراد",
+      "annonceB2b": "إعلان للشركات",
+      "annonceB2bDesc": "للمؤسسات",
+      "myAnnonces": "إعلاناتي",
+      "noAnnonces": "لا توجد إعلانات منشورة.",
+      "quickLinks": "اختصارات",
+      "effectif": "فريقي",
+      "stats": "الإحصائيات"
+    },
+    "b2c": {
+      "title": "فضاء الأفراد",
+      "tabRecues": "الطلبات الواردة",
+      "tabOffres": "استكشاف العروض",
+      "tabConfirmes": "الخدمات المؤكدة",
+      "subVoir": "متاحة",
+      "subEnvoyees": "العروض المرسلة",
+      "emptyRecues": "لا توجد طلبات جديدة.",
+      "emptyConfirmes": "لا توجد خدمات مؤكدة.",
+      "emptyOffres": "لا توجد عروض مفتوحة.",
+      "emptyEnvoyees": "لا توجد عروض مرسلة.",
+      "accept": "قبول",
+      "refuse": "رفض",
+      "fromBid": "ناتج عن طلب عروض",
+      "bid": "تقديم عرض",
+      "yourPrice": "سعرك",
+      "yourDelai": "مهلتك",
+      "yourMessage": "رسالة",
+      "sendBid": "إرسال العرض"
+    },
+    "b2b": {
+      "title": "مهام الشركات",
+      "empty": "لا توجد مهام شركات.",
+      "uploadFacture": "رفع الفاتورة",
+      "factureSent": "تم إرسال الفاتورة",
+      "noWorker": "غير معيَّن"
+    },
+    "sentStatus": {
+      "enAttente": "قيد الانتظار",
+      "retenue": "مقبولة",
+      "refusee": "مرفوضة"
+    },
+    "factureStatus": {
+      "none": "للفوترة",
+      "envoyee": "مرسلة",
+      "recue": "مستلمة",
+      "approuvee": "موافَق عليها",
+      "contestee": "متنازع عليها"
+    },
+    "calendar": {
+      "title": "التقويم",
+      "today": "اليوم",
+      "day": "يوم",
+      "week": "أسبوع",
+      "filterAll": "الكل",
+      "filterB2c": "أفراد",
+      "filterB2b": "شركات",
+      "empty": "لا مواعيد في هذا اليوم."
+    },
+    "effectif": {
+      "title": "فريقي",
+      "subtitle": "أدر فريقك الميداني",
+      "available": "متاح",
+      "unavailable": "غير متاح",
+      "membersCount": "{{count}} أعضاء"
+    },
+    "stats": {
+      "title": "الإحصائيات",
+      "revenue": "رقم الأعمال",
+      "missions": "المهام",
+      "rating": "متوسط التقييم",
+      "winRate": "نسبة النجاح",
+      "monthlyRevenue": "الإيراد الشهري"
+    },
+    "createAnnonce": {
+      "title": "إنشاء إعلان",
+      "titleB2c": "إعلان جديد للأفراد",
+      "titleB2b": "إعلان جديد للشركات",
+      "name": "عنوان الإعلان",
+      "namePlaceholder": "مثال: تنظيف احترافي للمكاتب",
+      "service": "الخدمة المعنية",
+      "servicePlaceholder": "مثال: النظافة والصحة",
+      "submit": "نشر الإعلان",
+      "success": "تم نشر الإعلان"
+    },
+    "profile": {
+      "title": "ملف المزوّد",
+      "company": "Pro Services SARL",
+      "tagline": "مزوّد موثّق · الجزائر",
+      "links": "الإدارة",
+      "settings": "الإعدادات",
+      "logout": "تسجيل الخروج",
+      "switchClient": "التحويل إلى فضاء العميل"
+    },
+    "affecter": {
+      "title": "تعيين عضو",
+      "confirm": "تعيين"
+    },
+    "facture": {
+      "title": "رفع فاتورة",
+      "attach": "إرفاق ملف (PDF/صورة)",
+      "amount": "المبلغ (دج)",
+      "send": "إرسال الفاتورة"
+    }
+  },
+  "theme": {
+    "light": "فاتح",
+    "dark": "داكن",
+    "toggle": "تبديل السمة"
+  },
+  "placeholder": {
+    "comingSoon": "قريبًا",
+    "comingSoonBody": "هذا القسم جزء من النطاق الكامل وسيُضاف قريبًا."
+  }
+}

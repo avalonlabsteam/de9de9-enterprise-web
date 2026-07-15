@@ -1,0 +1,110 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Build output
+dist
+dist-ssr
+build
+*.tsbuildinfo
+
+# Caches
+.cache
+.temp
+.tmp
+.eslintcache
+.vite
+coverage
+*.local
+
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+secrets.json
+.npmrc.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ---------------------------------------------------------------------------
+# AI assistant tools, agents & coding copilots
+# ---------------------------------------------------------------------------
+# Anthropic Claude / Claude Code
+.claude/
+.claude
+CLAUDE.md
+CLAUDE.local.md
+.anthropic/
+
+# Generic agent instruction files
+AGENTS.md
+AGENT.md
+.agent/
+.agents/
+
+# Cursor
+.cursor/
+.cursorrules
+.cursorignore
+.cursorindexingignore
+
+# GitHub Copilot
+.github/copilot-instructions.md
+.copilot/
+copilot-instructions.md
+
+# Windsurf / Codeium
+.windsurf/
+.windsurfrules
+.codeium/
+
+# Continue
+.continue/
+
+# Aider
+.aider*
+.aider.conf.yml
+.aider.chat.history.md
+.aider.input.history
+
+# Cline / Roo Code
+.cline/
+.clinerules
+.roo/
+.roomodes
+
+# Google Gemini
+.gemini/
+GEMINI.md
+
+# Model Context Protocol (may contain local server config / tokens)
+.mcp.json
+
+# Other AI tools
+.tabnine/
+.sourcegraph/
+.specstory/
+.pearai/
+repomix-output.*

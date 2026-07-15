@@ -1,0 +1,299 @@
+{
+  "common": {
+    "appName": "De9De9 Entreprise",
+    "next": "Suivant",
+    "back": "Retour",
+    "skip": "Passer",
+    "start": "Commencer",
+    "continue": "Continuer",
+    "search": "Rechercher",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "loading": "Chargement…"
+  },
+  "onboarding": {
+    "tagline": "La marketplace B2B des services aux entreprises en Algérie",
+    "slide1Title": "Tous vos services pro, au même endroit",
+    "slide1Body": "16 familles de services, des centaines de prestataires vérifiés pour votre entreprise.",
+    "slide2Title": "Publiez, comparez, choisissez",
+    "slide2Body": "Lancez un appel d'offres et recevez des propositions de prestataires qualifiés.",
+    "slide3Title": "Suivez tout en toute simplicité",
+    "slide3Body": "Devis, factures et paiements centralisés dans une seule application."
+  },
+  "auth": {
+    "loginTitle": "Bon retour",
+    "loginSubtitle": "Connectez-vous à votre espace entreprise",
+    "signupTitle": "Créer un compte",
+    "signupSubtitle": "Rejoignez la marketplace B2B de référence",
+    "email": "Adresse e-mail",
+    "password": "Mot de passe",
+    "company": "Nom de l'entreprise",
+    "phone": "Téléphone",
+    "forgotPassword": "Mot de passe oublié ?",
+    "login": "Se connecter",
+    "signup": "S'inscrire",
+    "noAccount": "Pas encore de compte ?",
+    "haveAccount": "Déjà un compte ?",
+    "roleQuestion": "Vous êtes…",
+    "roleCliente": "Cliente Entreprise",
+    "roleClienteDesc": "Je cherche des prestataires pour mon entreprise",
+    "rolePrestataire": "Prestataire Entreprise",
+    "rolePrestataireDesc": "Je propose mes services aux entreprises",
+    "forgotTitle": "Mot de passe oublié",
+    "forgotSubtitle": "Saisissez votre e-mail pour recevoir un lien de réinitialisation",
+    "sendLink": "Envoyer le lien",
+    "backToLogin": "Retour à la connexion"
+  },
+  "nav": {
+    "catalogue": "Catalogue",
+    "tenders": "Appels d'offres",
+    "wallet": "Portefeuille",
+    "profile": "Profil"
+  },
+  "catalogue": {
+    "title": "Catalogue des services",
+    "subtitle": "Trouvez le bon prestataire pour chaque besoin",
+    "searchPlaceholder": "Rechercher un service…",
+    "familiesCount": "{{count}} familles",
+    "servicesCount": "{{count}} services",
+    "allCategories": "Toutes",
+    "noResults": "Aucun service ne correspond à votre recherche."
+  },
+  "family": {
+    "servicesTitle": "Sous-services",
+    "subsCount": "{{count}} sous-services",
+    "requestQuote": "Demander un devis",
+    "publishTender": "Publier un appel d'offres"
+  },
+  "status": {
+    "enAttente": "En attente",
+    "contacte": "Contacté",
+    "assigne": "Assigné",
+    "enCours": "En cours",
+    "termine": "Terminé"
+  },
+  "tenders": {
+    "title": "Mes appels d'offres",
+    "subtitle": "Suivez l'avancement de vos demandes",
+    "new": "Nouvel appel d'offres",
+    "empty": "Vous n'avez pas encore publié d'appel d'offres.",
+    "filterAll": "Tous",
+    "createdOn": "Publié le {{date}}",
+    "budget": "Budget",
+    "noBudget": "Budget non précisé",
+    "recurrence": "Récurrence",
+    "delay": "Délai",
+    "wilaya": "Wilaya",
+    "type": "Type",
+    "detailTitle": "Détail de l'appel d'offres",
+    "suiviTitle": "Suivi",
+    "assignedBlind": "De9De9 a assigné un prestataire qualifié. Son identité reste confidentielle jusqu'au démarrage.",
+    "description": "Description du besoin"
+  },
+  "publish": {
+    "title": "Publier un appel d'offres",
+    "subtitle": "Décrivez votre besoin, recevez des propositions",
+    "family": "Famille de service",
+    "service": "Service recherché",
+    "selectFamily": "Choisir une famille",
+    "selectService": "Choisir un service",
+    "description": "Description du besoin",
+    "descriptionPlaceholder": "Précisez le périmètre, les contraintes, le lieu…",
+    "wilaya": "Wilaya",
+    "delai": "Délai souhaité",
+    "type": "Type de besoin",
+    "ponctuel": "Ponctuel",
+    "recurrent": "Récurrent",
+    "recurrence": "Fréquence",
+    "budget": "Budget estimé (DZD, optionnel)",
+    "budgetPlaceholder": "ex. 180 000",
+    "attachments": "Pièces jointes",
+    "addAttachment": "Ajouter un fichier",
+    "submit": "Publier l'appel d'offres",
+    "kycLockedTitle": "Vérification requise",
+    "kycLockedBody": "Votre dossier d'entreprise doit être validé avant de publier un appel d'offres.",
+    "kycLockedCta": "Compléter ma vérification",
+    "successTitle": "Appel d'offres publié",
+    "successBody": "Votre demande {{id}} a été enregistrée. Vous recevrez bientôt des propositions.",
+    "viewTenders": "Voir mes appels d'offres"
+  },
+  "wallet": {
+    "title": "Portefeuille",
+    "balance": "Solde de crédits",
+    "balanceDzd": "Équivalent {{value}}",
+    "negativeWarning": "Votre solde est négatif. Pensez à recharger vos crédits.",
+    "subscription": "Abonnement",
+    "subscriptionActive": "Actif",
+    "subscriptionInactive": "Inactif",
+    "subscriptionHint": "L'abonnement annuel débloque la publication illimitée.",
+    "rechargeInfo": "Les crédits sont rechargés par l'administration De9De9. 1 DZD = 10 crédits.",
+    "history": "Historique des mouvements",
+    "recharge": "Rechargement",
+    "deduction": "Déduction",
+    "viewInvoices": "Voir mes factures"
+  },
+  "invoices": {
+    "title": "Mes factures",
+    "subtitle": "Factures reçues de vos prestataires",
+    "empty": "Aucune facture pour le moment.",
+    "amount": "Montant",
+    "issuedOn": "Émise le {{date}}",
+    "linkedTo": "Liée à {{id}}",
+    "download": "Télécharger"
+  },
+  "profile": {
+    "title": "Profil entreprise",
+    "company": "Entreprise",
+    "email": "E-mail",
+    "kycSection": "Vérification (KYC)",
+    "kycValidated": "Dossier validé",
+    "kycPending": "Dossier à compléter",
+    "kycManage": "Gérer la vérification",
+    "settings": "Paramètres",
+    "language": "Langue",
+    "theme": "Thème",
+    "logout": "Se déconnecter",
+    "myInvoices": "Mes factures",
+    "myWallet": "Mon portefeuille"
+  },
+  "kyc": {
+    "title": "Vérification de l'entreprise",
+    "subtitle": "Renseignez vos identifiants légaux pour débloquer la publication",
+    "rc": "Registre de commerce (RC)",
+    "nif": "N° d'identification fiscale (NIF)",
+    "nis": "N° d'identification statistique (NIS)",
+    "submit": "Soumettre le dossier",
+    "validatedTitle": "Dossier validé",
+    "validatedBody": "Votre entreprise est vérifiée. Vous pouvez publier des appels d'offres.",
+    "edit": "Modifier"
+  },
+  "prestataire": {
+    "nav": {
+      "accueil": "Accueil",
+      "b2c": "B2C",
+      "b2b": "B2B",
+      "calendrier": "Calendrier",
+      "profil": "Profil"
+    },
+    "accueil": {
+      "greeting": "Bonjour,",
+      "company": "Pro Services SARL",
+      "kpiRecues": "Commandes reçues",
+      "kpiB2b": "Missions B2B",
+      "createAnnonce": "Créer une annonce",
+      "chooseAnnonce": "Type d'annonce",
+      "annonceB2c": "Annonce B2C",
+      "annonceB2cDesc": "Pour les clients particuliers",
+      "annonceB2b": "Annonce B2B",
+      "annonceB2bDesc": "Pour les entreprises",
+      "myAnnonces": "Mes annonces",
+      "noAnnonces": "Aucune annonce publiée.",
+      "quickLinks": "Raccourcis",
+      "effectif": "Mon effectif",
+      "stats": "Statistiques"
+    },
+    "b2c": {
+      "title": "Espace B2C",
+      "tabRecues": "Commandes reçues",
+      "tabOffres": "Explorer les offres",
+      "tabConfirmes": "Services confirmés",
+      "subVoir": "À saisir",
+      "subEnvoyees": "Offres envoyées",
+      "emptyRecues": "Aucune nouvelle commande.",
+      "emptyConfirmes": "Aucun service confirmé.",
+      "emptyOffres": "Aucune offre ouverte.",
+      "emptyEnvoyees": "Aucune offre envoyée.",
+      "accept": "Accepter",
+      "refuse": "Refuser",
+      "fromBid": "Issu d'un appel d'offres",
+      "bid": "Soumettre une offre",
+      "yourPrice": "Votre prix",
+      "yourDelai": "Votre délai",
+      "yourMessage": "Message",
+      "sendBid": "Envoyer l'offre"
+    },
+    "b2b": {
+      "title": "Missions B2B",
+      "empty": "Aucune mission B2B.",
+      "uploadFacture": "Téléverser la facture",
+      "factureSent": "Facture envoyée",
+      "noWorker": "Non affecté"
+    },
+    "sentStatus": {
+      "enAttente": "En attente",
+      "retenue": "Retenue",
+      "refusee": "Refusée"
+    },
+    "factureStatus": {
+      "none": "À facturer",
+      "envoyee": "Envoyée",
+      "recue": "Reçue",
+      "approuvee": "Approuvée",
+      "contestee": "Contestée"
+    },
+    "calendar": {
+      "title": "Calendrier",
+      "today": "Aujourd'hui",
+      "day": "Jour",
+      "week": "Semaine",
+      "filterAll": "Tous",
+      "filterB2c": "B2C",
+      "filterB2b": "B2B",
+      "empty": "Aucun rendez-vous ce jour."
+    },
+    "effectif": {
+      "title": "Mon effectif",
+      "subtitle": "Gérez votre équipe terrain",
+      "available": "Disponible",
+      "unavailable": "Indisponible",
+      "membersCount": "{{count}} membres"
+    },
+    "stats": {
+      "title": "Statistiques",
+      "revenue": "Chiffre d'affaires",
+      "missions": "Missions",
+      "rating": "Note moyenne",
+      "winRate": "Taux de réussite",
+      "monthlyRevenue": "Revenu mensuel"
+    },
+    "createAnnonce": {
+      "title": "Créer une annonce",
+      "titleB2c": "Nouvelle annonce B2C",
+      "titleB2b": "Nouvelle annonce B2B",
+      "name": "Titre de l'annonce",
+      "namePlaceholder": "ex. Nettoyage professionnel de bureaux",
+      "service": "Service concerné",
+      "servicePlaceholder": "ex. Nettoyage & Hygiène",
+      "submit": "Publier l'annonce",
+      "success": "Annonce publiée"
+    },
+    "profile": {
+      "title": "Profil prestataire",
+      "company": "Pro Services SARL",
+      "tagline": "Prestataire vérifié · Alger",
+      "links": "Gestion",
+      "settings": "Paramètres",
+      "logout": "Se déconnecter",
+      "switchClient": "Passer en espace Cliente"
+    },
+    "affecter": {
+      "title": "Affecter un membre",
+      "confirm": "Affecter"
+    },
+    "facture": {
+      "title": "Téléverser une facture",
+      "attach": "Joindre un fichier (PDF/image)",
+      "amount": "Montant (DZD)",
+      "send": "Envoyer la facture"
+    }
+  },
+  "theme": {
+    "light": "Clair",
+    "dark": "Sombre",
+    "toggle": "Changer le thème"
+  },
+  "placeholder": {
+    "comingSoon": "Bientôt disponible",
+    "comingSoonBody": "Cette section fait partie du périmètre complet et sera ajoutée prochainement."
+  }
+}
