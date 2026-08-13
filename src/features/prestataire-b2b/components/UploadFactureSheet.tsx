@@ -76,7 +76,7 @@ export function UploadFactureSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="flex w-full flex-col gap-0 sm:max-w-md">
+      <SheetContent side="right" className="flex w-full flex-col gap-0 bg-card shadow-modal sm:max-w-md">
         <SheetHeader>
           <SheetTitle>{L('Téléverser la facture', 'رفع الفاتورة')}</SheetTitle>
           {job && (

@@ -324,6 +324,10 @@ const dashboard = {
   stats: { avenir: 9, enCours: 3, completes: 512 },
   equipe: { used: 3, total: 5 },
   chiffreAffaireDa: 152000,
+  activite: [
+    { title: 'Nouvelle réservation', time: 'Il y a 2 h' },
+    { title: 'Nouvelle annonce publiée', time: 'Il y a 2 h' },
+  ],
 };
 
 const stats = {

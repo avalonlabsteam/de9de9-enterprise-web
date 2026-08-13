@@ -19,8 +19,8 @@ function LedgerRow({ tx, L }: { tx: WalletTx; L: (fr: string, ar: string) => str
         className={cn(
           'flex size-9 flex-none items-center justify-center rounded-full',
           isRecharge
-            ? 'bg-[#E6F6EC] text-[#2E9E5B] dark:bg-[#123322] dark:text-[#5FCF8A]'
-            : 'bg-[#FDECEC] text-de9-red dark:bg-[#331A1C] dark:text-[#FF7A80]',
+            ? 'bg-de9-teal-soft text-de9-teal-dark'
+            : 'bg-de9-red-soft text-de9-red',
         )}
       >
         {isRecharge ? <ArrowUpRight className="size-[18px]" /> : <ArrowDownLeft className="size-[18px]" />}
@@ -33,9 +33,7 @@ function LedgerRow({ tx, L }: { tx: WalletTx; L: (fr: string, ar: string) => str
         <p
           className={cn(
             'text-[13.5px] font-bold tabular-nums',
-            isRecharge
-              ? 'text-[#2E9E5B] dark:text-[#5FCF8A]'
-              : 'text-de9-red',
+            isRecharge ? 'text-de9-teal-dark' : 'text-de9-red',
           )}
         >
           {isRecharge ? '+' : '−'}
@@ -68,8 +66,8 @@ export function WalletPage() {
 
       {isPending && (
         <div className="grid gap-4 sm:grid-cols-2">
-          <div className="h-40 animate-pulse rounded-2xl bg-secondary" />
-          <div className="h-40 animate-pulse rounded-2xl bg-secondary" />
+          <div className="h-40 animate-pulse rounded-lg bg-secondary" />
+          <div className="h-40 animate-pulse rounded-lg bg-secondary" />
         </div>
       )}
 
@@ -84,29 +82,26 @@ export function WalletPage() {
         <>
           <div className="grid gap-4 sm:grid-cols-2">
             {/* Solde actuel */}
-            <Card>
+            <Card className="border-0 bg-de9-teal text-white shadow-glow dark:ring-0">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-de9-gray">
-                  <WalletIcon className="size-[18px]" />
+                <CardTitle className="flex items-center gap-2.5 text-white">
+                  <span className="flex size-8 flex-none items-center justify-center rounded-full bg-white/25">
+                    <WalletIcon className="size-[16px]" />
+                  </span>
                   {L('Solde actuel', 'الرصيد الحالي')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p
-                  className={cn(
-                    'text-[34px] font-black leading-none tabular-nums',
-                    data.balanceCredits < 0 ? 'text-de9-red' : 'text-de9-teal-dark',
-                  )}
-                >
+                <p className="text-[34px] font-bold leading-none tabular-nums text-white">
                   {nf.format(data.balanceCredits)}
                 </p>
-                <p className="mt-1 text-[13px] font-bold text-de9-slate">{L('crédits', 'رصيد')}</p>
-                <p className="mt-2 text-[12.5px] text-de9-gray">
+                <p className="mt-1 text-[13px] font-semibold text-white/85">{L('crédits', 'رصيد')}</p>
+                <p className="mt-2 text-[12.5px] text-white/75">
                   {L('≈', '≈')} {nf.format(Math.round(data.balanceCredits / 10))} {L('DZD · 1 DZD = 10 crédits', 'دج · 1 دج = 10 رصيد')}
                 </p>
 
                 {data.balanceCredits < 0 && (
-                  <div className="mt-3 flex items-start gap-2 rounded-xl bg-[#FDECEC] px-3 py-2.5 text-[12.5px] font-medium text-de9-red dark:bg-[#331A1C] dark:text-[#FF7A80]">
+                  <div className="mt-3 flex items-start gap-2 rounded-lg bg-white/20 px-3 py-2.5 text-[12.5px] font-medium text-white">
                     <TriangleAlert className="mt-0.5 size-4 flex-none" />
                     <span>
                       {L(
@@ -120,28 +115,28 @@ export function WalletPage() {
             </Card>
 
             {/* Abonnement annuel */}
-            <Card>
+            <Card className="border-0 bg-de9-gray text-white shadow-soft dark:ring-1 dark:ring-border">
               <CardHeader>
-                <CardTitle className="text-de9-gray">{L('Abonnement annuel', 'الاشتراك السنوي')}</CardTitle>
+                <CardTitle className="text-white">{L('Abonnement annuel', 'الاشتراك السنوي')}</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-1 flex-col">
-                <p className="text-[13px] text-de9-slate">
+                <p className="text-[13px] text-white/85">
                   {L(
                     'Accès prioritaire et tarif préférentiel sur vos appels d’offres.',
                     'وصول ذو أولوية وسعر تفضيلي على طلباتك.',
                   )}
                 </p>
-                <p className="mt-3 text-[22px] font-black text-de9-ink">
+                <p className="mt-3 text-[22px] font-bold text-white">
                   {L('480 000 crédits / an', '480 000 رصيد / سنة')}
                 </p>
                 <div className="mt-auto pt-4">
                   <Button
-                    className="w-full"
+                    className="w-full bg-white text-de9-teal-dark shadow-soft hover:bg-white/90"
                     onClick={() => toast(L('Bientôt disponible', 'قريبًا'))}
                   >
                     {L("Choisir l'abonnement", 'اختيار الاشتراك')}
                   </Button>
-                  <p className="mt-2 text-center text-[11.5px] text-de9-gray">
+                  <p className="mt-2 text-center text-[11.5px] text-white/70">
                     {L('Les rechargements sont effectués manuellement par de9de9.', 'تتم عمليات الشحن يدويًا من قبل de9de9.')}
                   </p>
                 </div>
@@ -152,7 +147,7 @@ export function WalletPage() {
           {/* Mouvements */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-de9-ink">{L('Mouvements', 'الحركات')}</CardTitle>
+              <CardTitle className="text-sm font-semibold text-de9-gray">{L('Mouvements', 'الحركات')}</CardTitle>
             </CardHeader>
             <CardContent>
               {data.history.length === 0 ? (

@@ -39,10 +39,10 @@ export function Stepper({ status, className }: { status: VisiteCode; className?:
             <div className="flex flex-col items-center gap-1.5">
               <div
                 className={cn(
-                  'flex size-7 items-center justify-center rounded-full border-2 text-[11px] font-extrabold',
-                  done && 'border-de9-teal-dark bg-de9-teal-dark text-white',
-                  current && 'border-de9-teal-dark bg-[#E5F7F4] text-de9-teal-dark dark:bg-[#14322E]',
-                  !done && !current && 'border-de9-line bg-card text-de9-gray',
+                  'flex size-7 items-center justify-center rounded-full text-[11px] font-extrabold',
+                  done && 'bg-de9-teal text-white',
+                  current && 'bg-accent text-de9-teal-dark',
+                  !done && !current && 'bg-card text-de9-gray shadow-soft dark:ring-1 dark:ring-border',
                 )}
               >
                 {done ? <Check className="size-3.5" /> : i + 1}
@@ -57,7 +57,7 @@ export function Stepper({ status, className }: { status: VisiteCode; className?:
               </span>
             </div>
             {i < STEPS.length - 1 && (
-              <div className={cn('mx-1.5 h-0.5 flex-1 rounded-full', i < reached ? 'bg-de9-teal-dark' : 'bg-de9-line')} />
+              <div className={cn('mx-1.5 h-0.5 flex-1 rounded-full', i < reached ? 'bg-de9-teal' : 'bg-de9-line')} />
             )}
           </div>
         );

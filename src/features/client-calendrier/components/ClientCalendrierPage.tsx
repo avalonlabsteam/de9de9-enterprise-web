@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { HelpCircle, MapPin, ChevronRight, CalendarDays } from 'lucide-react';
 import { useL } from '@/lib/i18n';
+import { MONTHS_FR, MONTHS_AR, WEEKDAYS_AR } from '@/lib/dateLabels';
 import { uiActions } from '@/stores/uiStore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,16 +10,8 @@ import { StatusBadge } from '@/components/common/StatusBadge';
 import { useClientCalendar } from '../api/useClientCalendar';
 import type { ClientEvent } from '../schemas/calendar';
 
-const MONTHS_FR = [
-  'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-  'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre',
-];
-const MONTHS_AR = [
-  'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-  'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر',
-];
+/** Client calendar keeps title-case FR weekday chips (`Dim`), unlike the pro view's `DIM`. */
 const WEEKDAYS_FR = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
-const WEEKDAYS_AR = ['أحد', 'إثن', 'ثلا', 'أرب', 'خمي', 'جمع', 'سبت'];
 
 interface MonthGroup {
   key: string;
@@ -77,7 +70,7 @@ export function ClientCalendrierPage() {
       {isPending && (
         <div className="flex flex-col gap-3">
           {[0, 1, 2].map((i) => (
-            <div key={i} className="h-20 animate-pulse rounded-2xl bg-secondary" />
+            <div key={i} className="h-20 animate-pulse rounded-lg bg-secondary" />
           ))}
         </div>
       )}
@@ -100,7 +93,7 @@ export function ClientCalendrierPage() {
       {data &&
         months.map((g) => (
           <section key={g.key} className="flex flex-col gap-3">
-            <h2 className="text-[15px] font-black text-de9-slate">
+            <h2 className="text-sm font-semibold text-de9-gray">
               {L(MONTHS_FR[g.month] ?? '', MONTHS_AR[g.month] ?? '')} {g.year}
             </h2>
             <div className="flex flex-col gap-3">
@@ -118,10 +111,10 @@ export function ClientCalendrierPage() {
                         navigate('/client/tender/' + e.tenderId);
                       }
                     }}
-                    className="cursor-pointer transition-shadow hover:shadow-md"
+                    className="cursor-pointer transition-shadow hover:shadow-lift"
                   >
                     <CardContent className="flex items-center gap-4">
-                      <div className="flex size-14 flex-none flex-col items-center justify-center rounded-xl bg-[#E9F6F5] text-de9-teal-dark dark:bg-[#14322E]">
+                      <div className="flex size-14 flex-none flex-col items-center justify-center rounded-[14px] bg-de9-teal-soft text-de9-teal-dark">
                         <span className="text-[20px] font-black leading-none tabular-nums">{d.getDate()}</span>
                         <span className="text-[11px] font-bold">
                           {L(WEEKDAYS_FR[d.getDay()] ?? '', WEEKDAYS_AR[d.getDay()] ?? '')}
@@ -132,8 +125,8 @@ export function ClientCalendrierPage() {
                           <StatusBadge label={L('Confirmé', 'مؤكد')} kind="done" />
                         </div>
                         <p className="truncate text-[14px] font-bold text-de9-ink">{e.title}</p>
-                        <p className="mt-0.5 flex items-center gap-1 text-[12px] text-de9-gray">
-                          <MapPin className="size-3.5" />
+                        <p className="mt-0.5 flex items-center gap-1.5 text-xs text-de9-gray">
+                          <MapPin className="size-3.5 text-de9-teal" />
                           {e.wilaya}
                         </p>
                       </div>

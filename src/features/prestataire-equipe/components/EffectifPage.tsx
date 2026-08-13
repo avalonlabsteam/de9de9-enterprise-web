@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserPlus, Trash2, Copy, Check, ChevronRight, Plus } from 'lucide-react';
+import { UserPlus, Trash2, Copy, Check, Plus, BadgeCheck } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -48,9 +48,9 @@ export function EffectifPage() {
 
       {isPending && !isError && (
         <div className="flex animate-pulse flex-col gap-3">
-          <div className="h-[72px] rounded-2xl border border-de9-line bg-card" />
-          <div className="h-[68px] rounded-2xl border border-de9-line bg-card" />
-          <div className="h-[68px] rounded-2xl border border-de9-line bg-card" />
+          <div className="h-[72px] rounded-lg bg-card shadow-soft dark:ring-1 dark:ring-border" />
+          <div className="h-[68px] rounded-lg bg-card shadow-soft dark:ring-1 dark:ring-border" />
+          <div className="h-[68px] rounded-lg bg-card shadow-soft dark:ring-1 dark:ring-border" />
         </div>
       )}
 
@@ -60,13 +60,19 @@ export function EffectifPage() {
           <Card>
             <CardContent className="flex items-center gap-4 py-4">
               <div className="min-w-0 flex-1">
-                <p className="text-[13px] font-medium text-de9-gray">
+                <p className="text-sm font-semibold text-de9-gray">
                   {L('Slots utilisés', 'الفتحات المستعملة')}
                 </p>
-                <p className="text-[22px] font-extrabold text-de9-ink">
+                <p className="text-[22px] font-bold text-de9-ink">
                   {used}
                   <span className="text-de9-gray">/{total}</span>
                 </p>
+                <div className="mt-2 h-2.5 max-w-[376px] overflow-hidden rounded-sm bg-background">
+                  <div
+                    className="h-full bg-de9-teal"
+                    style={{ width: `${total > 0 ? Math.round((used / total) * 100) : 0}%` }}
+                  />
+                </div>
               </div>
               <Button
                 variant="outline"
@@ -79,46 +85,47 @@ export function EffectifPage() {
             </CardContent>
           </Card>
 
-          {/* Team list */}
-          <div className="flex flex-col gap-3">
+          {/* Team grid */}
+          <div className="grid gap-3 sm:grid-cols-2">
             {active.map((w) => (
               <div
                 key={w.id}
-                className="flex items-center gap-3.5 rounded-2xl border border-de9-line bg-card p-4"
+                className="flex flex-col gap-3 rounded-lg bg-card p-4 shadow-soft dark:ring-1 dark:ring-border"
               >
-                <WorkerAvatar worker={w} size={42} />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <span className="truncate text-[14px] font-bold text-de9-ink">{w.name}</span>
-                    {w.type === 'salarie' && (
-                      <span className="shrink-0 rounded-full bg-de9-teal/15 px-1.5 py-0.5 text-[10px] font-bold text-de9-teal-dark">
-                        🤝 de9de9
-                      </span>
-                    )}
+                <div className="flex items-center gap-3">
+                  <WorkerAvatar worker={w} size={34} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className="truncate text-[13px] font-semibold text-de9-ink">{w.name}</span>
+                      {w.type === 'salarie' && (
+                        <BadgeCheck className="size-4 shrink-0 text-de9-blue" />
+                      )}
+                    </div>
+                    <p className="truncate text-[11px] font-medium text-de9-gray">
+                      {w.type === 'salarie'
+                        ? L(`${w.role} · Salarié de9de9`, `${w.role} · موظّف de9de9`)
+                        : w.role}
+                    </p>
                   </div>
-                  <p className="truncate text-[12.5px] text-de9-gray">
-                    {w.type === 'salarie'
-                      ? L(`${w.role} · Salarié de9de9`, `${w.role} · موظّف de9de9`)
-                      : w.role}
-                  </p>
                 </div>
-                <div className="flex flex-none items-center gap-1.5">
+                <div className="flex items-center gap-2">
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-de9-teal-dark"
+                    className="flex-1 rounded-full bg-de9-teal-tint text-de9-teal-dark hover:bg-de9-teal-soft"
                     onClick={() => navigate(`/prestataire/effectif/${w.id}`)}
                   >
                     {t('voirPlus')}
                   </Button>
                   <Button
                     variant="ghost"
-                    size="icon"
+                    size="sm"
                     aria-label={t('supprimer')}
-                    className="text-de9-red"
+                    className="flex-1 gap-1.5 rounded-full bg-de9-red-soft text-de9-red hover:bg-de9-red-soft/80"
                     onClick={() => removeMember.mutate(w.id)}
                   >
                     <Trash2 className="size-4" />
+                    {t('supprimer')}
                   </Button>
                 </div>
               </div>
@@ -127,10 +134,10 @@ export function EffectifPage() {
             {pending.map((w) => (
               <div
                 key={w.id}
-                className="flex flex-col gap-3 rounded-2xl border border-dashed border-de9-line bg-de9-row/50 p-4"
+                className="flex flex-col gap-3 rounded-lg bg-card p-4 shadow-soft dark:ring-1 dark:ring-border"
               >
                 <div>
-                  <p className="text-[14px] font-bold text-de9-ink">
+                  <p className="text-[13px] font-semibold text-de9-gray">
                     {L('En attente de création…', 'في انتظار إنشاء الحساب…')}
                   </p>
                   <p className="text-[12.5px] text-de9-gray">
@@ -138,7 +145,7 @@ export function EffectifPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <code className="min-w-0 flex-1 truncate rounded-lg bg-secondary px-3 py-2 text-[12.5px] text-de9-ink">
+                  <code className="min-w-0 flex-1 truncate rounded-full bg-de9-teal-tint px-3 py-2 text-[12.5px] text-de9-teal-dark">
                     de9de9.dz/join/{(w.token ?? '').split('/').pop() ?? ''}
                   </code>
                   <Button
@@ -169,13 +176,12 @@ export function EffectifPage() {
                 type="button"
                 onClick={() => generateLink.mutate()}
                 disabled={generateLink.isPending}
-                className="flex w-full items-center gap-3.5 rounded-2xl border border-dashed border-de9-line bg-card p-4 text-start transition-colors hover:bg-de9-row disabled:opacity-60"
+                className="flex w-full flex-col items-center justify-center gap-2 rounded-lg bg-card p-4 text-center shadow-soft transition-shadow hover:shadow-lift disabled:opacity-60 dark:ring-1 dark:ring-border"
               >
-                <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-secondary text-de9-teal-dark">
+                <span className="flex size-10 flex-none items-center justify-center rounded-[12px] bg-de9-teal-soft text-de9-teal-dark">
                   <UserPlus className="size-5" />
                 </span>
-                <span className="flex-1 text-[14px] font-bold text-de9-ink">{t('ajouterPro')}</span>
-                <ChevronRight className="size-4 flex-none text-de9-gray rtl:rotate-180" />
+                <span className="text-[13px] font-semibold text-de9-teal">{t('ajouterPro')}</span>
               </button>
             ))}
           </div>

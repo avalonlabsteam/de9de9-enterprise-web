@@ -28,7 +28,7 @@ export function RoleChoosePage() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-de9-bg px-4 py-10">
+    <main className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
       <div className="w-full max-w-md animate-slide-up">
         <div className="mb-6 flex justify-center">
           <Logo />
@@ -93,9 +93,9 @@ function RoleCard({
           onClick();
         }
       }}
-      className="flex cursor-pointer flex-col items-center gap-3 border-de9-line py-8 text-center transition-colors hover:border-de9-teal hover:bg-de9-row aria-disabled:pointer-events-none aria-disabled:opacity-60"
+      className="flex cursor-pointer flex-col items-center gap-3 py-8 text-center transition-shadow hover:shadow-lift aria-disabled:pointer-events-none aria-disabled:opacity-60"
     >
-      <span className="flex size-14 items-center justify-center rounded-full bg-accent text-de9-teal-dark">
+      <span className="flex size-14 items-center justify-center rounded-[14px] bg-de9-teal-soft text-de9-teal-dark">
         {icon}
       </span>
       <span className="text-[15px] font-semibold text-de9-ink">{label}</span>

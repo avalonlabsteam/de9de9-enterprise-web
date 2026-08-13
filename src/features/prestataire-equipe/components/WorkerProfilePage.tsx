@@ -36,7 +36,7 @@ export function WorkerProfilePage() {
       )}
 
       {isPending && !isError && (
-        <div className="h-40 animate-pulse rounded-2xl border border-de9-line bg-card" />
+        <div className="h-40 animate-pulse rounded-lg bg-card shadow-soft dark:ring-1 dark:ring-border" />
       )}
 
       {data && (
@@ -51,7 +51,7 @@ export function WorkerProfilePage() {
               </div>
               <div className="flex flex-none flex-col items-end gap-1.5">
                 {typeof data.note === 'number' && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-[#FEF6E9] px-2 py-0.5 text-[11.5px] font-bold text-[#B9781A] dark:bg-[#33280F] dark:text-[#E0A82E]">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-de9-orange/25 px-2 py-0.5 text-[11.5px] font-bold text-de9-orange-deep">
                     <Star className="size-3 fill-current" />
                     {data.note.toFixed(1)}
                   </span>
@@ -59,8 +59,8 @@ export function WorkerProfilePage() {
                 <span
                   className={
                     data.available
-                      ? 'rounded-full bg-de9-teal/10 px-2.5 py-0.5 text-[11px] font-bold text-de9-teal-dark'
-                      : 'rounded-full bg-[#FDECEC] px-2.5 py-0.5 text-[11px] font-bold text-de9-red dark:bg-[#331A1C] dark:text-[#FF7A80]'
+                      ? 'rounded-full bg-de9-teal-soft px-2.5 py-0.5 text-[11px] font-bold text-de9-teal-dark'
+                      : 'rounded-full bg-de9-red-soft px-2.5 py-0.5 text-[11px] font-bold text-de9-red'
                   }
                 >
                   {data.avail ?? (data.available ? L('Disponible', 'متاح') : L('Occupé', 'مشغول'))}
@@ -72,7 +72,7 @@ export function WorkerProfilePage() {
           {/* Compétences */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-[15px]">{L('Compétences', 'المهارات')}</CardTitle>
+              <CardTitle className="text-sm font-semibold text-de9-gray">{L('Compétences', 'المهارات')}</CardTitle>
             </CardHeader>
             <CardContent>
               {data.skills && data.skills.length > 0 ? (
@@ -80,7 +80,7 @@ export function WorkerProfilePage() {
                   {data.skills.map((s) => (
                     <span
                       key={s}
-                      className="rounded-full bg-secondary px-3 py-1 text-[12.5px] font-medium text-de9-ink"
+                      className="rounded-full bg-de9-teal-tint px-3 py-1 text-[12.5px] font-semibold text-de9-teal-dark"
                     >
                       {s}
                     </span>
@@ -97,7 +97,7 @@ export function WorkerProfilePage() {
           {/* Contact */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-[15px]">{L('Contact', 'التواصل')}</CardTitle>
+              <CardTitle className="text-sm font-semibold text-de9-gray">{L('Contact', 'التواصل')}</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-3">
               {data.phone && <p className="text-[13.5px] font-medium text-de9-ink">{data.phone}</p>}
@@ -117,7 +117,7 @@ export function WorkerProfilePage() {
           {/* Missions affectées */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-[15px]">{L('Missions affectées', 'المهام المسنَدة')}</CardTitle>
+              <CardTitle className="text-sm font-semibold text-de9-gray">{L('Missions affectées', 'المهام المسنَدة')}</CardTitle>
             </CardHeader>
             <CardContent>
               <EmptyState

@@ -63,7 +63,7 @@ export function AssignAnnonceModal({
           {isPending && (
             <div className="flex flex-col gap-2">
               {[0, 1, 2].map((i) => (
-                <div key={i} className="h-16 animate-pulse rounded-2xl bg-secondary" />
+                <div key={i} className="h-16 animate-pulse rounded-lg bg-secondary" />
               ))}
             </div>
           )}
@@ -84,7 +84,7 @@ export function AssignAnnonceModal({
               {data.map((p) => (
                 <label
                   key={p.id}
-                  className="flex cursor-pointer items-center gap-3 rounded-2xl border border-de9-line bg-card px-4 py-3 transition-colors hover:bg-de9-row"
+                  className="flex cursor-pointer items-center gap-3 rounded-lg bg-card px-4 py-3 shadow-soft transition-shadow hover:shadow-lift dark:ring-1 dark:ring-border"
                 >
                   <WorkerAvatar worker={{ name: p.name }} size={36} />
                   <div className="min-w-0 flex-1">

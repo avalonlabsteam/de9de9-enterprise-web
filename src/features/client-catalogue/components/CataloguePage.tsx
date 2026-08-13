@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { CategoryIcon } from '@/components/common/CategoryChip';
+import { CategoryArt } from '@/components/common/CategoryArt';
 import { EmptyState } from '@/components/common/EmptyState';
 import { TOP_FAMILY_IDS } from '@/lib/catalogue';
 import type { Family } from '../schemas/catalogue';
@@ -61,7 +62,10 @@ export function CataloguePage() {
   const validated = kycQuery.data?.validated ?? false;
 
   const nameOf = (fam: Family) => (lang === 'ar' ? fam.name.ar : fam.name.fr);
-  const topFamilies = families.filter((f) => (TOP_FAMILY_IDS as readonly string[]).includes(f.id));
+  // Mapped (not filtered) so the tiles follow the curated order, not catalogue order.
+  const topFamilies = TOP_FAMILY_IDS.map((id) => families.find((f) => f.id === id)).filter(
+    (f): f is Family => Boolean(f),
+  );
 
   const openFamily = (id: string) => {
     catalogueActions.setCatSearch('');
@@ -82,19 +86,19 @@ export function CataloguePage() {
 
       {/* Search */}
       <div className="relative mb-6">
-        <Search className="pointer-events-none absolute top-1/2 start-3 size-4 -translate-y-1/2 text-de9-gray" />
+        <Search className="pointer-events-none absolute top-1/2 start-5 size-[18px] -translate-y-1/2 text-de9-gray" />
         <Input
           value={catSearch}
           onChange={(e) => catalogueActions.setCatSearch(e.target.value)}
-          placeholder={L('Rechercher un service…', 'ابحث عن خدمة…')}
-          className="h-11 ps-9 pe-9"
+          placeholder={L('Rechercher…', 'ابحث…')}
+          className="h-13 rounded-full ps-12 pe-11 text-[15px] shadow-lift"
           aria-label={L('Rechercher un service', 'ابحث عن خدمة')}
         />
         {searching && (
           <button
             type="button"
             onClick={() => catalogueActions.setCatSearch('')}
-            className="absolute top-1/2 end-2 grid size-7 -translate-y-1/2 place-items-center rounded-full text-de9-gray hover:bg-secondary"
+            className="absolute top-1/2 end-3 grid size-7 -translate-y-1/2 place-items-center rounded-full text-de9-gray hover:bg-secondary"
             aria-label={L('Effacer', 'مسح')}
           >
             <X className="size-4" />
@@ -102,7 +106,7 @@ export function CataloguePage() {
         )}
 
         {searching && (
-          <div className="absolute inset-x-0 top-full z-20 mt-2 overflow-hidden rounded-2xl border border-de9-line bg-card shadow-lg">
+          <div className="absolute inset-x-0 top-full z-20 mt-2 overflow-hidden rounded-xl bg-card shadow-modal dark:ring-1 dark:ring-border">
             {matches.length > 0 ? (
               <ul className="max-h-80 overflow-y-auto py-1">
                 {matches.map((m, i) => (
@@ -148,21 +152,21 @@ export function CataloguePage() {
       {/* KYC gate banner */}
       {!kycQuery.isPending && (
         validated ? (
-          <div className="mb-6 flex items-center gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3">
-            <ShieldCheck className="size-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
-            <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-de9-teal-soft px-4 py-2 dark:ring-1 dark:ring-border">
+            <ShieldCheck className="size-5 shrink-0 text-de9-teal-dark" />
+            <p className="text-sm font-semibold text-de9-teal-dark">
               {L('Entreprise vérifiée', 'المؤسسة موثّقة')}
             </p>
           </div>
         ) : (
-          <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mb-6 flex flex-col gap-3 rounded-xl bg-de9-orange/15 px-4 py-3 shadow-soft sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">
-              <ShieldAlert className="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400" />
+              <ShieldAlert className="mt-0.5 size-5 shrink-0 text-de9-orange-deep" />
               <div>
-                <p className="text-sm font-bold text-amber-800 dark:text-amber-200">
+                <p className="text-sm font-bold text-de9-orange-deep">
                   {L('Vérification requise', 'التحقق مطلوب')}
                 </p>
-                <p className="text-sm text-amber-700 dark:text-amber-300/90">
+                <p className="text-sm text-de9-orange-deep/90">
                   {L(
                     'Validez RC · NIF · NIS pour publier un appel d’offres.',
                     'قم بتوثيق RC · NIF · NIS لنشر طلب عروض.',
@@ -172,7 +176,7 @@ export function CataloguePage() {
             </div>
             <Button
               size="sm"
-              className="shrink-0 self-start bg-amber-600 text-white hover:bg-amber-600/90 sm:self-auto"
+              className="shrink-0 self-start rounded-full bg-de9-orange-deep text-white hover:bg-de9-orange-deep/90 sm:self-auto"
               onClick={() => navigate('/client/kyc')}
             >
               {L('Compléter la vérification', 'إكمال التحقق')}
@@ -183,9 +187,9 @@ export function CataloguePage() {
 
       {/* Loading / error */}
       {familiesQuery.isPending ? (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="h-24 animate-pulse rounded-2xl bg-secondary" />
+            <div key={i} className="h-[232px] animate-pulse rounded-xl bg-secondary" />
           ))}
         </div>
       ) : familiesQuery.isError ? (
@@ -203,12 +207,17 @@ export function CataloguePage() {
           {/* Top catégories */}
           {topFamilies.length > 0 && (
             <section>
-              <h2 className="mb-3 text-sm font-bold text-de9-ink">
+              <h2 className="mb-3 text-[15px] font-bold text-de9-ink">
                 {L('Top catégories du mois', 'أفضل الفئات لهذا الشهر')}
               </h2>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {topFamilies.map((fam) => (
-                  <FamilyCard key={fam.id} fam={fam} name={nameOf(fam)} onClick={() => openFamily(fam.id)} />
+                  <FeaturedFamilyCard
+                    key={fam.id}
+                    fam={fam}
+                    name={nameOf(fam)}
+                    onClick={() => openFamily(fam.id)}
+                  />
                 ))}
               </div>
             </section>
@@ -216,19 +225,24 @@ export function CataloguePage() {
 
           {/* Toutes les catégories */}
           <section>
-            <h2 className="mb-3 text-sm font-bold text-de9-ink">
+            <h2 className="mb-3 text-[15px] font-bold text-de9-ink">
               {L('Toutes les catégories', 'كل الفئات')}
             </h2>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {families.map((fam) => (
-                <FamilyCard key={fam.id} fam={fam} name={nameOf(fam)} onClick={() => openFamily(fam.id)} />
+                <FamilyCard
+                  key={fam.id}
+                  fam={fam}
+                  name={nameOf(fam)}
+                  onClick={() => openFamily(fam.id)}
+                />
               ))}
             </div>
           </section>
 
           {/* Je cherche autre chose */}
           <section>
-            <Card className="border-dashed">
+            <Card>
               <CardContent className="flex flex-col gap-4 py-6 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="text-sm font-bold text-de9-ink">
@@ -260,15 +274,54 @@ export function CataloguePage() {
   );
 }
 
+/** Tall "Top catégories" tile — artwork stacked above the label. */
+function FeaturedFamilyCard({
+  fam,
+  name,
+  onClick,
+}: {
+  fam: Family;
+  name: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex min-h-[232px] flex-col rounded-xl bg-de9-row p-4 text-start transition-shadow hover:shadow-lift dark:ring-1 dark:ring-border"
+    >
+      <span className="flex flex-1 items-center justify-center py-2">
+        <CategoryArt
+          familyId={fam.id}
+          colorKey={fam.colorKey}
+          icon={fam.icon}
+          className="h-[124px] w-auto"
+          fallbackClassName="size-[124px] bg-transparent text-[52px] text-de9-teal-dark"
+        />
+      </span>
+      <span className="text-sm font-bold text-de9-ink">{name}</span>
+    </button>
+  );
+}
+
+/** Compact catalogue tile — label on the lead edge, artwork bleeding off the trail edge. */
 function FamilyCard({ fam, name, onClick }: { fam: Family; name: string; onClick: () => void }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="flex flex-col items-start gap-3 rounded-2xl border border-de9-line bg-card p-4 text-start transition-colors hover:border-primary/40 hover:bg-secondary/50"
+      className="relative flex min-h-[92px] items-center rounded-xl bg-de9-row py-4 ps-4 pe-24 text-start transition-shadow hover:shadow-lift dark:ring-1 dark:ring-border"
     >
-      <CategoryIcon colorKey={fam.colorKey} icon={fam.icon} />
-      <span className="line-clamp-2 text-sm font-semibold text-de9-ink">{name}</span>
+      <span className="text-sm font-bold text-de9-ink">{name}</span>
+      <span className="pointer-events-none absolute -bottom-1 -end-2 flex items-end">
+        <CategoryArt
+          familyId={fam.id}
+          colorKey={fam.colorKey}
+          icon={fam.icon}
+          className="h-[86px] w-auto"
+          fallbackClassName="mb-3 me-4 size-14 bg-transparent text-[34px] text-de9-teal-dark"
+        />
+      </span>
     </button>
   );
 }

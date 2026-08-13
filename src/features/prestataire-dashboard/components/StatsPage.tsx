@@ -30,9 +30,9 @@ export function StatsPage() {
 
       {data && (
         <>
-          {/* Gradient CA card */}
-          <div className="rounded-2xl bg-gradient-to-br from-de9-teal to-de9-teal-dark p-5 text-white shadow-[0_10px_30px_rgba(23,138,130,.25)]">
-            <p className="text-[12.5px] font-semibold text-white/85">{t('chiffreAffaire')}</p>
+          {/* CA card */}
+          <div className="rounded-lg bg-de9-teal p-5 text-white shadow-glow">
+            <p className="text-sm font-semibold text-white/85">{t('chiffreAffaire')}</p>
             <div className="mt-1 flex flex-wrap items-baseline gap-x-2">
               <span className="text-[28px] font-extrabold leading-tight">
                 {formatDa(data.chiffreAffaireDa)} DA
@@ -91,9 +91,9 @@ export function StatsPage() {
           <button
             type="button"
             onClick={() => navigate('/prestataire/effectif')}
-            className="flex w-full items-center gap-3.5 rounded-2xl border border-de9-line bg-card p-4 text-start transition-colors hover:bg-de9-row"
+            className="flex w-full items-center gap-3.5 rounded-lg bg-card p-4 text-start shadow-soft transition-shadow hover:shadow-lift dark:ring-1 dark:ring-border"
           >
-            <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-de9-teal/15 text-de9-teal-dark">
+            <span className="flex size-10 flex-none items-center justify-center rounded-[12px] bg-de9-teal-tint text-de9-teal">
               <TrendingUp className="size-5" />
             </span>
             <span className="flex-1 text-[14px] font-bold text-de9-ink">
@@ -114,7 +114,7 @@ function MonthlyChart({ monthly }: { monthly: Stats['monthly'] }) {
         <div key={m.month} className="flex flex-1 flex-col items-center gap-2">
           <div className="flex w-full flex-1 items-end">
             <div
-              className="w-full rounded-t-md bg-gradient-to-t from-de9-teal-dark to-de9-teal"
+              className="w-full rounded-t-md bg-de9-teal"
               style={{ height: `${Math.max(4, Math.round(m.ratio * 100))}%` }}
             />
           </div>
@@ -137,9 +137,9 @@ function CategorieBars({ rows }: { rows: Stats['parCategorie'] }) {
               {formatDa(r.valueDzd)} DA
             </span>
           </div>
-          <div className="h-2.5 w-full overflow-hidden rounded-full bg-secondary">
+          <div className="h-2.5 w-full overflow-hidden rounded-sm bg-background">
             <div
-              className="h-full rounded-full bg-de9-teal"
+              className="h-full rounded-sm bg-de9-teal"
               style={{ width: `${Math.round((r.valueDzd / max) * 100)}%` }}
             />
           </div>
@@ -161,15 +161,11 @@ function KpiTile({
   return (
     <Card>
       <CardContent className="flex flex-col gap-1.5 py-4">
-        <span
-          className={cn(
-            'flex size-8 items-center justify-center rounded-lg bg-de9-teal/15 text-de9-teal-dark',
-          )}
-        >
-          {icon}
+        <span className="flex items-start justify-between gap-2">
+          <span className="text-sm font-semibold text-de9-gray">{label}</span>
+          <span className={cn('flex-none text-de9-teal')}>{icon}</span>
         </span>
-        <span className="text-[16px] font-extrabold text-de9-ink">{value}</span>
-        <span className="text-[11.5px] font-medium text-de9-gray">{label}</span>
+        <span className="text-2xl font-bold text-de9-ink">{value}</span>
       </CardContent>
     </Card>
   );
@@ -178,14 +174,14 @@ function KpiTile({
 function StatsSkeleton() {
   return (
     <div className="flex animate-pulse flex-col gap-5">
-      <div className="h-[104px] rounded-2xl bg-card" />
-      <div className="h-[220px] rounded-2xl border border-de9-line bg-card" />
-      <div className="h-[180px] rounded-2xl border border-de9-line bg-card" />
+      <div className="h-[104px] rounded-lg bg-card shadow-soft dark:ring-1 dark:ring-border" />
+      <div className="h-[220px] rounded-lg bg-card shadow-soft dark:ring-1 dark:ring-border" />
+      <div className="h-[180px] rounded-lg bg-card shadow-soft dark:ring-1 dark:ring-border" />
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div className="h-[104px] rounded-2xl border border-de9-line bg-card" />
-        <div className="h-[104px] rounded-2xl border border-de9-line bg-card" />
-        <div className="h-[104px] rounded-2xl border border-de9-line bg-card" />
-        <div className="h-[104px] rounded-2xl border border-de9-line bg-card" />
+        <div className="h-[104px] rounded-lg bg-card shadow-soft dark:ring-1 dark:ring-border" />
+        <div className="h-[104px] rounded-lg bg-card shadow-soft dark:ring-1 dark:ring-border" />
+        <div className="h-[104px] rounded-lg bg-card shadow-soft dark:ring-1 dark:ring-border" />
+        <div className="h-[104px] rounded-lg bg-card shadow-soft dark:ring-1 dark:ring-border" />
       </div>
     </div>
   );

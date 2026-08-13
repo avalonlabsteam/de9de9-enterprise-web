@@ -67,7 +67,7 @@ function setupReached(setup: SetupCode): number {
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
-  return <h2 className="mb-2 text-[13px] font-extrabold tracking-wide text-de9-slate uppercase">{children}</h2>;
+  return <h2 className="mb-2 text-sm font-semibold text-de9-gray">{children}</h2>;
 }
 
 export function TenderDetailPage() {
@@ -225,8 +225,8 @@ export function TenderDetailPage() {
                       <div
                         className={cn(
                           'flex size-7 items-center justify-center rounded-full border-2 text-[11px] font-extrabold',
-                          done && 'border-de9-teal-dark bg-de9-teal-dark text-white',
-                          current && 'border-de9-teal-dark bg-[#E5F7F4] text-de9-teal-dark dark:bg-[#14322E]',
+                          done && 'border-de9-teal bg-de9-teal text-white',
+                          current && 'border-de9-teal bg-accent text-de9-teal-dark',
                           !done && !current && 'border-de9-line bg-card text-de9-gray',
                         )}
                       >
@@ -245,7 +245,7 @@ export function TenderDetailPage() {
                       <div
                         className={cn(
                           'mx-1.5 h-0.5 flex-1 rounded-full',
-                          i < setupReached(tender.setup as SetupCode) ? 'bg-de9-teal-dark' : 'bg-de9-line',
+                          i < setupReached(tender.setup as SetupCode) ? 'bg-de9-teal' : 'bg-de9-line',
                         )}
                       />
                     )}
@@ -261,14 +261,14 @@ export function TenderDetailPage() {
       {tender.prov && (
         <Card className="mb-4">
           <CardContent className="flex items-center gap-3 py-4">
-            <div className="flex size-11 items-center justify-center rounded-xl bg-[#E5F7F4] text-de9-teal-dark dark:bg-[#14322E]">
+            <div className="flex size-11 items-center justify-center rounded-[12px] bg-de9-teal-soft text-de9-teal-dark">
               <ShieldCheck className="size-6" />
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-[14px] font-bold text-de9-ink">{tender.prov.alias}</p>
               <div className="mt-0.5 flex items-center gap-3 text-[12px] text-de9-gray">
                 <span className="inline-flex items-center gap-1">
-                  <Star className="size-3.5 fill-[#E0A82E] text-[#E0A82E]" />
+                  <Star className="size-3.5 fill-de9-orange-deep text-de9-orange-deep" />
                   {tender.prov.note}/5
                 </span>
                 <span>
@@ -308,16 +308,16 @@ export function TenderDetailPage() {
                     }
                   }}
                   className={cn(
-                    'cursor-pointer rounded-xl border p-3 text-start transition-colors',
+                    'cursor-pointer rounded-lg border p-3 text-start transition-colors',
                     selectedProposal === p.id
-                      ? 'border-de9-teal-dark bg-[#E5F7F4] dark:bg-[#14322E]'
+                      ? 'border-de9-teal bg-accent'
                       : 'border-de9-line bg-card hover:border-de9-teal',
                   )}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-[14px] font-bold text-de9-ink">{p.alias}</span>
                     <span className="inline-flex items-center gap-1 text-[12px] text-de9-gray">
-                      <Star className="size-3.5 fill-[#E0A82E] text-[#E0A82E]" />
+                      <Star className="size-3.5 fill-de9-orange-deep text-de9-orange-deep" />
                       {p.note}/5
                     </span>
                   </div>
@@ -344,7 +344,7 @@ export function TenderDetailPage() {
               ))}
             </div>
             <Button
-              className="mt-4 w-full bg-de9-teal-dark text-white hover:bg-de9-teal-dark/90"
+              className="mt-4 w-full bg-de9-teal text-white shadow-glow hover:bg-de9-teal-dark"
               disabled={!selectedProposal || action.isPending}
               onClick={() => run({ action: 'chooseProvider' }, L('Prestataire confirmé', 'تم تأكيد مقدّم الخدمة'))}
             >
@@ -366,14 +366,14 @@ export function TenderDetailPage() {
 
                 {/* Current occurrence controls */}
                 {cur.status === 'toConfirm' && (
-                  <div className="rounded-xl border border-de9-line bg-de9-row p-3">
+                  <div className="rounded-lg bg-de9-row p-3">
                     <p className="mb-2 text-[13px] font-bold text-de9-ink">
                       {cur.label ?? L('Prochaine visite', 'الزيارة القادمة')} · {fmtDate(cur.date)}
                     </p>
                     <div className="flex flex-wrap gap-2">
                       <Button
                         size="sm"
-                        className="bg-de9-teal-dark text-white hover:bg-de9-teal-dark/90"
+                        className="bg-de9-teal text-white shadow-glow hover:bg-de9-teal-dark"
                         disabled={action.isPending}
                         onClick={() =>
                           run({ action: 'confirmOcc', occId: cur.id }, L('Visite confirmée', 'تم تأكيد الزيارة'))
@@ -399,19 +399,19 @@ export function TenderDetailPage() {
                 )}
 
                 {(cur.status === 'confirmed' || cur.status === 'confirmedAssigned') && (
-                  <p className="rounded-xl border border-de9-line bg-de9-row p-3 text-[13px] text-de9-slate">
+                  <p className="rounded-lg bg-de9-row p-3 text-[13px] text-de9-slate">
                     {L('Prochaine visite', 'الزيارة القادمة')} : {fmtDate(cur.date)}
                   </p>
                 )}
 
                 {cur.status === 'doneNoInvoice' && (
-                  <p className="rounded-xl border border-de9-line bg-de9-row p-3 text-[13px] text-de9-slate">
+                  <p className="rounded-lg bg-de9-row p-3 text-[13px] text-de9-slate">
                     {L('En attente de la facture', 'في انتظار الفاتورة')}
                   </p>
                 )}
 
                 {(cur.status === 'doneInvoiced' || cur.status === 'doneDisputed') && (
-                  <div className="rounded-xl border border-de9-line bg-de9-row p-3">
+                  <div className="rounded-lg bg-de9-row p-3">
                     <p className="mb-2 text-[13px] font-bold text-de9-ink">
                       {cur.label ?? L('Facture', 'الفاتورة')}
                       {cur.montant != null && <> · {fmtDzd(cur.montant)}</>}
@@ -424,7 +424,7 @@ export function TenderDetailPage() {
                         <>
                           <Button
                             size="sm"
-                            className="bg-de9-teal-dark text-white hover:bg-de9-teal-dark/90"
+                            className="bg-de9-teal text-white shadow-glow hover:bg-de9-teal-dark"
                             onClick={() => setApproveOpen(true)}
                           >
                             {t('facApprouver')}
@@ -432,7 +432,7 @@ export function TenderDetailPage() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="border-de9-red text-de9-red hover:bg-de9-red/10"
+                            className="border-de9-red bg-card text-de9-red hover:bg-de9-red-soft hover:text-de9-red"
                             onClick={() => setContestOpen(true)}
                           >
                             {t('facContester')}
@@ -498,7 +498,7 @@ export function TenderDetailPage() {
             </Button>
             <Button
               variant="outline"
-              className="border-de9-red text-de9-red hover:bg-de9-red/10"
+              className="border-de9-red bg-card text-de9-red hover:bg-de9-red-soft hover:text-de9-red"
               onClick={() => setCancelOpen(true)}
             >
               {t('actAnnuler')}

@@ -39,15 +39,15 @@ export function KycForm({
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-de9-bg px-4 py-10">
+    <main className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
       <div className="w-full max-w-md animate-slide-up">
         <div className="mb-6 flex justify-center">
           <Logo />
         </div>
-        <Card className="border-de9-line shadow-sm">
+        <Card className="shadow-modal">
           <CardContent className="p-6 sm:p-7">
             <div className="mb-1 flex items-center gap-2">
-              <span className="flex size-9 items-center justify-center rounded-full bg-accent text-de9-teal-dark">
+              <span className="flex size-9 items-center justify-center rounded-[12px] bg-de9-teal-soft text-de9-teal-dark">
                 <ShieldCheck className="size-5" />
               </span>
               <h1 className="text-xl font-extrabold text-de9-ink">{t('kycTitle')}</h1>

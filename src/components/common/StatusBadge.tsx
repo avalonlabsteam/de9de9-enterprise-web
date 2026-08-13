@@ -4,11 +4,11 @@ import { projectionLabel, type Projection, type StatusCode, ballOf } from '@/lib
 
 /** Theme-aware tint per urgency kind (literal classes for the Tailwind scanner). */
 const KIND_CLASSES: Record<BadgeKind, string> = {
-  action: 'bg-[#FDECEC] text-de9-red dark:bg-[#331A1C] dark:text-[#FF7A80]',
-  wait: 'bg-[#FEF6E9] text-[#B9781A] dark:bg-[#33280F] dark:text-[#E0A82E]',
-  setup: 'bg-[#EAF2FD] text-[#2F7FD0] dark:bg-[#17293A] dark:text-[#5BB6F0]',
-  done: 'bg-[#E6F6EC] text-[#2E9E5B] dark:bg-[#123322] dark:text-[#5FCF8A]',
-  info: 'bg-[#E5F7F4] text-de9-teal-dark dark:bg-[#14322E] dark:text-[#65CBC4]',
+  action: 'bg-de9-red-soft text-de9-red',
+  wait: 'bg-de9-orange/20 text-de9-orange-deep',
+  setup: 'bg-de9-blue-tint text-de9-blue',
+  done: 'bg-de9-teal-soft text-de9-teal-dark',
+  info: 'bg-accent text-accent-foreground',
   cancelled: 'bg-secondary text-de9-gray',
 };
 
@@ -24,7 +24,7 @@ export function StatusBadge({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-bold',
+        'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold',
         KIND_CLASSES[kind],
         className,
       )}

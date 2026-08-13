@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronDown, MapPin, Megaphone, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useT, useL } from '@/lib/i18n';
@@ -10,6 +10,7 @@ import { StatusBadge } from '@/components/common/StatusBadge';
 import { EmptyState } from '@/components/common/EmptyState';
 import { WorkerAvatar } from '@/components/common/WorkerAvatar';
 import { useAnnonces, useProMissions, useProsWithJobs } from '../api/annonces';
+import { CreateAnnonceWizard } from './CreateAnnonceWizard';
 import type { ProMission } from '../schemas/annonces';
 
 const NOW = new Date('2026-07-13T00:00:00');
@@ -33,7 +34,7 @@ function MesAnnoncesTab() {
 
   return (
     <div className="flex flex-col gap-4">
-      <Button className="w-full sm:w-fit" onClick={() => navigate('/prestataire/annonce/create?type=b2c')}>
+      <Button className="w-full sm:w-fit" onClick={() => navigate('/prestataire/annonces?create=1')}>
         <Plus className="size-4" />
         {L('+ Créer une annonce', '+ إنشاء إعلان')}
       </Button>
@@ -41,7 +42,7 @@ function MesAnnoncesTab() {
       {isPending && (
         <div className="grid gap-3 sm:grid-cols-2">
           {[0, 1, 2].map((i) => (
-            <div key={i} className="h-32 animate-pulse rounded-2xl border border-de9-line bg-card/60" />
+            <div key={i} className="h-32 animate-pulse rounded-lg bg-card/60 shadow-soft dark:ring-1 dark:ring-border" />
           ))}
         </div>
       )}
@@ -95,19 +96,19 @@ function MissionList({ title, missions }: { title: string; missions: ProMission[
   if (missions.length === 0) return null;
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-[12px] font-bold text-de9-gray">{title}</p>
+      <p className="text-[12px] font-semibold text-de9-gray">{title}</p>
       {missions.map((m) => {
         const d = new Date(m.start);
         const upcoming = d >= NOW;
         return (
           <div
             key={m.id}
-            className="flex items-center gap-3 rounded-xl border border-de9-line bg-de9-row px-3 py-2.5"
+            className="flex items-center gap-3 rounded-lg bg-de9-row px-3 py-2.5"
           >
             <div className="min-w-0 flex-1">
               <p className="truncate text-[13px] font-bold text-de9-ink">{m.title}</p>
-              <p className="mt-0.5 flex items-center gap-1 text-[12px] text-de9-gray">
-                <MapPin className="size-3.5" />
+              <p className="mt-0.5 flex items-center gap-1.5 text-[12px] text-de9-gray">
+                <MapPin className="size-3.5 text-de9-teal" />
                 {m.wilaya} · {d.toLocaleDateString('fr-DZ')}
               </p>
             </div>
@@ -144,7 +145,7 @@ function MissionsProsTab() {
     return (
       <div className="flex flex-col gap-2">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="h-16 animate-pulse rounded-2xl bg-secondary" />
+          <div key={i} className="h-16 animate-pulse rounded-lg bg-secondary" />
         ))}
       </div>
     );
@@ -174,7 +175,7 @@ function MissionsProsTab() {
             const past = list.filter((m) => new Date(m.start) < NOW);
             const open = openId === p.id;
             return (
-              <div key={p.id} className="overflow-hidden rounded-2xl border border-de9-line bg-card">
+              <div key={p.id} className="overflow-hidden rounded-lg bg-card shadow-soft dark:ring-1 dark:ring-border">
                 <button
                   type="button"
                   onClick={() => setOpenId(open ? null : p.id)}
@@ -222,6 +223,16 @@ export function AnnoncesPage() {
   const t = useT();
   const L = useL();
   const [tab, setTab] = useState('mes');
+  const [params, setParams] = useSearchParams();
+
+  /** `?create=1` opens the wizard, so other screens can deep-link into it. */
+  const createOpen = params.get('create') === '1';
+  const setCreateOpen = (open: boolean) => {
+    const next = new URLSearchParams(params);
+    if (open) next.set('create', '1');
+    else next.delete('create');
+    setParams(next, { replace: true });
+  };
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-5">
@@ -242,6 +253,12 @@ export function AnnoncesPage() {
           <MissionsProsTab />
         </TabsContent>
       </Tabs>
+
+      <CreateAnnonceWizard
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onDone={() => setCreateOpen(false)}
+      />
     </div>
   );
 }

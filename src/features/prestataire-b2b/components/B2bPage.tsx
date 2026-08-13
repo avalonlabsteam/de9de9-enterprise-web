@@ -32,7 +32,7 @@ function Loading() {
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       {[0, 1, 2, 3].map((i) => (
-        <div key={i} className="h-40 animate-pulse rounded-2xl border border-de9-line bg-card/60" />
+        <div key={i} className="h-40 animate-pulse rounded-lg bg-card/60 shadow-soft dark:ring-1 dark:ring-border" />
       ))}
     </div>
   );
@@ -40,10 +40,10 @@ function Loading() {
 
 function chipCls(active: boolean): string {
   return cn(
-    'rounded-full border px-3.5 py-1.5 text-[12px] font-bold transition-colors',
+    'rounded-full px-3.5 py-1.5 text-[12px] font-bold transition-all',
     active
-      ? 'border-de9-teal bg-de9-teal text-white'
-      : 'border-de9-line bg-card text-de9-gray hover:text-de9-ink',
+      ? 'bg-de9-teal text-white shadow-glow'
+      : 'bg-card text-de9-teal-dark shadow-soft hover:shadow-lift dark:ring-1 dark:ring-border',
   );
 }
 
@@ -109,20 +109,20 @@ export function B2bPage() {
                     navigate('/prestataire/b2b/' + job.id);
                   }
                 }}
-                className="cursor-pointer transition-shadow hover:shadow-md"
+                className="cursor-pointer transition-shadow hover:shadow-lift"
               >
-                <CardHeader className="gap-1">
-                  <div className="flex items-center gap-2 text-[13px] font-bold text-de9-gray">
-                    <Building2 className="size-4 flex-none" />
+                <CardHeader className="gap-0.5">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-de9-teal">
+                    <Building2 className="size-3.5 flex-none" />
                     <span className="truncate">{job.clientEntreprise}</span>
                   </div>
-                  <CardTitle className="text-[15px]">{job.serviceName}</CardTitle>
+                  <CardTitle className="text-base font-bold">{job.serviceName}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <div className="flex items-center gap-2 text-[13px] text-de9-gray">
-                    <CalendarDays className="size-3.5 flex-none" />
+                  <div className="flex items-center gap-1.5 text-xs text-de9-gray">
+                    <CalendarDays className="size-3.5 flex-none text-de9-teal" />
                     <span>{job.occurrenceLabel}</span>
-                    <span className="text-de9-line">·</span>
+                    <span className="text-de9-gray">·</span>
                     <span>{job.dateLabel}</span>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
@@ -140,7 +140,7 @@ export function B2bPage() {
         type="button"
         aria-label={L('Créer une annonce B2B', 'إنشاء إعلان B2B')}
         onClick={() => navigate('/prestataire/annonce/create?type=b2b')}
-        className="fixed bottom-24 end-6 z-30 inline-flex size-14 items-center justify-center rounded-full bg-[#2F7FD0] text-white shadow-lg transition-transform hover:scale-105 active:scale-95 hover:bg-[#2a72bd]"
+        className="fixed bottom-24 end-6 z-30 inline-flex size-14 items-center justify-center rounded-full bg-de9-blue text-white shadow-float transition-transform hover:scale-105 active:scale-95 hover:bg-de9-blue/90"
       >
         <Plus className="size-6" />
       </button>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { FileWarning } from 'lucide-react';
 import { useL } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -40,9 +41,14 @@ export function ContestSheet({
       }}
     >
       <SheetContent side="right" className="flex flex-col">
-        <SheetHeader>
-          <SheetTitle>{L('Contester la facture', 'الاعتراض على الفاتورة')}</SheetTitle>
-          <SheetDescription>
+        <SheetHeader className="items-center text-center">
+          <div className="mx-auto mt-2 grid size-[66px] place-items-center rounded-full bg-de9-red text-white">
+            <FileWarning className="size-8" />
+          </div>
+          <SheetTitle className="text-center text-de9-red">
+            {L('Contester la facture', 'الاعتراض على الفاتورة')}
+          </SheetTitle>
+          <SheetDescription className="text-center text-xs font-semibold">
             {L('Indiquez le motif de votre contestation.', 'حدّد سبب اعتراضك.')}
           </SheetDescription>
         </SheetHeader>
@@ -55,10 +61,10 @@ export function ContestSheet({
                 type="button"
                 onClick={() => setMotif(m)}
                 className={cn(
-                  'rounded-xl border px-3.5 py-3 text-start text-[13px] font-bold transition-colors',
+                  'rounded-lg px-3.5 py-3 text-start text-[13px] font-bold transition-shadow',
                   motif === m
-                    ? 'border-de9-teal-dark bg-[#E5F7F4] text-de9-teal-dark dark:bg-[#14322E]'
-                    : 'border-de9-line bg-card text-de9-ink hover:border-de9-teal',
+                    ? 'bg-accent text-de9-teal-dark shadow-soft'
+                    : 'bg-card text-de9-ink shadow-soft hover:shadow-lift dark:ring-1 dark:ring-border',
                 )}
               >
                 {m}

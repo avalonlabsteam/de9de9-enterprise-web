@@ -1,6 +1,6 @@
 import { createBrowserRouter, Navigate, type RouteObject } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { RequireRole, RootRedirect } from './guards';
+import { RequireRole } from './guards';
 
 /**
  * Route-level code splitting: each page loads its own chunk on first visit.
@@ -20,7 +20,8 @@ export const router = createBrowserRouter([
   { path: '/signup/client', lazy: page(() => import('@/features/onboarding/components/ClientSignupPage'), 'ClientSignupPage') },
   { path: '/onboarding/kyc', lazy: page(() => import('@/features/kyc/components/ProKycPage'), 'ProKycPage') },
   { path: '/onboarding/kyc/success', lazy: page(() => import('@/features/kyc/components/ProKycSuccessPage'), 'ProKycSuccessPage') },
-  { path: '/', element: <RootRedirect /> },
+  { path: '/', lazy: page(() => import('@/features/landing/components/LandingPage'), 'LandingPage') },
+  { path: '/contact', lazy: page(() => import('@/features/landing/components/ContactPage'), 'ContactPage') },
 
   // ===== client shell =====
   {

@@ -48,77 +48,81 @@
     --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* ===== Deg Deg design system (Figma "Entreprise" / page WEB) =====
+   Light values come straight from the reference tokens; dark mode is a
+   derived counterpart so the existing theme toggle keeps working. */
 :root {
-    --background: #E7EBEE;
-    --foreground: #232838;
+    --background: #F8F9FA;
+    --foreground: #2D3748;
     --card: #ffffff;
-    --card-foreground: #232838;
+    --card-foreground: #2D3748;
     --popover: #ffffff;
-    --popover-foreground: #232838;
-    --primary: #178A82;
+    --popover-foreground: #2D3748;
+    --primary: #4FD1C5;
     --primary-foreground: #ffffff;
-    --secondary: #F1F4F6;
-    --secondary-foreground: #232838;
-    --muted: #F1F4F6;
-    --muted-foreground: #8A94A0;
-    --accent: #F7FBFB;
-    --accent-foreground: #178A82;
+    --secondary: #EDF0F3;
+    --secondary-foreground: #2D3748;
+    --muted: #EDF0F3;
+    --muted-foreground: #A0AEC0;
+    --accent: #EAF8F7;
+    --accent-foreground: #3FBDB1;
     --destructive: #E7464E;
-    --border: #E4E9ED;
-    --input: #E4E9ED;
-    --ring: #65CBC4;
-    --chart-1: #65CBC4;
-    --chart-2: #178A82;
-    --chart-3: #232838;
+    --border: #EDF0F3;
+    --input: #EDF0F3;
+    --ring: #4FD1C5;
+    --chart-1: #4FD1C5;
+    --chart-2: #3FBDB1;
+    --chart-3: #2D3748;
     --chart-4: #E7464E;
-    --chart-5: #8A94A0;
-    --radius: 0.8125rem;
+    --chart-5: #A0AEC0;
+    --radius: 0.9375rem; /* 15px card radius */
     --sidebar: #ffffff;
-    --sidebar-foreground: #232838;
-    --sidebar-primary: #178A82;
+    --sidebar-foreground: #2D3748;
+    --sidebar-primary: #4FD1C5;
     --sidebar-primary-foreground: #ffffff;
-    --sidebar-accent: #EFFAF8;
-    --sidebar-accent-foreground: #178A82;
-    --sidebar-border: #E4E9ED;
-    --sidebar-ring: #65CBC4;
+    --sidebar-accent: #EAF8F7;
+    --sidebar-accent-foreground: #3FBDB1;
+    --sidebar-border: #EDF0F3;
+    --sidebar-ring: #4FD1C5;
 }
 
 .dark {
-    --background: #151923;
-    --foreground: #E8EBF2;
-    --card: #1E2330;
-    --card-foreground: #E8EBF2;
-    --popover: #1E2330;
-    --popover-foreground: #E8EBF2;
-    --primary: #2AB3A8;
-    --primary-foreground: #08211E;
-    --secondary: #262C3B;
-    --secondary-foreground: #E8EBF2;
-    --muted: #262C3B;
-    --muted-foreground: #98A1B0;
-    --accent: #22303A;
-    --accent-foreground: #65CBC4;
+    --background: #171C23;
+    --foreground: #E9EDF2;
+    --card: #1F2630;
+    --card-foreground: #E9EDF2;
+    --popover: #1F2630;
+    --popover-foreground: #E9EDF2;
+    --primary: #4FD1C5;
+    --primary-foreground: #0B2521;
+    --secondary: #2A323E;
+    --secondary-foreground: #E9EDF2;
+    --muted: #2A323E;
+    --muted-foreground: #93A0B4;
+    --accent: #16332F;
+    --accent-foreground: #4FD1C5;
     --destructive: #F2646B;
-    --border: #2C3345;
-    --input: #2C3345;
-    --ring: #2AB3A8;
-    --chart-1: #65CBC4;
-    --chart-2: #2AB3A8;
-    --chart-3: #E8EBF2;
+    --border: #2C3542;
+    --input: #2C3542;
+    --ring: #4FD1C5;
+    --chart-1: #4FD1C5;
+    --chart-2: #64CCC5;
+    --chart-3: #E9EDF2;
     --chart-4: #F2646B;
-    --chart-5: #98A1B0;
-    --sidebar: #1E2330;
-    --sidebar-foreground: #E8EBF2;
-    --sidebar-primary: #2AB3A8;
-    --sidebar-primary-foreground: #08211E;
-    --sidebar-accent: #14322E;
-    --sidebar-accent-foreground: #65CBC4;
-    --sidebar-border: #2C3345;
-    --sidebar-ring: #2AB3A8;
+    --chart-5: #93A0B4;
+    --sidebar: #1F2630;
+    --sidebar-foreground: #E9EDF2;
+    --sidebar-primary: #4FD1C5;
+    --sidebar-primary-foreground: #0B2521;
+    --sidebar-accent: #16332F;
+    --sidebar-accent-foreground: #4FD1C5;
+    --sidebar-border: #2C3542;
+    --sidebar-ring: #4FD1C5;
 }
 
 /* ===== De9De9 brand tokens (generate bg-de9-*, text-de9-*, border-de9-* utilities).
-   Theme-aware: the utilities read CSS variables that flip with the .dark class. ===== */
+   Same token NAMES as before — values re-pointed to the Deg Deg system so every
+   component re-skins without code changes. New accent tokens added below. ===== */
 @theme inline {
     --color-de9-red: var(--de9-red);
     --color-de9-teal: var(--de9-teal);
@@ -129,38 +133,65 @@
     --color-de9-line: var(--de9-line);
     --color-de9-bg: var(--de9-bg);
     --color-de9-row: var(--de9-row);
+    /* Deg Deg additions */
+    --color-de9-teal-soft: var(--de9-teal-soft);
+    --color-de9-teal-tint: var(--de9-teal-tint);
+    --color-de9-blue: var(--de9-blue);
+    --color-de9-blue-soft: var(--de9-blue-soft);
+    --color-de9-orange: var(--de9-orange);
+    --color-de9-orange-deep: var(--de9-orange-deep);
+    --color-de9-red-soft: var(--de9-red-soft);
+    --color-de9-blue-tint: var(--de9-blue-tint);
 }
 
 :root {
     color-scheme: light;
     --de9-red: #E7464E;
-    --de9-teal: #65CBC4;
-    --de9-teal-dark: #178A82;
-    --de9-ink: #232838;
-    --de9-slate: #5A6472;
-    --de9-gray: #8A94A0;
-    --de9-line: #E4E9ED;
-    --de9-bg: #E7EBEE;
-    --de9-row: #F7FBFB;
-    --de9-scrollbar: #C7CFD7;
+    --de9-teal: #4FD1C5;
+    --de9-teal-dark: #3FBDB1;
+    --de9-ink: #2D3748;
+    --de9-slate: #848688;
+    --de9-gray: #A0AEC0;
+    --de9-line: #EDF0F3;
+    --de9-bg: #F8F9FA;
+    --de9-row: #EAF8F7;
+    --de9-scrollbar: #D2D4D7;
+    /* Deg Deg additions */
+    --de9-teal-soft: #AEF7EB;
+    --de9-teal-tint: rgba(103, 202, 196, 0.09);
+    --de9-blue: #0099D6;
+    --de9-blue-soft: #6AB5FF;
+    --de9-orange: #FFC581;
+    --de9-orange-deep: #F0982D;
+    --de9-red-soft: #FDE7E8;
+    --de9-blue-tint: #E8F1FD;
 }
 
 .dark {
     color-scheme: dark;
     --de9-red: #F2646B;
-    --de9-teal: #65CBC4;
-    --de9-teal-dark: #2AB3A8;
-    --de9-ink: #E8EBF2;
-    --de9-slate: #A6AEBD;
-    --de9-gray: #7D8694;
-    --de9-line: #2C3345;
-    --de9-bg: #151923;
-    --de9-row: #222836;
-    --de9-scrollbar: #3A4356;
+    --de9-teal: #4FD1C5;
+    --de9-teal-dark: #64CCC5;
+    --de9-ink: #E9EDF2;
+    --de9-slate: #A7B1BF;
+    --de9-gray: #8792A2;
+    --de9-line: #2C3542;
+    --de9-bg: #171C23;
+    --de9-row: #1C2A32;
+    --de9-scrollbar: #3A4452;
+    /* Deg Deg additions */
+    --de9-teal-soft: #14453F;
+    --de9-teal-tint: rgba(79, 209, 197, 0.12);
+    --de9-blue: #33ADE0;
+    --de9-blue-soft: #6AB5FF;
+    --de9-orange: #F0A957;
+    --de9-orange-deep: #F0982D;
+    --de9-red-soft: #38191B;
+    --de9-blue-tint: #17293A;
 }
 
 /* ===== De9De9 catalogue category tokens (NOIR / BLEU / VERT / ROUGE).
-   `accent` = chip/text accent, `soft` = tinted surface, both theme-aware. ===== */
+   Retuned to the Deg Deg accent hues; `soft` = tinted surface. ===== */
 @theme inline {
     --color-cat-noir: var(--cat-noir);
     --color-cat-noir-soft: var(--cat-noir-soft);
@@ -173,28 +204,36 @@
 }
 
 :root {
-    --cat-noir: #2D3340;
-    --cat-noir-soft: #ECEEF1;
-    --cat-bleu: #2F9BE0;
-    --cat-bleu-soft: #EAF2FD;
-    --cat-vert: #46B3AA;
-    --cat-vert-soft: #E5F7F4;
+    --cat-noir: #2D3748;
+    --cat-noir-soft: #EDF0F3;
+    --cat-bleu: #0099D6;
+    --cat-bleu-soft: #E8F1FD;
+    --cat-vert: #3FBDB1;
+    --cat-vert-soft: #EAF8F7;
     --cat-rouge: #E7464E;
-    --cat-rouge-soft: #FDECEC;
+    --cat-rouge-soft: #FDE7E8;
 }
 
 .dark {
-    --cat-noir: #B6BEC8;
-    --cat-noir-soft: #262C3B;
+    --cat-noir: #B8C2CE;
+    --cat-noir-soft: #2A323E;
     --cat-bleu: #5BB6F0;
     --cat-bleu-soft: #17293A;
-    --cat-vert: #5FC9C0;
-    --cat-vert-soft: #14322E;
+    --cat-vert: #4FD1C5;
+    --cat-vert-soft: #16332F;
     --cat-rouge: #FF6B72;
-    --cat-rouge-soft: #331A1C;
+    --cat-rouge-soft: #38191B;
 }
 
+/* ===== Deg Deg shadows (generate shadow-soft / shadow-lift / shadow-glow /
+   shadow-float / shadow-modal utilities). ===== */
 @theme {
+    --shadow-soft: 0 3.5px 5.5px rgba(0, 0, 0, 0.02);
+    --shadow-lift: 0 3.5px 5.5px rgba(0, 0, 0, 0.09);
+    --shadow-glow: 0 9px 41.6px rgba(79, 209, 197, 0.25);
+    --shadow-float: 0 3px 21.9px 3px rgba(1, 35, 110, 0.24);
+    --shadow-modal: 0 18px 60px rgba(1, 35, 110, 0.18);
+
     --animate-fade-in: fadeIn 0.3s ease;
     --animate-slide-up: slideUp 0.3s ease;
     --animate-sheet-up: sheetUp 0.25s ease;

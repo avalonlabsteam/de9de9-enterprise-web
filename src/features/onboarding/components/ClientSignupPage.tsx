@@ -44,12 +44,12 @@ export function ClientSignupPage() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-de9-bg px-4 py-10">
+    <main className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
       <div className="w-full max-w-md animate-slide-up">
         <div className="mb-6 flex justify-center">
           <Logo />
         </div>
-        <Card className="border-de9-line shadow-sm">
+        <Card className="shadow-modal">
           <CardContent className="p-6 sm:p-7">
             <h1 className="text-xl font-extrabold text-de9-ink">{t('clientSignupTitle')}</h1>
             <p className="mt-1.5 text-[13px] text-de9-slate">

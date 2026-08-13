@@ -46,12 +46,12 @@ function FactureCard({
           onOpen(facture);
         }
       }}
-      className="cursor-pointer transition-shadow hover:shadow-md"
+      className="cursor-pointer transition-shadow hover:shadow-lift"
     >
       <CardContent className="flex flex-col gap-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-start gap-3">
-            <div className="flex size-9 flex-none items-center justify-center rounded-full bg-secondary text-de9-teal-dark">
+            <div className="flex size-9 flex-none items-center justify-center rounded-full bg-de9-teal-soft text-de9-teal-dark">
               <FileText className="size-[18px]" />
             </div>
             <div className="min-w-0">
@@ -65,7 +65,7 @@ function FactureCard({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1 rounded-full bg-[#FDECEC] px-2.5 py-1 text-[12px] font-bold text-de9-red dark:bg-[#331A1C] dark:text-[#FF7A80]">
+          <span className="inline-flex items-center gap-1 rounded-full bg-de9-red-soft px-2.5 py-1 text-[12px] font-bold text-de9-red">
             <ArrowDown className="size-3.5" />−{nf.format(facture.amountDzd * 10)} {L('crédits', 'رصيد')}
           </span>
           {facture.occurrenceLabel && (
@@ -127,17 +127,17 @@ export function FacturesPage() {
             type="button"
             onClick={() => setFilter(p.key)}
             className={cn(
-              'inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-bold transition-colors',
+              'inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-bold transition-all',
               filter === p.key
-                ? 'bg-de9-teal-dark text-white'
-                : 'bg-secondary text-de9-slate hover:text-de9-ink',
+                ? 'bg-de9-teal text-white shadow-glow'
+                : 'bg-card text-de9-teal-dark shadow-soft hover:shadow-lift dark:ring-1 dark:ring-border',
             )}
           >
             {L(p.labelFr, p.labelAr)}
             <span
               className={cn(
                 'inline-flex min-w-5 justify-center rounded-full px-1.5 text-[11px] tabular-nums',
-                filter === p.key ? 'bg-white/20 text-white' : 'bg-card text-de9-gray',
+                filter === p.key ? 'bg-white/20 text-white' : 'bg-de9-teal-tint text-de9-teal-dark',
               )}
             >
               {p.count}
@@ -149,7 +149,7 @@ export function FacturesPage() {
       {isPending && (
         <div className="flex flex-col gap-3">
           {[0, 1, 2].map((i) => (
-            <div key={i} className="h-24 animate-pulse rounded-2xl bg-secondary" />
+            <div key={i} className="h-24 animate-pulse rounded-lg bg-secondary" />
           ))}
         </div>
       )}

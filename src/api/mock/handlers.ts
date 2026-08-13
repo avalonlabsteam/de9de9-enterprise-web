@@ -33,6 +33,11 @@ register('POST', '/auth/signup/client', () =>
   ok({ token: 'mock-client-token', user: { id: 'client-1', name: 'Hôtel El Aurassi', role: 'client' } }),
 );
 
+// ===================== public contact =====================
+// Landing "Nous contacter". Accepts and acknowledges; swap for the real
+// endpoint (mail relay / CRM) when the backend exists.
+register('POST', '/contact', () => ok({ received: true }));
+
 // ===================== kyc =====================
 register('GET', '/kyc/:key', (req) => {
   const key = req.pathParams['key'] ?? 'client';

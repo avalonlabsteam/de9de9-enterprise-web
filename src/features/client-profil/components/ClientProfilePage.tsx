@@ -92,12 +92,12 @@ export function ClientProfilePage() {
 
       {/* Company card */}
       <Card>
-        <CardContent className="flex items-center gap-4">
-          <div className="flex size-14 flex-none items-center justify-center rounded-2xl bg-[#E9F6F5] text-de9-teal-dark dark:bg-[#14322E]">
-            <Building2 className="size-7" />
+        <CardContent className="flex flex-col items-center gap-3 py-6 text-center">
+          <div className="flex size-16 flex-none items-center justify-center rounded-full bg-de9-blue text-white shadow-lift">
+            <Building2 className="size-8" />
           </div>
           <div className="min-w-0">
-            <p className="truncate text-[17px] font-black text-de9-ink">Hôtel El Aurassi</p>
+            <p className="truncate text-[17px] font-bold text-de9-ink">Hôtel El Aurassi</p>
             <p className="text-[13px] text-de9-gray">{L('Cliente Entreprise · Alger', 'عميلة شركة · الجزائر')}</p>
           </div>
         </CardContent>
@@ -107,9 +107,9 @@ export function ClientProfilePage() {
       <button
         type="button"
         onClick={() => uiActions.openSupport()}
-        className="flex items-center gap-4 rounded-2xl bg-de9-teal-dark px-5 py-4 text-start text-white transition-opacity hover:opacity-95"
+        className="flex items-center gap-4 rounded-lg bg-de9-teal px-5 py-4 text-start text-white shadow-glow transition-opacity hover:opacity-95"
       >
-        <div className="flex size-11 flex-none items-center justify-center rounded-full bg-white/15">
+        <div className="flex size-11 flex-none items-center justify-center rounded-full bg-white/25">
           <Phone className="size-5" />
         </div>
         <div className="min-w-0 flex-1">
@@ -120,42 +120,40 @@ export function ClientProfilePage() {
       </button>
 
       {/* Rows */}
-      <Card>
-        <CardContent className="p-0">
-          <div className="divide-y divide-border">
-            {rows.map((row) => {
-              const Icon = row.icon;
-              return (
-                <button
-                  key={row.key}
-                  type="button"
-                  onClick={row.onClick}
-                  className="flex w-full items-center gap-3.5 px-4 py-3.5 text-start transition-colors hover:bg-de9-row"
-                >
-                  <div className="flex size-9 flex-none items-center justify-center rounded-full bg-secondary text-de9-slate">
-                    <Icon className="size-[18px]" />
-                  </div>
-                  <span className="flex-1 text-[14px] font-bold text-de9-ink">
-                    {L(row.labelFr, row.labelAr)}
-                  </span>
-                  {row.trailing}
-                  <ChevronRight className="size-[18px] flex-none text-de9-gray rtl:rotate-180" />
-                </button>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex flex-col gap-2.5">
+        {rows.map((row) => {
+          const Icon = row.icon;
+          return (
+            <button
+              key={row.key}
+              type="button"
+              onClick={row.onClick}
+              className="flex h-11 w-full items-center gap-3.5 rounded-full bg-card px-4 text-start shadow-soft transition-shadow hover:shadow-lift dark:ring-1 dark:ring-border"
+            >
+              <div className="flex size-[26px] flex-none items-center justify-center rounded-full bg-de9-teal-tint text-de9-teal">
+                <Icon className="size-[15px]" />
+              </div>
+              <span className="flex-1 truncate text-[13px] font-medium text-de9-ink">
+                {L(row.labelFr, row.labelAr)}
+              </span>
+              {row.trailing}
+              <ChevronRight className="size-4 flex-none text-de9-gray rtl:rotate-180" />
+            </button>
+          );
+        })}
+      </div>
 
       <Button
-        variant="outline"
-        className="w-full border-de9-red/30 text-de9-red hover:bg-de9-red/10 hover:text-de9-red"
+        variant="ghost"
+        className="h-11 w-full justify-start gap-3.5 rounded-full bg-card px-4 text-[13px] font-medium text-de9-red shadow-soft transition-shadow hover:bg-card hover:text-de9-red hover:shadow-lift dark:ring-1 dark:ring-border"
         onClick={() => {
           authActions.logout();
           navigate('/login');
         }}
       >
-        <LogOut className="size-4" />
+        <span className="flex size-[26px] flex-none items-center justify-center rounded-full bg-de9-red-soft text-de9-red">
+          <LogOut className="size-[15px]" />
+        </span>
         {L('Se déconnecter', 'تسجيل الخروج')}
       </Button>
     </div>

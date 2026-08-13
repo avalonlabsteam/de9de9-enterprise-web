@@ -29,19 +29,21 @@ export function PieceSlot({
     return (
       <div
         className={cn(
-          'flex items-center gap-3 rounded-xl border border-de9-teal bg-[#E5F7F4] px-3.5 py-3 dark:bg-[#14322E]',
+          'flex items-center gap-3 rounded-lg bg-de9-teal px-3.5 py-3 text-white',
           className,
         )}
       >
-        <FileCheck2 className="size-5 flex-none text-de9-teal-dark" />
+        <span className="flex size-8 flex-none items-center justify-center rounded-full bg-white text-de9-teal-dark">
+          <FileCheck2 className="size-4" />
+        </span>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[13px] font-bold text-de9-ink">{label}</p>
-          <p className="truncate text-[12px] text-de9-teal-dark">{value.name}</p>
+          <p className="truncate text-[13px] font-bold text-white">{label}</p>
+          <p className="truncate text-[12px] text-white/85">{value.name}</p>
         </div>
         <button
           type="button"
           onClick={() => onChange(null)}
-          className="flex size-7 flex-none items-center justify-center rounded-full text-de9-gray hover:bg-black/5"
+          className="flex size-7 flex-none items-center justify-center rounded-full text-white/80 hover:bg-white/15"
           aria-label="Retirer"
         >
           <X className="size-4" />
@@ -54,16 +56,16 @@ export function PieceSlot({
       type="button"
       onClick={() => onChange({ name: fileName })}
       className={cn(
-        'flex w-full items-center gap-3 rounded-xl border border-dashed border-de9-line bg-card px-3.5 py-3 text-start hover:border-de9-teal hover:bg-de9-row',
+        'flex w-full items-center gap-3 rounded-lg bg-de9-teal-soft px-3.5 py-3 text-start transition-shadow hover:shadow-lift',
         className,
       )}
     >
-      <UploadCloud className="size-5 flex-none text-de9-gray" />
+      <UploadCloud className="size-5 flex-none text-de9-teal-dark" />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[13px] font-bold text-de9-ink">{label}</p>
-        {hint && <p className="truncate text-[12px] text-de9-gray">{hint}</p>}
+        <p className="truncate text-[13px] font-bold text-de9-teal-dark">{label}</p>
+        {hint && <p className="truncate text-[12px] text-de9-teal-dark/70">{hint}</p>}
       </div>
-      <span className="flex-none rounded-full bg-secondary px-2.5 py-1 text-[12px] font-bold text-de9-slate">
+      <span className="flex-none rounded-full bg-card px-2.5 py-1 text-[12px] font-bold text-de9-teal-dark shadow-soft">
         Importer
       </span>
     </button>
