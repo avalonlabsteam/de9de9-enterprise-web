@@ -23,9 +23,3 @@ export function RequireRole({ role, children }: { role: Role; children: ReactNod
   return <>{children}</>;
 }
 
-/** Index redirect: to the persona home when logged in, else to /login. */
-export function RootRedirect() {
-  const token = useAuthStore((s) => s.token);
-  const role = useAuthStore((s) => s.user?.role);
-  return <Navigate to={token ? roleHome(role) : '/login'} replace />;
-}

@@ -15,13 +15,13 @@ export function TenderConfirmPage() {
       <Card className="animate-slide-up">
         <CardContent className="flex flex-col items-center gap-4 py-10 text-center">
           <StatusBadge label={L('En attente', 'قيد الانتظار')} kind="setup" />
-          <div className="flex size-16 items-center justify-center rounded-full bg-[#E5F7F4] dark:bg-[#14322E]">
-            <CheckCircle2 className="size-9 text-de9-teal-dark" />
+          <div className="flex size-[66px] items-center justify-center rounded-full bg-de9-teal text-white">
+            <CheckCircle2 className="size-9" />
           </div>
-          <h1 className="text-xl font-extrabold text-de9-ink">{t('confirmTitle')}</h1>
-          <p className="max-w-sm text-[14px] text-de9-slate">{t('confirmBody')}</p>
+          <h1 className="text-xl font-extrabold text-de9-teal-dark">{t('confirmTitle')}</h1>
+          <p className="max-w-sm text-xs font-semibold text-de9-slate">{t('confirmBody')}</p>
           <Button
-            className="mt-2 w-full bg-de9-teal-dark text-white hover:bg-de9-teal-dark/90"
+            className="mt-2 w-full bg-de9-teal text-white shadow-glow hover:bg-de9-teal-dark"
             onClick={() => navigate('/client/tenders')}
           >
             {t('seeSuivi')}

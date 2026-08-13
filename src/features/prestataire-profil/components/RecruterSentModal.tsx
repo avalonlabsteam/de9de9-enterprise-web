@@ -22,11 +22,11 @@ export function RecruterSentModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <span className="mx-auto mb-1 flex size-12 items-center justify-center rounded-full bg-de9-teal/15 text-de9-teal-dark">
-            <CheckCircle2 className="size-6" />
+          <span className="mx-auto mb-1 grid size-[66px] place-items-center rounded-full bg-de9-teal text-white shadow-glow">
+            <CheckCircle2 className="size-7" />
           </span>
-          <DialogTitle className="text-center">{L('Demande envoyée', 'تم إرسال الطلب')}</DialogTitle>
-          <DialogDescription className="text-center">
+          <DialogTitle className="text-center text-de9-teal">{L('Demande envoyée', 'تم إرسال الطلب')}</DialogTitle>
+          <DialogDescription className="text-center text-xs font-semibold">
             {L(
               'Nous recherchons les sous-traitants correspondants et revenons vers vous.',
               'نبحث عن المقاولين من الباطن المناسبين وسنعاود الاتصال بك.',

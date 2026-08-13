@@ -51,12 +51,12 @@ export function ProSignupPage() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-de9-bg px-4 py-10">
+    <main className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
       <div className="w-full max-w-md animate-slide-up">
         <div className="mb-6 flex justify-center">
           <Logo />
         </div>
-        <Card className="border-de9-line shadow-sm">
+        <Card className="shadow-modal">
           <CardContent className="p-6 sm:p-7">
             <h1 className="text-xl font-extrabold text-de9-ink">{t('proSignupTitle')}</h1>
             <p className="mt-1.5 rounded-lg bg-accent px-3 py-2 text-[12.5px] text-de9-teal-dark">
@@ -102,10 +102,10 @@ export function ProSignupPage() {
                       key={opt}
                       onClick={() => setValue('desiredAccounts', opt, { shouldValidate: true })}
                       className={cn(
-                        'h-10 rounded-lg border text-[14px] font-semibold transition-colors',
+                        'h-10 rounded-full text-[14px] font-semibold transition-all',
                         desired === opt
-                          ? 'border-de9-teal bg-accent text-de9-teal-dark'
-                          : 'border-de9-line text-de9-slate hover:border-de9-teal',
+                          ? 'bg-de9-teal text-white shadow-glow'
+                          : 'bg-card text-de9-teal-dark shadow-soft hover:shadow-lift dark:ring-1 dark:ring-border',
                       )}
                     >
                       {opt}

@@ -18,7 +18,6 @@ import {
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import { useT, useL } from '@/lib/i18n';
 import { authActions } from '@/stores/authStore';
 import { RecruterSheet } from './RecruterSheet';
@@ -49,11 +48,11 @@ export function PrestataireProfilePage() {
       {/* Company card */}
       <Card>
         <CardContent className="flex items-center gap-4 py-5">
-          <span className="flex size-12 flex-none items-center justify-center rounded-2xl bg-de9-teal/15 text-de9-teal-dark">
+          <span className="flex size-12 flex-none items-center justify-center rounded-full bg-de9-teal-soft font-bold text-de9-teal-dark">
             <Building2 className="size-6" />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[16px] font-extrabold text-de9-ink">PlombEx</p>
+            <p className="truncate text-[16px] font-bold text-de9-ink">PlombEx</p>
             <p className="truncate text-[12.5px] text-de9-gray">
               {L('Maintenance domestique · Alger', 'صيانة منزلية · الجزائر')}
             </p>
@@ -61,20 +60,14 @@ export function PrestataireProfilePage() {
         </CardContent>
       </Card>
 
-      {/* Inert rows */}
-      <Card>
-        <CardContent className="flex flex-col p-0">
-          <Row icon={<Building2 className="size-4.5" />} label={L("Informations de l'entreprise", 'معلومات المؤسسة')} />
-          <Separator />
-          <Row icon={<ShieldCheck className="size-4.5" />} label={L('Vérification KYC', 'التحقق KYC')} />
-          <Separator />
-          <Row icon={<Users className="size-4.5" />} label={L('Mon effectif', 'فريق عملي')} />
-          <Separator />
-          <Row icon={<Bell className="size-4.5" />} label={L('Notifications', 'الإشعارات')} />
-          <Separator />
-          <Row icon={<Settings className="size-4.5" />} label={L('Paramètres', 'الإعدادات')} />
-        </CardContent>
-      </Card>
+      {/* Settings pill rows */}
+      <div className="flex flex-col gap-2.5">
+        <Row icon={<Building2 className="size-3.5" />} label={L("Informations de l'entreprise", 'معلومات المؤسسة')} />
+        <Row icon={<ShieldCheck className="size-3.5" />} label={L('Vérification KYC', 'التحقق KYC')} />
+        <Row icon={<Users className="size-3.5" />} label={L('Mon effectif', 'فريق عملي')} />
+        <Row icon={<Bell className="size-3.5" />} label={L('Notifications', 'الإشعارات')} />
+        <Row icon={<Settings className="size-3.5" />} label={L('Paramètres', 'الإعدادات')} />
+      </div>
 
       {/* Recruter / Handicap actions */}
       <div className="flex flex-col gap-3">
@@ -96,31 +89,31 @@ export function PrestataireProfilePage() {
       <Card>
         <CardContent className="flex flex-col gap-4 py-5">
           <div className="flex items-center gap-3">
-            <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-de9-teal/15 text-de9-teal-dark">
+            <span className="flex size-10 flex-none items-center justify-center rounded-[12px] bg-de9-teal-tint text-de9-teal">
               <FileCheck2 className="size-5" />
             </span>
             <div className="min-w-0 flex-1">
               <p className="text-[14px] font-bold text-de9-ink">{t('contrat')}</p>
               <p className="truncate text-[12px] text-de9-gray">contrat-partenariat-plombex-signe.pdf</p>
             </div>
-            <span className="flex-none rounded-full bg-de9-teal/10 px-2.5 py-1 text-[11.5px] font-bold text-de9-teal-dark">
+            <span className="flex-none rounded-full bg-de9-teal-soft px-2.5 py-1 text-[11.5px] font-bold text-de9-teal-dark">
               {t('signe')}
             </span>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-xl bg-de9-row/60 px-3 py-2.5">
+            <div className="rounded-lg bg-background px-3 py-2.5">
               <p className="text-[11.5px] text-de9-gray">{L('Signature', 'التوقيع')}</p>
               <p className="text-[13px] font-bold text-de9-ink">18/02/2026</p>
             </div>
-            <div className="rounded-xl bg-de9-row/60 px-3 py-2.5">
+            <div className="rounded-lg bg-background px-3 py-2.5">
               <p className="text-[11.5px] text-de9-gray">{L('Échéance', 'الاستحقاق')}</p>
               <p className="text-[13px] font-bold text-de9-ink">18/02/2027</p>
             </div>
           </div>
 
           {contratVisible && (
-            <div className="rounded-xl border border-de9-line bg-de9-row/40 p-4 text-[12.5px] leading-relaxed text-de9-gray">
+            <div className="rounded-lg bg-background p-4 text-[12.5px] leading-relaxed text-de9-gray">
               {L(
                 'Contrat de partenariat entre PlombEx et de9de9. Aperçu du document simulé — le PDF signé est archivé de manière sécurisée.',
                 'عقد شراكة بين PlombEx و de9de9. معاينة للمستند المحاكى — ملف PDF الموقّع محفوظ بشكل آمن.',
@@ -150,10 +143,16 @@ export function PrestataireProfilePage() {
       </Card>
 
       {/* Logout */}
-      <Button variant="outline" className="h-11 w-full gap-2 text-de9-red" onClick={logout}>
-        <LogOut className="size-4 rtl:rotate-180" />
-        {t('logout')}
-      </Button>
+      <button
+        type="button"
+        onClick={logout}
+        className="flex h-11 w-full items-center gap-3.5 rounded-full bg-card px-4 text-start shadow-soft transition-shadow hover:shadow-lift dark:ring-1 dark:ring-border"
+      >
+        <span className="flex size-[26px] flex-none items-center justify-center rounded-full bg-de9-red-soft text-de9-red">
+          <LogOut className="size-3.5 rtl:rotate-180" />
+        </span>
+        <span className="flex-1 text-[13px] font-medium text-de9-red">{t('logout')}</span>
+      </button>
 
       <RecruterSheet
         open={recruterOpen}
@@ -175,12 +174,12 @@ function Row({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
     <button
       type="button"
-      className="flex w-full items-center gap-3 px-4 py-3.5 text-start transition-colors hover:bg-de9-row"
+      className="flex h-11 w-full items-center gap-3.5 rounded-full bg-card px-4 text-start shadow-soft transition-shadow hover:shadow-lift dark:ring-1 dark:ring-border"
     >
-      <span className="flex size-8 flex-none items-center justify-center rounded-lg bg-secondary text-de9-slate">
+      <span className="flex size-[26px] flex-none items-center justify-center rounded-full bg-de9-teal-tint text-de9-teal">
         {icon}
       </span>
-      <span className="flex-1 text-[13.5px] font-medium text-de9-ink">{label}</span>
+      <span className="flex-1 text-[13px] font-medium text-de9-ink">{label}</span>
       <ChevronRight className="size-4 flex-none text-de9-gray rtl:rotate-180" />
     </button>
   );
@@ -201,9 +200,9 @@ function ActionRow({
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full items-center gap-3.5 rounded-2xl border border-de9-line bg-card p-4 text-start transition-colors hover:bg-de9-row"
+      className="flex w-full items-center gap-3.5 rounded-lg bg-card p-4 text-start shadow-soft transition-shadow hover:shadow-lift dark:ring-1 dark:ring-border"
     >
-      <span className="flex size-11 flex-none items-center justify-center rounded-xl bg-de9-teal/15 text-de9-teal-dark">
+      <span className="flex size-11 flex-none items-center justify-center rounded-[12px] bg-de9-teal-tint text-de9-teal">
         {icon}
       </span>
       <span className="flex-1">

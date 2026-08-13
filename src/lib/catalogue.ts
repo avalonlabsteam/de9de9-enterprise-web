@@ -19,8 +19,8 @@ export interface ServiceFamily {
   subs: ServiceSub[];
 }
 
-/** Families surfaced under "Top catégories du mois". */
-export const TOP_FAMILY_IDS = ['6', '9', '7', '4'] as const;
+/** Families surfaced under "Top catégories du mois" (BTP · Maintenance · Nettoyage · IT). */
+export const TOP_FAMILY_IDS = ['9', '10', '6', '4'] as const;
 
 /** A bilingual label authored as a `[fr, ar]` tuple. */
 type Bilingual = [fr: string, ar: string];
