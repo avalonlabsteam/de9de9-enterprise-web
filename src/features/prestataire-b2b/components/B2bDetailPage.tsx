@@ -20,8 +20,8 @@ import { UploadFactureSheet } from './UploadFactureSheet';
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-start justify-between gap-4 py-2.5">
-      <span className="text-[13px] text-de9-gray">{label}</span>
-      <span className="text-end text-[13px] font-medium text-de9-ink">{value}</span>
+      <span className="text-[13px] font-medium text-de9-gray">{label}</span>
+      <span className="text-end text-[13px] font-semibold text-de9-ink">{value}</span>
     </div>
   );
 }
@@ -55,7 +55,7 @@ export function B2bDetailPage() {
   if (isPending) {
     return (
       <div className="mx-auto w-full max-w-3xl px-4 py-6">
-        <div className="h-64 animate-pulse rounded-2xl border border-de9-line bg-card/60" />
+        <div className="h-64 animate-pulse rounded-lg bg-card/60 shadow-soft dark:ring-1 dark:ring-border" />
       </div>
     );
   }
@@ -108,12 +108,12 @@ export function B2bDetailPage() {
       {/* Header card */}
       <Card className="mb-4">
         <CardHeader className="gap-2">
-          <div className="flex items-center gap-2 text-[13px] font-bold text-de9-gray">
-            <Building2 className="size-4 flex-none" />
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-de9-teal">
+            <Building2 className="size-3.5 flex-none" />
             <span className="truncate">{job.clientEntreprise}</span>
           </div>
-          <CardTitle className="text-[18px]">{job.serviceName}</CardTitle>
-          <p className="text-[13px] text-de9-gray">
+          <CardTitle className="text-[18px] font-bold">{job.serviceName}</CardTitle>
+          <p className="text-xs text-de9-gray">
             {job.occurrenceLabel} · {job.dateLabel}
           </p>
           <div className="flex flex-wrap items-center gap-2 pt-1">
@@ -136,7 +136,7 @@ export function B2bDetailPage() {
         </CardHeader>
         <CardContent>
           {job.assignedWorkerId ? (
-            <div className="inline-flex items-center gap-2 rounded-full border border-de9-line bg-secondary py-1 ps-1 pe-3 text-[13px] font-bold text-de9-ink">
+            <div className="inline-flex items-center gap-2 rounded-full bg-card py-1 ps-1 pe-3 text-[13px] font-bold text-de9-ink shadow-soft dark:ring-1 dark:ring-border">
               <WorkerAvatar worker={{ name: worker?.name ?? '—', colorHex: worker?.colorHex }} size={24} />
               <span>{worker?.name ?? job.assignedWorkerId}</span>
             </div>
@@ -157,7 +157,13 @@ export function B2bDetailPage() {
       <div className="mb-4 space-y-2">
         {primary && (
           <Button
-            className="w-full"
+            className={
+              job.status === 'doneDisputed'
+                ? 'w-full border border-de9-red bg-transparent text-de9-red shadow-none hover:bg-de9-red-soft hover:text-de9-red'
+                : primary.kind === 'affect'
+                  ? 'w-full shadow-glow'
+                  : 'w-full'
+            }
             disabled={action.isPending}
             onClick={() => {
               if (primary.kind === 'affect') setAffectMode('affect');

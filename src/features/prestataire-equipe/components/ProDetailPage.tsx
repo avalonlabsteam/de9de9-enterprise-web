@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, BadgeCheck } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -51,7 +51,7 @@ export function ProDetailPage() {
       )}
 
       {isPending && !isError && (
-        <div className="h-40 animate-pulse rounded-2xl border border-de9-line bg-card" />
+        <div className="h-40 animate-pulse rounded-lg bg-card shadow-soft dark:ring-1 dark:ring-border" />
       )}
 
       {data && (
@@ -62,16 +62,14 @@ export function ProDetailPage() {
               <WorkerAvatar worker={data} size={48} />
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
-                  <span className="truncate text-[16px] font-extrabold text-de9-ink">{data.name}</span>
+                  <span className="truncate text-[16px] font-bold text-de9-ink">{data.name}</span>
                   {data.type === 'salarie' && (
-                    <span className="shrink-0 rounded-full bg-de9-teal/15 px-1.5 py-0.5 text-[10px] font-bold text-de9-teal-dark">
-                      🤝 de9de9
-                    </span>
+                    <BadgeCheck className="size-4 shrink-0 text-de9-blue" />
                   )}
                 </div>
                 <p className="truncate text-[12.5px] text-de9-gray">{data.role}</p>
               </div>
-              <span className="flex-none rounded-full bg-de9-teal/10 px-2.5 py-1 text-[11.5px] font-bold text-de9-teal-dark">
+              <span className="flex-none rounded-full bg-de9-teal-soft px-2.5 py-1 text-[11.5px] font-bold text-de9-teal-dark">
                 {L('● Actif', '● نشط')}
               </span>
             </CardContent>
@@ -80,7 +78,7 @@ export function ProDetailPage() {
           {/* Fiche — éditable */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-[15px]">{L('Fiche — éditable', 'البطاقة — قابلة للتعديل')}</CardTitle>
+              <CardTitle className="text-sm font-semibold text-de9-gray">{L('Fiche — éditable', 'البطاقة — قابلة للتعديل')}</CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FieldEditor
@@ -115,7 +113,7 @@ export function ProDetailPage() {
               {/* Analytics */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-[15px]">{L('Analytics', 'التحليلات')}</CardTitle>
+                  <CardTitle className="text-sm font-semibold text-de9-gray">{L('Analytics', 'التحليلات')}</CardTitle>
                 </CardHeader>
                 <CardContent className="grid grid-cols-3 gap-3">
                   <Metric value="128" label={L('Missions réalisées', 'المهام المنجزة')} />
@@ -127,7 +125,7 @@ export function ProDetailPage() {
               {/* Statistiques */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-[15px]">{L('Statistiques', 'الإحصائيات')}</CardTitle>
+                  <CardTitle className="text-sm font-semibold text-de9-gray">{L('Statistiques', 'الإحصائيات')}</CardTitle>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-4">
                   <div className="grid grid-cols-2 gap-3">
@@ -136,7 +134,7 @@ export function ProDetailPage() {
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <p className="text-[13px] font-bold text-de9-ink">
+                    <p className="text-[13px] font-semibold text-de9-gray">
                       {L('CA par sous-catégorie', 'رقم الأعمال حسب الفئة الفرعية')}
                     </p>
                     <BarRow label={L('Nettoyage', 'التنظيف')} value={128000} max={128000} />
@@ -156,7 +154,7 @@ export function ProDetailPage() {
           {/* Missions assignées */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-[15px]">{L('Missions assignées', 'المهام المسنَدة')}</CardTitle>
+              <CardTitle className="text-sm font-semibold text-de9-gray">{L('Missions assignées', 'المهام المسنَدة')}</CardTitle>
             </CardHeader>
             <CardContent>
               <Tabs defaultValue="avenir">
@@ -210,9 +208,9 @@ function FieldEditor({
 
 function Metric({ value, label }: { value: string; label: string }) {
   return (
-    <div className="flex flex-col items-center gap-0.5 rounded-xl bg-de9-row/60 px-2 py-3 text-center">
-      <span className="text-[16px] font-extrabold text-de9-ink">{value}</span>
-      <span className="text-[11.5px] font-medium text-de9-gray">{label}</span>
+    <div className="flex flex-col items-center gap-0.5 rounded-lg bg-background px-2 py-3 text-center">
+      <span className="text-[20px] font-bold text-de9-ink">{value}</span>
+      <span className="text-[11.5px] font-semibold text-de9-gray">{label}</span>
     </div>
   );
 }
@@ -222,8 +220,8 @@ function BarRow({ label, value, max }: { label: string; value: number; max: numb
   return (
     <div className="flex items-center gap-3">
       <span className="w-24 shrink-0 text-[12.5px] text-de9-gray">{label}</span>
-      <div className="h-2 flex-1 overflow-hidden rounded-full bg-secondary">
-        <div className="h-full rounded-full bg-de9-teal-dark" style={{ width: `${pct}%` }} />
+      <div className="h-2.5 flex-1 overflow-hidden rounded-sm bg-background">
+        <div className="h-full bg-de9-teal" style={{ width: `${pct}%` }} />
       </div>
       <span className="w-20 shrink-0 text-end text-[12px] font-bold text-de9-ink">
         {value.toLocaleString('fr-FR')}

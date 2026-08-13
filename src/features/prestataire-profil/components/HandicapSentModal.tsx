@@ -22,13 +22,13 @@ export function HandicapSentModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <span className="mx-auto mb-1 flex size-12 items-center justify-center rounded-full bg-de9-teal/15 text-de9-teal-dark">
-            <Heart className="size-6" />
+          <span className="mx-auto mb-1 grid size-[66px] place-items-center rounded-full bg-de9-teal text-white shadow-glow">
+            <Heart className="size-7" />
           </span>
-          <DialogTitle className="text-center">
+          <DialogTitle className="text-center text-de9-teal">
             {L('Merci, nous vous recontacterons.', 'شكرًا، سنعاود الاتصال بك.')}
           </DialogTitle>
-          <DialogDescription className="text-center">
+          <DialogDescription className="text-center text-xs font-semibold">
             {L(
               'Votre demande a bien été enregistrée. de9de9 revient vers vous.',
               'تم تسجيل طلبك. سيتواصل معك de9de9.',

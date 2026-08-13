@@ -42,9 +42,14 @@ export function ReviewSheet({
       }}
     >
       <SheetContent side="right" className="flex flex-col">
-        <SheetHeader>
-          <SheetTitle>{L('Évaluer la prestation', 'تقييم الخدمة')}</SheetTitle>
-          <SheetDescription>
+        <SheetHeader className="items-center text-center">
+          <div className="mx-auto mt-2 grid size-[66px] place-items-center rounded-full bg-de9-teal text-white">
+            <Star className="size-8" />
+          </div>
+          <SheetTitle className="text-center text-de9-teal-dark">
+            {L('Évaluer la prestation', 'تقييم الخدمة')}
+          </SheetTitle>
+          <SheetDescription className="text-center text-xs font-semibold">
             {L('Votre retour nous aide à améliorer le service.', 'ملاحظاتك تساعدنا على تحسين الخدمة.')}
           </SheetDescription>
         </SheetHeader>
@@ -64,7 +69,7 @@ export function ReviewSheet({
                   <Star
                     className={cn(
                       'size-8 transition-colors',
-                      n <= note ? 'fill-[#E0A82E] text-[#E0A82E]' : 'text-de9-line',
+                      n <= note ? 'fill-de9-orange-deep text-de9-orange-deep' : 'text-de9-line',
                     )}
                   />
                 </button>
@@ -87,7 +92,7 @@ export function ReviewSheet({
 
         <SheetFooter>
           <Button
-            className="w-full bg-de9-teal-dark text-white hover:bg-de9-teal-dark/90"
+            className="w-full bg-de9-teal text-white shadow-glow hover:bg-de9-teal-dark"
             disabled={note < 1}
             onClick={() => {
               if (note < 1) return;

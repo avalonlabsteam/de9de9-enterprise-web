@@ -45,10 +45,10 @@ function Chip({
       type="button"
       onClick={onClick}
       className={cn(
-        'rounded-full border px-3.5 py-1.5 text-[13px] font-bold transition-colors',
+        'rounded-full px-3.5 py-1.5 text-[13px] font-bold transition-shadow',
         active
-          ? 'border-de9-teal-dark bg-de9-teal-dark text-white'
-          : 'border-de9-line bg-card text-de9-slate hover:border-de9-teal',
+          ? 'bg-de9-teal text-white shadow-glow'
+          : 'bg-card text-de9-teal-dark shadow-soft hover:shadow-lift dark:ring-1 dark:ring-border',
       )}
     >
       {children}
@@ -326,7 +326,7 @@ export function PublishTenderPage() {
         <Button
           type="submit"
           disabled={publish.isPending}
-          className="mt-1 h-11 bg-de9-teal-dark text-white hover:bg-de9-teal-dark/90"
+          className="mt-1 h-11 bg-de9-teal text-white shadow-glow hover:bg-de9-teal-dark"
         >
           {publish.isPending ? L('Envoi…', 'جارٍ الإرسال…') : t('submitPublish')}
         </Button>

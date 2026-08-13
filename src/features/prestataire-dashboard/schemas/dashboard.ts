@@ -13,6 +13,7 @@ export const dashboardSchema = z.object({
     total: z.number(),
   }),
   chiffreAffaireDa: z.number(),
+  activite: z.array(z.object({ title: z.string(), time: z.string() })),
 });
 export type Dashboard = z.infer<typeof dashboardSchema>;
 

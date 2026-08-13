@@ -46,7 +46,7 @@ export function AgrandirPage() {
         {L('Agrandir la société', 'توسيع الشركة')}
       </h1>
 
-      <div className="flex items-start gap-3 rounded-2xl border border-de9-teal/30 bg-de9-teal/10 p-4">
+      <div className="flex items-start gap-3 rounded-lg bg-de9-teal-tint p-4">
         <Rocket className="mt-0.5 size-5 flex-none text-de9-teal-dark" />
         <p className="text-[13px] text-de9-ink">
           {L(

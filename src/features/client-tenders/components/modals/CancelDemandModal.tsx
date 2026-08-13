@@ -1,3 +1,4 @@
+import { AlertTriangle } from 'lucide-react';
 import { useL } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,9 +23,14 @@ export function CancelDemandModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{L('Annuler la demande ?', 'إلغاء الطلب؟')}</DialogTitle>
-          <DialogDescription>
+        <div className="mx-auto mt-2 grid size-[66px] place-items-center rounded-full bg-de9-red text-white">
+          <AlertTriangle className="size-8" />
+        </div>
+        <DialogHeader className="items-center text-center">
+          <DialogTitle className="text-center text-de9-red">
+            {L('Annuler la demande ?', 'إلغاء الطلب؟')}
+          </DialogTitle>
+          <DialogDescription className="text-center text-xs font-semibold">
             {L(
               'Cette action est définitive. Votre appel d’offres sera annulé.',
               'هذا الإجراء نهائي. سيتم إلغاء طلب العروض الخاص بك.',

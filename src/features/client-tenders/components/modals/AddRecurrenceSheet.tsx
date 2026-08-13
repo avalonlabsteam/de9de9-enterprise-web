@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { CalendarPlus } from 'lucide-react';
 import { useL } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -54,9 +55,12 @@ export function AddRecurrenceSheet({
       }}
     >
       <SheetContent side="right" className="flex flex-col">
-        <SheetHeader>
-          <SheetTitle>{title}</SheetTitle>
-          <SheetDescription>
+        <SheetHeader className="items-center text-center">
+          <div className="mx-auto mt-2 grid size-[66px] place-items-center rounded-full bg-de9-teal text-white">
+            <CalendarPlus className="size-8" />
+          </div>
+          <SheetTitle className="text-center text-de9-teal-dark">{title}</SheetTitle>
+          <SheetDescription className="text-center text-xs font-semibold">
             {L('Choisissez une date proposée.', 'اختر تاريخاً مقترحاً.')}
           </SheetDescription>
         </SheetHeader>
@@ -72,10 +76,10 @@ export function AddRecurrenceSheet({
                 type="button"
                 onClick={() => setSelected(d.iso)}
                 className={cn(
-                  'rounded-full border px-3.5 py-2 text-[13px] font-bold transition-colors',
+                  'rounded-full px-3.5 py-2 text-[13px] font-bold transition-shadow',
                   selected === d.iso
-                    ? 'border-de9-teal-dark bg-[#E5F7F4] text-de9-teal-dark dark:bg-[#14322E]'
-                    : 'border-de9-line bg-card text-de9-ink hover:border-de9-teal',
+                    ? 'bg-de9-teal text-white shadow-glow'
+                    : 'bg-card text-de9-teal-dark shadow-soft hover:shadow-lift dark:ring-1 dark:ring-border',
                 )}
               >
                 {d.label}
@@ -86,7 +90,7 @@ export function AddRecurrenceSheet({
 
         <SheetFooter>
           <Button
-            className="w-full bg-de9-teal-dark text-white hover:bg-de9-teal-dark/90"
+            className="w-full bg-de9-teal text-white shadow-glow hover:bg-de9-teal-dark"
             disabled={!selected}
             onClick={() => {
               if (!selected) return;

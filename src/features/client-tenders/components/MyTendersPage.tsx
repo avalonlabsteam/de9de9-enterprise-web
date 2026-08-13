@@ -92,7 +92,7 @@ export function MyTendersPage() {
           <button
             type="button"
             onClick={() => navigate('/client/profile')}
-            className="flex size-9 items-center justify-center rounded-full bg-de9-ink text-[13px] font-extrabold text-background"
+            className="flex size-9 items-center justify-center rounded-full bg-de9-teal-soft text-[13px] font-bold text-de9-teal-dark shadow-lift"
             aria-label="Profil"
           >
             EL
@@ -107,10 +107,10 @@ export function MyTendersPage() {
             type="button"
             onClick={() => setFilter(chip.key)}
             className={cn(
-              'flex-none rounded-full border px-3.5 py-1.5 text-[13px] font-bold whitespace-nowrap transition-colors',
+              'flex-none rounded-full px-3.5 py-1.5 text-[13px] font-bold whitespace-nowrap transition-shadow',
               filter === chip.key
-                ? 'border-de9-teal-dark bg-de9-teal-dark text-white'
-                : 'border-de9-line bg-card text-de9-slate hover:border-de9-teal',
+                ? 'bg-de9-teal text-white shadow-glow'
+                : 'bg-card text-de9-teal-dark shadow-soft hover:shadow-lift dark:ring-1 dark:ring-border',
             )}
           >
             {chip.label} · {counts[chip.key]}
@@ -146,14 +146,14 @@ export function MyTendersPage() {
                 onClick={() => navigate(`/client/tender/${tender.id}`)}
                 className="text-start"
               >
-                <Card className="transition-colors hover:border-de9-teal">
+                <Card className="transition-shadow hover:shadow-lift">
                   <CardContent className="flex items-center gap-3.5 py-4">
                     {fam && <CategoryIcon colorKey={fam.colorKey} icon={fam.icon} />}
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-[14px] font-bold text-de9-ink">{tender.serviceName}</p>
-                      <div className="mt-1 flex items-center gap-3 text-[12px] text-de9-gray">
-                        <span className="inline-flex items-center gap-1">
-                          <MapPin className="size-3.5" />
+                      <p className="truncate text-base font-bold text-de9-ink">{tender.serviceName}</p>
+                      <div className="mt-1 flex items-center gap-3 text-xs text-de9-slate">
+                        <span className="inline-flex items-center gap-1.5">
+                          <MapPin className="size-3.5 text-de9-teal" />
                           {tender.wilaya}
                         </span>
                         <span>{fmtDate(tender.createdAt)}</span>

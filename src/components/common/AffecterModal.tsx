@@ -134,7 +134,7 @@ export function AffecterModal({
                   <div key={w.id} className="flex items-center gap-2.5">
                     <WorkerAvatar worker={w} size={28} />
                     <span className="text-sm font-medium text-foreground">{w.name}</span>
-                    <span className="ms-auto rounded-full bg-[#FDECEC] px-2 py-0.5 text-[11px] font-bold text-de9-red dark:bg-[#331A1C] dark:text-[#FF7A80]">
+                    <span className="ms-auto rounded-full bg-de9-red-soft px-2 py-0.5 text-[11px] font-semibold text-de9-red">
                       {L("Conflit d'horaire", 'تعارض في المواعيد')}
                     </span>
                   </div>
@@ -170,17 +170,21 @@ export function AffecterModal({
                       key={w.id}
                       onClick={() => toggle(w.id)}
                       className={cn(
-                        'flex items-center gap-3 rounded-lg border p-2.5 text-start transition-colors',
-                        checked ? 'border-de9-teal-dark bg-de9-teal/10' : 'border-border hover:bg-muted',
+                        'flex items-center gap-3 rounded-lg p-2.5 text-start transition-colors',
+                        checked ? 'bg-de9-teal-tint ring-1 ring-de9-teal' : 'hover:bg-muted',
                       )}
                     >
-                      <Checkbox checked={checked} className="pointer-events-none" tabIndex={-1} />
+                      <Checkbox
+                        checked={checked}
+                        className="pointer-events-none data-[state=checked]:border-de9-teal data-[state=checked]:bg-de9-teal"
+                        tabIndex={-1}
+                      />
                       <WorkerAvatar worker={w} size={34} />
                       <div className="flex min-w-0 flex-col">
                         <span className="flex items-center gap-1.5 text-sm font-medium text-foreground">
                           <span className="truncate">{w.name}</span>
                           {w.type === 'salarie' && (
-                            <span className="shrink-0 rounded-full bg-de9-teal/15 px-1.5 py-0.5 text-[10px] font-bold text-de9-teal-dark">
+                            <span className="shrink-0 rounded-full bg-de9-teal-soft px-1.5 py-0.5 text-[10px] font-bold text-de9-teal-dark">
                               🤝 de9de9
                             </span>
                           )}
@@ -188,7 +192,7 @@ export function AffecterModal({
                         <span className="truncate text-xs text-muted-foreground">{w.role}</span>
                       </div>
                       {w.available === false && (
-                        <span className="ms-auto shrink-0 rounded-full bg-[#FEF6E9] px-2 py-0.5 text-[10px] font-bold text-[#B9781A] dark:bg-[#33280F] dark:text-[#E0A82E]">
+                        <span className="ms-auto shrink-0 rounded-full bg-de9-orange/20 px-2 py-0.5 text-[10px] font-semibold text-de9-orange-deep">
                           {L('Occupé', 'مشغول')}
                         </span>
                       )}

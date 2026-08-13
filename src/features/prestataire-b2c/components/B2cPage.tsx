@@ -36,7 +36,7 @@ function Loading({ label }: { label: string }) {
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       {[0, 1, 2, 3].map((i) => (
-        <div key={i} className="h-32 animate-pulse rounded-2xl border border-de9-line bg-card/60" />
+        <div key={i} className="h-32 animate-pulse rounded-lg bg-card/60 shadow-soft dark:ring-1 dark:ring-border" />
       ))}
       <span className="sr-only">{label}</span>
     </div>
@@ -73,14 +73,14 @@ function RecuesTab() {
       <div className="grid gap-3 sm:grid-cols-2">
         {items.map((r) => (
           <Card key={r.id}>
-            <CardHeader className="gap-1">
-              <CardTitle className="text-[15px]">{r.serviceName}</CardTitle>
-              <p className="text-[13px] text-de9-gray">{r.clientName}</p>
+            <CardHeader className="gap-0.5">
+              <p className="text-xs font-semibold text-de9-teal">{r.serviceName}</p>
+              <CardTitle className="text-base font-bold">{r.clientName}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-de9-gray">
-                <span className="inline-flex items-center gap-1">
-                  <MapPin className="size-3.5" /> {r.wilaya}
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-de9-gray">
+                <span className="inline-flex items-center gap-1.5">
+                  <MapPin className="size-3.5 text-de9-teal" /> {r.wilaya}
                 </span>
                 <span>{r.dateLabel}</span>
                 <span className="font-bold text-de9-ink">{priceLine(r, L)}</span>
@@ -108,10 +108,10 @@ function RecuesTab() {
 
 function chipCls(active: boolean): string {
   return cn(
-    'rounded-full border px-3 py-1 text-[12px] font-bold transition-colors',
+    'rounded-full px-3 py-1 text-[12px] font-bold transition-all',
     active
-      ? 'border-de9-teal bg-de9-teal text-white'
-      : 'border-de9-line bg-card text-de9-gray hover:text-de9-ink',
+      ? 'bg-de9-teal text-white shadow-glow'
+      : 'bg-card text-de9-teal-dark shadow-soft hover:shadow-lift dark:ring-1 dark:ring-border',
   );
 }
 
@@ -152,7 +152,7 @@ function VoirOffres() {
       </div>
 
       <div className="space-y-2">
-        <p className="text-[13px] font-bold text-de9-ink">{L('Categories :', 'الفئات :')}</p>
+        <p className="text-sm font-semibold text-de9-gray">{L('Categories :', 'الفئات :')}</p>
         <div className="flex flex-wrap gap-2">
           {CATEGORIES.map((c) => (
             <button key={c} type="button" className={chipCls(cats.includes(c))} onClick={() => toggle(cats, setCats, c)}>
@@ -163,7 +163,7 @@ function VoirOffres() {
       </div>
 
       <div className="space-y-2">
-        <p className="text-[13px] font-bold text-de9-ink">{L('Zones :', 'المناطق :')}</p>
+        <p className="text-sm font-semibold text-de9-gray">{L('Zones :', 'المناطق :')}</p>
         <div className="flex flex-wrap gap-2">
           {ZONES.map((z) => (
             <button key={z} type="button" className={chipCls(zones.includes(z))} onClick={() => toggle(zones, setZones, z)}>
@@ -184,13 +184,13 @@ function VoirOffres() {
           {filtered.map((o) => (
             <Card key={o.id}>
               <CardHeader className="gap-1">
-                <CardTitle className="text-[15px]">{o.title}</CardTitle>
-                <p className="text-[13px] text-de9-gray">{o.description}</p>
+                <CardTitle className="text-base font-bold">{o.title}</CardTitle>
+                <p className="text-xs text-de9-gray">{o.description}</p>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-de9-gray">
-                  <span className="inline-flex items-center gap-1">
-                    <MapPin className="size-3.5" /> {o.wilaya}
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-de9-gray">
+                  <span className="inline-flex items-center gap-1.5">
+                    <MapPin className="size-3.5 text-de9-teal" /> {o.wilaya}
                   </span>
                   <span>{o.delai}</span>
                   <span className="font-bold text-de9-ink">{o.priceLabel}</span>
@@ -225,15 +225,15 @@ function OffresEnvoyees() {
         return (
           <Card key={o.id}>
             <CardHeader className="flex-row items-start justify-between gap-2">
-              <CardTitle className="text-[15px]">{o.title}</CardTitle>
+              <CardTitle className="text-base font-bold">{o.title}</CardTitle>
               <StatusBadge label={t(s.key)} kind={s.kind} />
             </CardHeader>
             <CardContent className="space-y-2">
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-de9-gray">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-de9-gray">
                 <span className="font-bold text-de9-ink">{o.prixDzd.toLocaleString('fr-DZ')} DZD</span>
                 <span>{o.delai}</span>
               </div>
-              {o.message && <p className="text-[13px] text-de9-gray">{L('« ', '« ')}{o.message}{L(' »', ' »')}</p>}
+              {o.message && <p className="text-xs text-de9-gray">{L('« ', '« ')}{o.message}{L(' »', ' »')}</p>}
             </CardContent>
           </Card>
         );
@@ -247,13 +247,13 @@ function ExplorerTab() {
   const { explorerPill, setExplorerPill } = useB2cStore();
   return (
     <div className="space-y-4">
-      <div className="inline-flex rounded-full border border-de9-line bg-secondary p-1">
+      <div className="inline-flex rounded-full bg-card p-1 shadow-soft dark:ring-1 dark:ring-border">
         <button
           type="button"
           onClick={() => setExplorerPill('voirOffres')}
           className={cn(
             'rounded-full px-4 py-1.5 text-[13px] font-bold transition-colors',
-            explorerPill === 'voirOffres' ? 'bg-card text-de9-ink shadow-sm' : 'text-de9-gray',
+            explorerPill === 'voirOffres' ? 'bg-de9-teal text-white' : 'text-de9-teal-dark',
           )}
         >
           {t('voirOffres')}
@@ -263,7 +263,7 @@ function ExplorerTab() {
           onClick={() => setExplorerPill('offresEnvoyees')}
           className={cn(
             'rounded-full px-4 py-1.5 text-[13px] font-bold transition-colors',
-            explorerPill === 'offresEnvoyees' ? 'bg-card text-de9-ink shadow-sm' : 'text-de9-gray',
+            explorerPill === 'offresEnvoyees' ? 'bg-de9-teal text-white' : 'text-de9-teal-dark',
           )}
         >
           {t('offresEnvoyees')}
@@ -301,26 +301,26 @@ function ConfirmesTab() {
           const w = workers?.find((x) => x.id === r.assignedWorkerId);
           return (
             <Card key={r.id}>
-              <CardHeader className="gap-1">
-                <CardTitle className="text-[15px]">{r.serviceName}</CardTitle>
-                <p className="text-[13px] text-de9-gray">{r.clientName}</p>
+              <CardHeader className="gap-0.5">
+                <p className="text-xs font-semibold text-de9-teal">{r.serviceName}</p>
+                <CardTitle className="text-base font-bold">{r.clientName}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-de9-gray">
-                  <span className="inline-flex items-center gap-1">
-                    <MapPin className="size-3.5" /> {r.wilaya}
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-de9-gray">
+                  <span className="inline-flex items-center gap-1.5">
+                    <MapPin className="size-3.5 text-de9-teal" /> {r.wilaya}
                   </span>
                   <span>{r.dateLabel}</span>
                   <span className="font-bold text-de9-ink">{priceLine(r, L)}</span>
                 </div>
 
                 <div className="space-y-1.5">
-                  <p className="text-[12px] font-bold text-de9-gray">{L('Affecté à', 'مُسند إلى')}</p>
+                  <p className="text-xs font-semibold text-de9-gray">{L('Affecté à', 'مُسند إلى')}</p>
                   {r.assignedWorkerId ? (
                     <button
                       type="button"
                       onClick={() => navigate('/prestataire/worker/' + r.assignedWorkerId)}
-                      className="inline-flex items-center gap-2 rounded-full border border-de9-line bg-secondary py-1 ps-1 pe-3 text-[13px] font-bold text-de9-ink transition-colors hover:bg-card"
+                      className="inline-flex items-center gap-2 rounded-full bg-card py-1 ps-1 pe-3 text-[13px] font-bold text-de9-ink shadow-soft transition-shadow hover:shadow-lift dark:ring-1 dark:ring-border"
                     >
                       <WorkerAvatar worker={{ name: w?.name ?? '—', colorHex: w?.colorHex }} size={24} />
                       <span>{w?.name ?? r.assignedWorkerId}</span>
@@ -389,8 +389,8 @@ export function B2cPage() {
       <button
         type="button"
         aria-label={L('Créer une annonce B2C', 'إنشاء إعلان B2C')}
-        onClick={() => navigate('/prestataire/annonce/create?type=b2c')}
-        className="fixed bottom-24 end-6 z-30 inline-flex size-14 items-center justify-center rounded-full bg-de9-teal text-white shadow-lg transition-transform hover:scale-105 active:scale-95"
+        onClick={() => navigate('/prestataire/annonces?create=1')}
+        className="fixed bottom-24 end-6 z-30 inline-flex size-14 items-center justify-center rounded-full bg-de9-teal text-white shadow-glow transition-transform hover:scale-105 active:scale-95"
       >
         <Plus className="size-6" />
       </button>

@@ -22,12 +22,15 @@ export function CreatePickSheet({
 
   const go = (type: 'b2c' | 'b2b') => {
     onOpenChange(false);
-    navigate(`/prestataire/annonce/create?type=${type}`);
+    // B2C opens the wizard dialog over the annonces list; B2B keeps its form page.
+    navigate(
+      type === 'b2c' ? '/prestataire/annonces?create=1' : '/prestataire/annonce/create?type=b2b',
+    );
   };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="mx-auto max-w-[560px] rounded-t-2xl">
+      <SheetContent side="bottom" className="mx-auto max-w-[560px] rounded-t-lg bg-card shadow-modal">
         <SheetHeader>
           <SheetTitle>{L("Type d'annonce", 'نوع الإعلان')}</SheetTitle>
           <SheetDescription>
@@ -74,15 +77,15 @@ function PickRow({
       type="button"
       onClick={onClick}
       className={cn(
-        'flex w-full items-center gap-3.5 rounded-2xl border border-de9-line bg-card p-4 text-start transition-colors hover:bg-de9-row',
+        'flex w-full items-center gap-3.5 rounded-lg bg-card p-4 text-start shadow-soft transition-shadow hover:shadow-lift dark:ring-1 dark:ring-border',
       )}
     >
       <span
         className={cn(
-          'flex size-11 flex-none items-center justify-center rounded-xl',
+          'flex size-11 flex-none items-center justify-center rounded-[12px]',
           accent === 'teal'
-            ? 'bg-de9-teal/15 text-de9-teal-dark'
-            : 'bg-[#3B82F6]/15 text-[#3B82F6]',
+            ? 'bg-de9-teal-soft text-de9-teal-dark'
+            : 'bg-de9-blue-tint text-de9-blue',
         )}
       >
         {icon}
