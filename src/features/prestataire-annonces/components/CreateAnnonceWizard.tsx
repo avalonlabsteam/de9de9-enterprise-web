@@ -1,5 +1,18 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ImagePlus, X } from 'lucide-react';
+import {
+  ArrowLeft,
+  Dumbbell,
+  GraduationCap,
+  HeartPulse,
+  House,
+  ImagePlus,
+  type LucideIcon,
+  PartyPopper,
+  Scissors,
+  Wrench,
+  X,
+  Zap,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useL } from '@/lib/i18n';
 import { useLangStore } from '@/stores/langStore';
@@ -43,16 +56,40 @@ type Step = (typeof STEPS)[number];
 
 const DESCRIPTION_MAX = 1000;
 
-/** Percentage positions of the category bubbles around the decorative "D". */
+/**
+ * Monochrome line icons for the eight annonce categories, keyed by catalogue id.
+ * The catalogue seeds an emoji per category, but colour emoji render
+ * inconsistently across platforms (several ship an opaque dark plate) and ignore
+ * the tile's ink colour — same reasoning as the catalogue tiles in
+ * `@/components/common/CategoryChip`.
+ */
+const CATEGORY_ICON: Record<string, LucideIcon> = {
+  beaute: Scissors,
+  electronique: Zap,
+  sante: HeartPulse,
+  travaux: Wrench,
+  cours: GraduationCap,
+  maintenance: House,
+  evenement: PartyPopper,
+  sport: Dumbbell,
+};
+
+/**
+ * Percentage positions of the category bubbles, traced along the stroke of the
+ * decorative "D" (340×400 letterform): three down the left bar, one at the
+ * bowl's apex, and the rest along the bowl's curve. Each position is the center
+ * of the bubble+label group, nudged ~4% up so the bubble circle itself sits on
+ * the stroke while the label hangs below it.
+ */
 const BUBBLE_POS: Record<string, { x: number; y: number }> = {
-  beaute: { x: 15, y: 16 },
-  electronique: { x: 43, y: 10 },
-  sante: { x: 70, y: 19 },
-  travaux: { x: 15, y: 44 },
-  cours: { x: 81, y: 43 },
-  maintenance: { x: 15, y: 72 },
-  evenement: { x: 43, y: 82 },
-  sport: { x: 69, y: 73 },
+  beaute: { x: 13, y: 16 },
+  electronique: { x: 44, y: 11 },
+  sante: { x: 70, y: 21 },
+  travaux: { x: 13, y: 49 },
+  cours: { x: 82, y: 49 },
+  maintenance: { x: 13, y: 81 },
+  evenement: { x: 44, y: 87 },
+  sport: { x: 70, y: 77 },
 };
 
 interface DayAvailability {
@@ -577,7 +614,12 @@ function PhotoInput({ onFiles }: { onFiles: (files: FileList | null) => void }) 
   );
 }
 
-/** Category bubbles laid out around the decorative "D". */
+/**
+ * Category bubbles ringing the decorative "D". The whole composition is a
+ * container-query scene: bubble, icon and label sizes are expressed in `cqw`
+ * so the artwork scales from phone-width dialogs up to the 400px cap without a
+ * separate mobile layout.
+ */
 function CategoryStep({
   tr,
   onPick,
@@ -585,47 +627,35 @@ function CategoryStep({
   tr: (t: LocalizedText) => string;
   onPick: (id: string) => void;
 }) {
-  const bubble = (id: string, emoji: string, label: string) => (
-    <button
-      key={id}
-      type="button"
-      onClick={() => onPick(id)}
-      className="flex w-[100px] flex-col items-center gap-1.5"
-    >
-      <span className="grid size-[64px] place-items-center rounded-full bg-card text-[26px] shadow-lift">
-        {emoji}
-      </span>
-      <span className="text-center text-[12px] font-semibold leading-tight text-de9-ink">
-        {label}
-      </span>
-    </button>
-  );
-
   return (
-    <>
-      {/* Artwork layout — the bubbles ring the "D" mark. */}
-      <div className="relative mx-auto mt-6 hidden aspect-[367/440] w-full max-w-[400px] sm:block">
-        <DMark />
-        {ANNONCE_CATEGORIES.map((c) => {
-          const pos = BUBBLE_POS[c.id];
-          if (!pos) return null;
-          return (
-            <div
-              key={c.id}
-              className="absolute -translate-x-1/2 -translate-y-1/2 rtl:translate-x-1/2"
-              style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
-            >
-              {bubble(c.id, c.emoji, tr(c.name))}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Small screens get a straightforward grid. */}
-      <div className="mt-6 grid grid-cols-3 justify-items-center gap-y-7 sm:hidden">
-        {ANNONCE_CATEGORIES.map((c) => bubble(c.id, c.emoji, tr(c.name)))}
-      </div>
-    </>
+    <div className="@container relative mx-auto mt-6 aspect-[17/20] w-full max-w-[400px]">
+      <DMark />
+      {ANNONCE_CATEGORIES.map((c) => {
+        const pos = BUBBLE_POS[c.id];
+        const Icon = CATEGORY_ICON[c.id];
+        if (!pos) return null;
+        return (
+          <button
+            key={c.id}
+            type="button"
+            onClick={() => onPick(c.id)}
+            style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
+            className="group absolute flex w-[27cqw] -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-[2cqw] focus-visible:outline-none"
+          >
+            <span className="grid size-[16cqw] place-items-center rounded-full bg-card text-de9-teal-dark shadow-lift transition-transform group-hover:scale-105 group-focus-visible:ring-2 group-focus-visible:ring-de9-teal">
+              {Icon ? (
+                <Icon className="size-[6.5cqw]" aria-hidden />
+              ) : (
+                <span className="text-[6.5cqw]">{c.emoji}</span>
+              )}
+            </span>
+            <span className="text-center text-[min(3.4cqw,13px)] font-semibold leading-tight text-balance text-de9-ink">
+              {tr(c.name)}
+            </span>
+          </button>
+        );
+      })}
+    </div>
   );
 }
 

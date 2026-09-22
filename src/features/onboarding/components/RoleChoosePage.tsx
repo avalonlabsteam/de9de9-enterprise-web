@@ -14,7 +14,6 @@ export function RoleChoosePage() {
   const login = useLogin();
 
   const pick = (role: Role) => {
-    authActions.setPendingRole(role);
     login.mutate(role, {
       onSuccess: (data) => {
         authActions.login(data.token, data.user);

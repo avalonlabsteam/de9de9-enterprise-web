@@ -1,28 +1,38 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type ThemeMode = 'light' | 'dark' | 'system';
+export type ThemeMode = 'light' | 'dark';
 
 interface ThemeState {
   mode: ThemeMode;
 }
 
+/** First visit follows the OS; after that the user's explicit choice wins. */
+const systemMode = (): ThemeMode =>
+  window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+
 export const useThemeStore = create<ThemeState>()(
-  persist(() => ({ mode: 'system' as ThemeMode }), { name: 'de9de9-theme' }),
+  persist(() => ({ mode: systemMode() }), {
+    name: 'de9de9-theme',
+    version: 1,
+    /**
+     * v0 had a third 'system' mode in the cycle. On a dark OS it rendered
+     * identically to 'dark', so the toggle appeared to have two dark stops and
+     * one light one. Resolve any stored 'system' to a concrete mode once.
+     */
+    migrate: (persisted): ThemeState => {
+      const mode = (persisted as Partial<ThemeState> | undefined)?.mode;
+      return { mode: mode === 'light' || mode === 'dark' ? mode : systemMode() };
+    },
+  }),
 );
 
 export const themeActions = {
   set: (mode: ThemeMode): void => {
     useThemeStore.setState({ mode });
   },
-  /** light → dark → system → light */
-  cycle: (): void => {
-    useThemeStore.setState((s) => ({
-      mode: s.mode === 'light' ? 'dark' : s.mode === 'dark' ? 'system' : 'light',
-    }));
+  /** light ↔ dark */
+  toggle: (): void => {
+    useThemeStore.setState((s) => ({ mode: s.mode === 'dark' ? 'light' : 'dark' }));
   },
 };
-
-export function resolveTheme(mode: ThemeMode, systemDark: boolean): 'light' | 'dark' {
-  return mode === 'system' ? (systemDark ? 'dark' : 'light') : mode;
-}

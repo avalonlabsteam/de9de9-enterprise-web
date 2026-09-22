@@ -1,13 +1,11 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, LifeBuoy, MapPin } from 'lucide-react';
+import { ChevronRight, MapPin } from 'lucide-react';
 import { useT } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
-import { uiActions } from '@/stores/uiStore';
 import { computeDemandBadge, type BadgeKind } from '@/lib/statusModel';
 import { FAMILY_BY_ID } from '@/lib/catalogue';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { CategoryIcon } from '@/components/common/CategoryChip';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -80,24 +78,9 @@ export function MyTendersPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-6">
-      <header className="mb-5 flex items-start justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-extrabold text-de9-ink">{t('suiviTitle')}</h1>
-          <p className="mt-0.5 text-[13px] text-de9-slate">{t('suiviHint')}</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" onClick={() => uiActions.openSupport()} aria-label="Support">
-            <LifeBuoy className="size-4" />
-          </Button>
-          <button
-            type="button"
-            onClick={() => navigate('/client/profile')}
-            className="flex size-9 items-center justify-center rounded-full bg-de9-teal-soft text-[13px] font-bold text-de9-teal-dark shadow-lift"
-            aria-label="Profil"
-          >
-            EL
-          </button>
-        </div>
+      <header className="mb-5">
+        <h1 className="text-xl font-extrabold text-de9-ink">{t('suiviTitle')}</h1>
+        <p className="mt-0.5 text-[13px] text-de9-slate">{t('suiviHint')}</p>
       </header>
 
       <div className="-mx-4 mb-5 flex gap-2 overflow-x-auto px-4 pb-1">

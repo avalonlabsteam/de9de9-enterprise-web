@@ -1,10 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { NavLink, Link, Outlet, useNavigate } from 'react-router-dom';
 import {
   Menu,
   Moon,
   Sun,
-  SunMoon,
   HelpCircle,
   Bell,
   Home,
@@ -27,7 +26,7 @@ import { SupportHost, DocViewHost, WorkerViewHost } from './overlayHosts';
 import { cn } from '@/lib/utils';
 import { useT, useL, type TKey } from '@/lib/i18n';
 import { dirOf, langActions, useLangStore } from '@/stores/langStore';
-import { resolveTheme, themeActions, useThemeStore, type ThemeMode } from '@/stores/themeStore';
+import { themeActions, useThemeStore, type ThemeMode } from '@/stores/themeStore';
 import { uiActions } from '@/stores/uiStore';
 import { useAuthStore, type Role } from '@/stores/authStore';
 import { useKyc } from '@/features/kyc/api/kyc';
@@ -61,6 +60,7 @@ const CLIENT_NAV: NavGroup[] = [
     items: [
       { to: '/client/wallet', labelKey: 'navWallet', icon: Wallet },
       { to: '/client/factures', labelKey: 'navFactures', icon: FileText },
+      { to: '/client/profile', labelKey: 'pNavProfil', icon: UserCog },
     ],
   },
 ];
@@ -84,7 +84,7 @@ const PRESTATAIRE_NAV: NavGroup[] = [
   },
 ];
 
-const THEME_ICONS: Record<ThemeMode, LucideIcon> = { light: Sun, dark: Moon, system: SunMoon };
+const THEME_ICONS: Record<ThemeMode, LucideIcon> = { light: Sun, dark: Moon };
 
 const navFor = (role: Role | undefined): NavGroup[] =>
   role === 'prestataire' ? PRESTATAIRE_NAV : CLIENT_NAV;
@@ -214,19 +214,8 @@ export function AppLayout() {
   const dir = dirOf(lang);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
-  useEffect(() => {
-    document.documentElement.dir = dir;
-    document.documentElement.lang = lang;
-  }, [dir, lang]);
-
-  useEffect(() => {
-    const media = window.matchMedia('(prefers-color-scheme: dark)');
-    const apply = () =>
-      document.documentElement.classList.toggle('dark', resolveTheme(mode, media.matches) === 'dark');
-    apply();
-    media.addEventListener('change', apply);
-    return () => media.removeEventListener('change', apply);
-  }, [mode]);
+  // <html> dir/lang and the .dark class are stamped globally by initDomSync
+  // (src/lib/domSync.ts) so public routes get them too — no effects here.
 
   const ThemeIcon = THEME_ICONS[mode];
 
@@ -279,10 +268,10 @@ export function AppLayout() {
           </button>
           <button
             type="button"
-            onClick={themeActions.cycle}
+            onClick={themeActions.toggle}
             className={iconButtonCls}
-            aria-label={`Theme: ${mode}`}
-            title={`Theme: ${mode}`}
+            aria-label={`Switch to ${mode === 'dark' ? 'light' : 'dark'} theme`}
+            title={`Switch to ${mode === 'dark' ? 'light' : 'dark'} theme`}
           >
             <ThemeIcon className="size-[18px]" />
           </button>
