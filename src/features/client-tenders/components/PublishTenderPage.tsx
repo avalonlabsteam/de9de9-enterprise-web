@@ -22,6 +22,10 @@ import {
 import { CategoryChip, CategoryIcon } from '@/components/common/CategoryChip';
 import { PieceSlot, type PieceFile } from '@/components/common/PieceSlot';
 import { EmptyState } from '@/components/common/EmptyState';
+import {
+  catalogueActions,
+  useCatalogueStore,
+} from '@/features/client-catalogue/stores/catalogueStore';
 import { usePublishTender } from '../api/tenders';
 import {
   DELAIS,
@@ -63,7 +67,10 @@ export function PublishTenderPage() {
   const { familyId = '' } = useParams();
   const family = FAMILY_BY_ID[familyId];
 
-  const [selectedSubs, setSelectedSubs] = useState<string[]>([]);
+  // Sub-service selection lives in the catalogue store: it is seeded on
+  // FamilyDetailPage and must survive the navigation (including the possible
+  // KYC detour) into this page.
+  const selectedSubs = useCatalogueStore((s) => s.selectedSubs);
   const [attachment, setAttachment] = useState<PieceFile | null>(null);
   const publish = usePublishTender();
 
@@ -97,14 +104,11 @@ export function PublishTenderPage() {
     );
   }
 
-  const toggleSub = (name: string) => {
-    setSelectedSubs((prev) =>
-      prev.includes(name) ? prev.filter((s) => s !== name) : [...prev, name],
-    );
-  };
-
   const onSubmit = (form: TenderPublishForm) => {
-    const serviceName = selectedSubs.length > 0 ? selectedSubs.join(' · ') : family.name.fr;
+    const subNames = family.subs
+      .filter((sub) => selectedSubs.includes(sub.id))
+      .map((sub) => sub.name.fr);
+    const serviceName = subNames.length > 0 ? subNames.join(' · ') : family.name.fr;
     publish.mutate(
       {
         familyId: family.id,
@@ -120,6 +124,7 @@ export function PublishTenderPage() {
       },
       {
         onSuccess: () => {
+          catalogueActions.clearSubs();
           toast.success(t('confirmTitle'));
           navigate(`/client/publish/${family.id}/confirm`);
         },
@@ -152,8 +157,8 @@ export function PublishTenderPage() {
               {family.subs.map((sub) => (
                 <Chip
                   key={sub.id}
-                  active={selectedSubs.includes(sub.name.fr)}
-                  onClick={() => toggleSub(sub.name.fr)}
+                  active={selectedSubs.includes(sub.id)}
+                  onClick={() => catalogueActions.toggleSub(sub.id)}
                 >
                   {sub.name.fr}
                 </Chip>

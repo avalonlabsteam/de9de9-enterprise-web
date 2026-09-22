@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, ChevronRight, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -37,6 +37,13 @@ export function CreateAnnoncePage() {
 function CreateB2bAnnoncePage() {
   const L = useL();
   const navigate = useNavigate();
+
+  // A fresh visit starts a fresh draft — pro selections from an abandoned
+  // create flow must not leak into this one. (Mount-time reset; the modal
+  // round-trip within the flow keeps the store.)
+  useEffect(() => {
+    useAnnonceDraftStore.getState().reset();
+  }, []);
 
   const createAnnonce = useCreateAnnonce();
   const selectedProIds = useAnnonceDraftStore((s) => s.selectedProIds);

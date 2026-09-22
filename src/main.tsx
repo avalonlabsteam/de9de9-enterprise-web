@@ -3,8 +3,11 @@ import { createRoot } from 'react-dom/client';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider } from 'react-router-dom';
 import { queryClient } from '@/lib/queryClient';
+import { initDomSync } from '@/lib/domSync';
 import { router } from '@/routes';
 import './index.css';
+
+initDomSync();
 
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Root element #root not found');
