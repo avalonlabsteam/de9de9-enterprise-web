@@ -2,7 +2,8 @@ import { create } from 'zustand';
 
 /**
  * Holds the professionals selected for the annonce being created, so the choice
- * survives the round-trip CreateAnnoncePage → AssignAnnoncePage → back.
+ * survives the AssignAnnonceModal round-trip inside the create flow. The flow
+ * resets it on mount so an abandoned draft never leaks into the next one.
  */
 interface AnnonceDraftState {
   selectedProIds: string[];

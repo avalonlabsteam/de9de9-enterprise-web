@@ -16,18 +16,21 @@ interface AuthState {
   user: AuthUser | null;
   /** Transient intent captured on /login and consumed on /role → landing. */
   pendingMode: AuthMode;
-  pendingRole: Role | null;
 }
 
 const initialState: AuthState = {
   token: null,
   user: null,
   pendingMode: 'login',
-  pendingRole: null,
 };
 
 export const useAuthStore = create<AuthState>()(
-  persist(() => initialState, { name: 'de9de9-entreprise-auth' }),
+  persist(() => initialState, {
+    name: 'de9de9-entreprise-auth',
+    // Only durable auth state goes to localStorage — a stale persisted
+    // pendingMode would reroute a later /role visit into the signup flow.
+    partialize: (s) => ({ token: s.token, user: s.user }),
+  }),
 );
 
 /** Actions are decoupled from the hook so non-React code (interceptors, handlers) can call them. */
@@ -36,14 +39,10 @@ export const authActions = {
   setMode: (pendingMode: AuthMode): void => {
     useAuthStore.setState({ pendingMode });
   },
-  /** Record which persona was chosen on the /role screen. */
-  setPendingRole: (pendingRole: Role): void => {
-    useAuthStore.setState({ pendingRole });
-  },
   login: (token: string, user: AuthUser): void => {
     useAuthStore.setState({ token, user });
   },
   logout: (): void => {
-    useAuthStore.setState({ token: null, user: null, pendingRole: null, pendingMode: 'login' });
+    useAuthStore.setState({ token: null, user: null, pendingMode: 'login' });
   },
 };

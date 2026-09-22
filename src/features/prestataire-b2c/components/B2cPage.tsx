@@ -244,7 +244,8 @@ function OffresEnvoyees() {
 
 function ExplorerTab() {
   const t = useT();
-  const { explorerPill, setExplorerPill } = useB2cStore();
+  const explorerPill = useB2cStore((s) => s.explorerPill);
+  const setExplorerPill = useB2cStore((s) => s.setExplorerPill);
   return (
     <div className="space-y-4">
       <div className="inline-flex rounded-full bg-card p-1 shadow-soft dark:ring-1 dark:ring-border">
@@ -357,7 +358,8 @@ export function B2cPage() {
   const t = useT();
   const L = useL();
   const navigate = useNavigate();
-  const { tab, setTab } = useB2cStore();
+  const tab = useB2cStore((s) => s.tab);
+  const setTab = useB2cStore((s) => s.setTab);
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-6 pb-24">

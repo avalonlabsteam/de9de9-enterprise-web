@@ -1,15 +1,17 @@
 "use client"
 
-import { useTheme } from "next-themes"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
 import { CircleCheckIcon, InfoIcon, TriangleAlertIcon, OctagonXIcon, Loader2Icon } from "lucide-react"
+import { useThemeStore } from "@/stores/themeStore"
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme()
+  // Theme is owned by the zustand themeStore (which drives the .dark class in
+  // domSync); sonner resolves 'system' against prefers-color-scheme itself.
+  const theme = useThemeStore((s) => s.mode)
 
   return (
     <Sonner
-      theme={theme as ToasterProps["theme"]}
+      theme={theme}
       className="toaster group"
       icons={{
         success: (
