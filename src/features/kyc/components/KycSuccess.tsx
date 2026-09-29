@@ -4,7 +4,7 @@ import { Logo } from '@/components/common/Logo';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
-/** Shared confirmation screen for the pro (pending review) and client (verified) KYC flows. */
+/** Shared confirmation screen for both KYC flows: pending review, or verified by de9de9. */
 export function KycSuccess({
   variant,
   title,

@@ -19,7 +19,9 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useT, useL } from '@/lib/i18n';
-import { authActions } from '@/stores/authStore';
+import { authActions, useAuthStore } from '@/stores/authStore';
+import { useActiveEntreprise } from '@/stores/accueilStore';
+import { CompanyAvatar } from '@/components/common/CompanyAvatar';
 import { RecruterSheet } from './RecruterSheet';
 import { HandicapSheet } from './HandicapSheet';
 import { RecruterSentModal } from './RecruterSentModal';
@@ -29,6 +31,9 @@ export function PrestataireProfilePage() {
   const t = useT();
   const L = useL();
   const navigate = useNavigate();
+  const entreprise = useActiveEntreprise();
+  const userName = useAuthStore((st) => st.user?.name);
+  const companyName = entreprise?.nom ?? userName ?? '';
 
   const [recruterOpen, setRecruterOpen] = useState(false);
   const [handicapOpen, setHandicapOpen] = useState(false);
@@ -48,13 +53,12 @@ export function PrestataireProfilePage() {
       {/* Company card */}
       <Card>
         <CardContent className="flex items-center gap-4 py-5">
-          <span className="flex size-12 flex-none items-center justify-center rounded-full bg-de9-teal-soft font-bold text-de9-teal-dark">
-            <Building2 className="size-6" />
-          </span>
+          <CompanyAvatar name={companyName} logoUrl={entreprise?.logoUrl} className="size-12 text-[15px]" />
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[16px] font-bold text-de9-ink">PlombEx</p>
+            <p className="truncate text-[16px] font-bold text-de9-ink">{companyName}</p>
             <p className="truncate text-[12.5px] text-de9-gray">
-              {L('Maintenance domestique · Alger', 'صيانة منزلية · الجزائر')}
+              {L('Espace prestataire', 'مساحة المهني')}
+              {entreprise?.nomUtilisateur ? ` · ${entreprise.nomUtilisateur}` : ''}
             </p>
           </div>
         </CardContent>
@@ -115,8 +119,8 @@ export function PrestataireProfilePage() {
           {contratVisible && (
             <div className="rounded-lg bg-background p-4 text-[12.5px] leading-relaxed text-de9-gray">
               {L(
-                'Contrat de partenariat entre PlombEx et de9de9. Aperçu du document simulé — le PDF signé est archivé de manière sécurisée.',
-                'عقد شراكة بين PlombEx و de9de9. معاينة للمستند المحاكى — ملف PDF الموقّع محفوظ بشكل آمن.',
+                `Contrat de partenariat entre ${companyName} et de9de9. Aperçu du document simulé — le PDF signé est archivé de manière sécurisée.`,
+                `عقد شراكة بين ${companyName} و de9de9. معاينة للمستند المحاكى — ملف PDF الموقّع محفوظ بشكل آمن.`,
               )}
             </div>
           )}

@@ -14,11 +14,13 @@ import {
 import { useL } from '@/lib/i18n';
 import { langActions } from '@/stores/langStore';
 import { uiActions } from '@/stores/uiStore';
-import { authActions } from '@/stores/authStore';
+import { authActions, useAuthStore } from '@/stores/authStore';
+import { useActiveEntreprise } from '@/stores/accueilStore';
+import { CompanyAvatar } from '@/components/common/CompanyAvatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { StatusBadge } from '@/components/common/StatusBadge';
-import { useKyc } from '../api/useKyc';
+import { useKycState } from '@/features/kyc/api/kyc';
 
 interface Row {
   key: string;
@@ -32,7 +34,10 @@ interface Row {
 export function ClientProfilePage() {
   const L = useL();
   const navigate = useNavigate();
-  const { data: kycValidated } = useKyc('client');
+  const kyc = useKycState();
+  const entreprise = useActiveEntreprise();
+  const userName = useAuthStore((st) => st.user?.name);
+  const companyName = entreprise?.nom ?? userName ?? '';
 
   const rows: Row[] = [
     {
@@ -48,7 +53,7 @@ export function ClientProfilePage() {
       labelFr: 'Vérification KYC',
       labelAr: 'التحقق من الهوية',
       onClick: () => uiActions.openSupport(),
-      trailing: kycValidated ? (
+      trailing: kyc.verified ? (
         <StatusBadge
           label={L('Vérifiée', 'مُتحقّق')}
           kind="done"
@@ -93,12 +98,17 @@ export function ClientProfilePage() {
       {/* Company card */}
       <Card>
         <CardContent className="flex flex-col items-center gap-3 py-6 text-center">
-          <div className="flex size-16 flex-none items-center justify-center rounded-full bg-de9-blue text-white shadow-lift">
-            <Building2 className="size-8" />
-          </div>
+          <CompanyAvatar
+            name={companyName}
+            logoUrl={entreprise?.logoUrl}
+            className="size-16 text-[20px] shadow-lift"
+          />
           <div className="min-w-0">
-            <p className="truncate text-[17px] font-bold text-de9-ink">Hôtel El Aurassi</p>
-            <p className="text-[13px] text-de9-gray">{L('Cliente Entreprise · Alger', 'عميلة شركة · الجزائر')}</p>
+            <p className="truncate text-[17px] font-bold text-de9-ink">{companyName}</p>
+            <p className="text-[13px] text-de9-gray">
+              {L('Espace client', 'مساحة العميل')}
+              {entreprise?.nomUtilisateur ? ` · ${entreprise.nomUtilisateur}` : ''}
+            </p>
           </div>
         </CardContent>
       </Card>

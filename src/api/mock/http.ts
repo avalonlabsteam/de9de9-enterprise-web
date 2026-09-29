@@ -16,3 +16,21 @@ export function field<T = unknown>(body: unknown, key: string): T | undefined {
   }
   return undefined;
 }
+
+/**
+ * Problem JSON, the shape every real API failure takes: a `code` the app
+ * branches on and, when one input is at fault, the `field` to blame.
+ */
+export function problem(status: number, code: string, detail: string, field?: string): MockResponse {
+  return {
+    status,
+    data: {
+      type: `https://entreprise.de9de9.dz/errors/${code}`,
+      title: code.replace(/_/g, ' '),
+      status,
+      detail,
+      code,
+      ...(field ? { field } : {}),
+    },
+  };
+}
