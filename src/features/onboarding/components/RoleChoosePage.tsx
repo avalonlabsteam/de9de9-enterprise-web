@@ -2,28 +2,20 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Building2, User } from 'lucide-react';
 import { Logo } from '@/components/common/Logo';
 import { Card } from '@/components/ui/card';
-import { useLogin } from '@/features/auth/api/auth';
-import { authActions, useAuthStore, type Role } from '@/stores/authStore';
+import type { Role } from '@/stores/authStore';
 import { useT, useL } from '@/lib/i18n';
 
+/**
+ * Sign-up only: which kind of company is being created. Signing in never comes
+ * here — the API opens a session on the user's last active role.
+ */
 export function RoleChoosePage() {
   const t = useT();
   const L = useL();
   const navigate = useNavigate();
-  const pendingMode = useAuthStore((s) => s.pendingMode);
-  const login = useLogin();
 
   const pick = (role: Role) => {
-    login.mutate(role, {
-      onSuccess: (data) => {
-        authActions.login(data.token, data.user);
-        if (pendingMode === 'signup') {
-          navigate(role === 'prestataire' ? '/signup' : '/signup/client');
-        } else {
-          navigate(role === 'prestataire' ? '/prestataire' : '/client');
-        }
-      },
-    });
+    navigate(role === 'prestataire' ? '/signup' : '/signup/client');
   };
 
   return (
@@ -49,21 +41,13 @@ export function RoleChoosePage() {
             icon={<User className="size-6" />}
             label={t('roleClient')}
             onClick={() => pick('client')}
-            disabled={login.isPending}
           />
           <RoleCard
             icon={<Building2 className="size-6" />}
             label={t('rolePro')}
             onClick={() => pick('prestataire')}
-            disabled={login.isPending}
           />
         </div>
-
-        {login.isError && (
-          <p className="mt-4 text-center text-[13px] text-de9-red">
-            {L('Une erreur est survenue. Réessayez.', 'حدث خطأ. أعد المحاولة.')}
-          </p>
-        )}
       </div>
     </main>
   );

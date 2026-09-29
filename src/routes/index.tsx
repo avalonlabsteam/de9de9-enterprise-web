@@ -1,6 +1,6 @@
-import { createBrowserRouter, Navigate, type RouteObject } from 'react-router-dom';
+import { createBrowserRouter, Navigate, Outlet, type RouteObject } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { RequireRole } from './guards';
+import { RequireAuth, RequireRole } from './guards';
 
 /**
  * Route-level code splitting: each page loads its own chunk on first visit.
@@ -18,10 +18,23 @@ export const router = createBrowserRouter([
   { path: '/role', lazy: page(() => import('@/features/onboarding/components/RoleChoosePage'), 'RoleChoosePage') },
   { path: '/signup', lazy: page(() => import('@/features/onboarding/components/ProSignupPage'), 'ProSignupPage') },
   { path: '/signup/client', lazy: page(() => import('@/features/onboarding/components/ClientSignupPage'), 'ClientSignupPage') },
-  { path: '/onboarding/kyc', lazy: page(() => import('@/features/kyc/components/ProKycPage'), 'ProKycPage') },
-  { path: '/onboarding/kyc/success', lazy: page(() => import('@/features/kyc/components/ProKycSuccessPage'), 'ProKycSuccessPage') },
   { path: '/', lazy: page(() => import('@/features/landing/components/LandingPage'), 'LandingPage') },
   { path: '/contact', lazy: page(() => import('@/features/landing/components/ContactPage'), 'ContactPage') },
+
+  // ===== onboarding: runs on the session the sign-up opened =====
+  // Without one every call fails, so a lost session goes back to /login.
+  {
+    element: (
+      <RequireAuth>
+        <Outlet />
+      </RequireAuth>
+    ),
+    children: [
+      { path: '/onboarding/telephone', lazy: page(() => import('@/features/onboarding/components/PhonePage'), 'PhonePage') },
+      { path: '/onboarding/kyc', lazy: page(() => import('@/features/kyc/components/ProKycPage'), 'ProKycPage') },
+      { path: '/onboarding/kyc/success', lazy: page(() => import('@/features/kyc/components/ProKycSuccessPage'), 'ProKycSuccessPage') },
+    ],
+  },
 
   // ===== client shell =====
   {
@@ -39,9 +52,11 @@ export const router = createBrowserRouter([
       { path: 'publish/:familyId', lazy: page(() => import('@/features/client-tenders/components/PublishTenderPage'), 'PublishTenderPage') },
       { path: 'publish/:familyId/confirm', lazy: page(() => import('@/features/client-tenders/components/TenderConfirmPage'), 'TenderConfirmPage') },
       { path: 'tenders', lazy: page(() => import('@/features/client-tenders/components/MyTendersPage'), 'MyTendersPage') },
-      { path: 'tender/:id', lazy: page(() => import('@/features/client-tenders/components/TenderDetailPage'), 'TenderDetailPage') },
+      // « Suivi d'une demande » — the demande, and the commande it became once contracted.
+      { path: 'tender/:id', lazy: page(() => import('@/features/client-tenders/components/SuiviDemandePage'), 'SuiviDemandePage') },
       { path: 'calendrier', lazy: page(() => import('@/features/client-calendrier/components/ClientCalendrierPage'), 'ClientCalendrierPage') },
       { path: 'wallet', lazy: page(() => import('@/features/client-wallet/components/WalletPage'), 'WalletPage') },
+      { path: 'wallet/mouvements/:id', lazy: page(() => import('@/features/client-wallet/components/MouvementDetailPage'), 'MouvementDetailPage') },
       { path: 'factures', lazy: page(() => import('@/features/client-factures/components/FacturesPage'), 'FacturesPage') },
       { path: 'profile', lazy: page(() => import('@/features/client-profil/components/ClientProfilePage'), 'ClientProfilePage') },
     ],

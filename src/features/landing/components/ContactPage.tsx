@@ -1,4 +1,3 @@
-import { Toaster } from '@/components/ui/sonner';
 import { LandingHeader } from './LandingHeader';
 import { ContactSection } from './ContactSection';
 import { SiteFooter } from './SiteFooter';
@@ -23,9 +22,6 @@ export function ContactPage() {
       {/* No teal band above here, so the footer sits straight on the page —
           wrapping it in teal would only show through its rounded corners. */}
       <SiteFooter />
-
-      {/* Public routes sit outside AppLayout, so this screen mounts its own. */}
-      <Toaster position="bottom-center" />
     </div>
   );
 }

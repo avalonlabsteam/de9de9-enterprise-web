@@ -1,52 +1,55 @@
-import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Logo } from '@/components/common/Logo';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useProSignup } from '../api/onboarding';
-import { proSignupSchema, type ProSignupValues } from '../schemas/onboarding';
-import { authActions } from '@/stores/authStore';
 import { useT, useL } from '@/lib/i18n';
-import { cn } from '@/lib/utils';
-
-const ACCOUNT_OPTIONS = ['3', '4', '5', '6+'] as const;
+import { SignupField } from './SignupField';
+import { proRegisterSchema, type ProRegisterValues } from '../schemas/onboarding';
+import { useRegisterSubmit } from '../lib/useRegisterSubmit';
+import type { RegisterField } from '../lib/registerFlow';
 
 export function ProSignupPage() {
   const t = useT();
   const L = useL();
-  const navigate = useNavigate();
-  const signup = useProSignup();
 
   const {
     register,
     handleSubmit,
-    watch,
-    setValue,
+    setError,
     formState: { errors },
-  } = useForm<ProSignupValues>({
-    resolver: zodResolver(proSignupSchema),
+  } = useForm<ProRegisterValues>({
+    resolver: zodResolver(proRegisterSchema),
     defaultValues: {
-      nom: 'Mansouri',
-      prenom: 'Nadir',
-      entreprise: 'PlombEx',
-      rc: '16/00-1234567 B 24',
+      lastName: '',
+      firstName: '',
+      companyName: '',
+      rc: '',
       email: '',
       password: '',
-      desiredAccounts: '3',
+      proCount: '',
     },
   });
 
-  const desired = watch('desiredAccounts');
+  const { submit, isPending } = useRegisterSubmit({
+    onFieldError: (field: RegisterField, message) => {
+      if (field === 'telephone') return false; // collected in onboarding, not here
+      setError(field, { message });
+      return true;
+    },
+  });
 
-  const onSubmit = (values: ProSignupValues) => {
-    signup.mutate(values, {
-      onSuccess: (data) => {
-        authActions.login(data.token, data.user);
-        navigate('/prestataire');
-      },
+  const onSubmit = (values: ProRegisterValues) => {
+    // proCount is what opens this first session on the prestataire side; the
+    // company still holds both roles.
+    submit({
+      lastName: values.lastName.trim(),
+      firstName: values.firstName.trim(),
+      companyName: values.companyName.trim(),
+      rc: values.rc.trim(),
+      email: values.email.trim(),
+      password: values.password,
+      proCount: Number(values.proCount),
     });
   };
 
@@ -68,54 +71,68 @@ export function ProSignupPage() {
 
             <form onSubmit={handleSubmit(onSubmit)} className="mt-5 space-y-4" noValidate>
               <div className="grid grid-cols-2 gap-3">
-                <TextField id="pro-nom" label={t('fieldNom')} error={!!errors.nom} {...register('nom')} />
-                <TextField id="pro-prenom" label={t('fieldPrenom')} error={!!errors.prenom} {...register('prenom')} />
+                <SignupField
+                  id="pro-nom"
+                  label={t('fieldNom')}
+                  error={errors.lastName?.message}
+                  {...register('lastName')}
+                />
+                <SignupField
+                  id="pro-prenom"
+                  label={t('fieldPrenom')}
+                  error={errors.firstName?.message}
+                  {...register('firstName')}
+                />
               </div>
-              <TextField
+              <SignupField
                 id="pro-entreprise"
                 label={t('fieldEntreprise')}
-                error={!!errors.entreprise}
-                {...register('entreprise')}
+                error={errors.companyName?.message}
+                {...register('companyName')}
               />
-              <TextField id="pro-rc" label={t('fieldRc')} error={!!errors.rc} {...register('rc')} />
-              <TextField
+              <SignupField
+                id="pro-rc"
+                label={t('fieldRc')}
+                placeholder="16/00-1234567 B 24"
+                // LTR so the groups keep their order in Arabic, right-aligned there.
+                dir="ltr"
+                className="rtl:text-right"
+                error={errors.rc?.message}
+                {...register('rc')}
+              />
+              <SignupField
                 id="pro-email"
                 type="email"
                 label={t('email')}
-                error={!!errors.email}
+                error={errors.email?.message}
                 {...register('email')}
               />
-              <TextField
+              <SignupField
                 id="pro-password"
                 type="password"
                 label={t('fieldPassword')}
-                error={!!errors.password}
+                hint={L(
+                  '8 caractères minimum, dont 1 chiffre, 1 minuscule et 1 majuscule.',
+                  '8 أحرف على الأقل، منها رقم وحرف صغير وحرف كبير.',
+                )}
+                error={errors.password?.message}
                 {...register('password')}
               />
+              <SignupField
+                id="pro-procount"
+                type="number"
+                inputMode="numeric"
+                min={1}
+                max={10000}
+                step={1}
+                label={L('Nombre de pros', 'عدد المهنيين')}
+                hint={L('De 1 à 10 000 · modifiable plus tard', 'من 1 إلى 10 000 · يمكن تعديله لاحقًا')}
+                error={errors.proCount?.message}
+                {...register('proCount')}
+              />
 
-              <div className="space-y-2">
-                <Label>{L('Nombre de comptes professionnels désiré', 'عدد الحسابات المهنية المطلوبة')}</Label>
-                <div className="grid grid-cols-4 gap-2">
-                  {ACCOUNT_OPTIONS.map((opt) => (
-                    <button
-                      type="button"
-                      key={opt}
-                      onClick={() => setValue('desiredAccounts', opt, { shouldValidate: true })}
-                      className={cn(
-                        'h-10 rounded-full text-[14px] font-semibold transition-all',
-                        desired === opt
-                          ? 'bg-de9-teal text-white shadow-glow'
-                          : 'bg-card text-de9-teal-dark shadow-soft hover:shadow-lift dark:ring-1 dark:ring-border',
-                      )}
-                    >
-                      {opt}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <Button type="submit" size="lg" className="h-11 w-full text-[15px]" disabled={signup.isPending}>
-                {signup.isPending ? L('Chargement…', 'جارٍ…') : t('createEnterprise')}
+              <Button type="submit" size="lg" className="h-11 w-full text-[15px]" disabled={isPending}>
+                {isPending ? L('Chargement…', 'جارٍ…') : t('createEnterprise')}
               </Button>
             </form>
 
@@ -129,20 +146,5 @@ export function ProSignupPage() {
         </Card>
       </div>
     </main>
-  );
-}
-
-interface TextFieldProps extends React.ComponentProps<typeof Input> {
-  id: string;
-  label: string;
-  error?: boolean;
-}
-
-function TextField({ id, label, error, ...props }: TextFieldProps) {
-  return (
-    <div className="space-y-1.5">
-      <Label htmlFor={id}>{label}</Label>
-      <Input id={id} aria-invalid={error} {...props} />
-    </div>
   );
 }

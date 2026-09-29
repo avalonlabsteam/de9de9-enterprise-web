@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { NavLink, Link, Outlet, useNavigate } from 'react-router-dom';
 import {
+  ArrowLeftRight,
   Menu,
   Moon,
   Sun,
@@ -18,7 +19,7 @@ import {
   UserCog,
   type LucideIcon,
 } from 'lucide-react';
-import { Toaster } from '@/components/ui/sonner';
+import { toast } from 'sonner';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Logo } from '@/components/common/Logo';
 import { RoleBadge } from './RoleBadge';
@@ -29,8 +30,10 @@ import { dirOf, langActions, useLangStore } from '@/stores/langStore';
 import { themeActions, useThemeStore, type ThemeMode } from '@/stores/themeStore';
 import { uiActions } from '@/stores/uiStore';
 import { useAuthStore, type Role } from '@/stores/authStore';
-import { useKyc } from '@/features/kyc/api/kyc';
-import { useDashboard } from '@/features/prestataire-dashboard/api/dashboard';
+import { useKycState } from '@/features/kyc/api/kyc';
+import { toProblem } from '@/api/problem';
+import { useSwitchRole, otherRole } from '@/features/auth/api/session';
+import { useSessionBootstrap } from '@/features/auth/api/bootstrap';
 
 interface NavItem {
   to: string;
@@ -173,38 +176,102 @@ function CompanyPill({ role }: { role: Role | undefined }) {
   );
 }
 
-/** Deg Deg "Vérifier mon entreprise" topbar pill — reuses the existing KYC flows. */
-function VerifyPillButton({ validated, to }: { validated: boolean; to: string }) {
+/**
+ * Deg Deg « Vérifier mon entreprise » topbar pill. Three states, from the KYC
+ * status the sign-in answer carried: to file, under review, verified — and a
+ * rejected dossier sends the company back to the screen to correct it.
+ */
+function VerifyPill({ role }: { role: Role }) {
   const L = useL();
   const navigate = useNavigate();
+  const kyc = useKycState();
+  const to = role === 'prestataire' ? '/onboarding/kyc' : '/client/kyc';
+
+  const label = kyc.verified
+    ? L('Entreprise Vérifiée', 'مؤسسة موثّقة')
+    : kyc.inReview
+      ? L('Vérification en cours', 'التحقق جارٍ')
+      : kyc.rejected
+        ? L('Dossier refusé · corriger', 'ملف مرفوض · صحّح')
+        : L('Vérifier mon entreprise', 'وثّق مؤسستي');
+
   return (
     <button
       type="button"
       onClick={() => navigate(to)}
       className={cn(
-        'hidden h-10 cursor-pointer items-center justify-center whitespace-nowrap rounded-full border border-de9-teal px-4 text-xs font-semibold transition-[filter] md:flex',
-        validated
-          ? 'bg-card text-de9-teal'
-          : 'bg-de9-teal text-white shadow-glow hover:brightness-95',
+        'hidden h-10 cursor-pointer items-center justify-center whitespace-nowrap rounded-full border px-4 text-xs font-semibold transition-[filter] md:flex',
+        kyc.verified
+          ? 'border-de9-teal bg-card text-de9-teal'
+          : kyc.inReview
+            ? 'border-de9-orange-deep bg-card text-de9-orange-deep'
+            : kyc.rejected
+              ? 'border-destructive bg-card text-destructive'
+              : 'border-de9-teal bg-de9-teal text-white shadow-glow hover:brightness-95',
       )}
     >
-      {validated
-        ? L('Entreprise Vérifiée', 'مؤسسة موثّقة')
-        : L('Vérifier mon entreprise', 'وثّق مؤسستي')}
+      {label}
     </button>
   );
 }
 
-function ClientVerifyPill() {
-  const kycQuery = useKyc('client');
-  if (kycQuery.isPending || kycQuery.isError) return null;
-  return <VerifyPillButton validated={kycQuery.data.validated} to="/client/kyc" />;
-}
+/**
+ * « Passer en espace client / prestataire ». One call: it flips the session and
+ * hands back the other side's home, which the shell then renders.
+ */
+function RoleSwitchButton({ role, className }: { role: Role; className?: string }) {
+  const L = useL();
+  const navigate = useNavigate();
+  const switchRole = useSwitchRole();
+  const target = otherRole(role);
+  const label =
+    target === 'prestataire'
+      ? L('Passer en espace prestataire', 'التبديل إلى مساحة المهني')
+      : L('Passer en espace client', 'التبديل إلى مساحة العميل');
 
-function PrestataireVerifyPill() {
-  const { data } = useDashboard();
-  if (!data) return null;
-  return <VerifyPillButton validated={data.verified} to="/onboarding/kyc" />;
+  const onError = (error: unknown) => {
+    const problem = toProblem(error);
+    const retry = L('Réessayez', 'أعد المحاولة');
+    // The api client already refreshed and replayed once (that covers
+    // session_refresh_required). A 401 left either ended the session, or met a
+    // refresh that got no answer and kept it — then it is a retry like a 5xx.
+    if (problem.status === 401) {
+      if (useAuthStore.getState().token === null) navigate('/login');
+      else toast.error(retry);
+      return;
+    }
+    if (problem.status === 422 || problem.code === 'role_not_available') {
+      toast.error(
+        target === 'prestataire'
+          ? L('Espace prestataire indisponible', 'مساحة المهني غير متاحة')
+          : L('Espace client indisponible', 'مساحة العميل غير متاحة'),
+      );
+      return;
+    }
+    // Network or 5xx: nothing was switched, the current side stays.
+    toast.error(problem.status === 0 || problem.status >= 500 ? retry : (problem.detail ?? retry));
+  };
+
+  return (
+    <button
+      type="button"
+      disabled={switchRole.isPending}
+      onClick={() =>
+        switchRole.mutate(undefined, {
+          onSuccess: (accueil) => navigate(accueil.role === 'prestataire' ? '/prestataire' : '/client'),
+          onError,
+        })
+      }
+      className={cn(
+        'h-10 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-full border border-de9-teal bg-card px-4 text-xs font-semibold text-de9-teal transition-[filter] hover:brightness-97 disabled:opacity-60',
+        className,
+      )}
+      title={label}
+    >
+      <ArrowLeftRight className="size-4" />
+      {label}
+    </button>
+  );
 }
 
 export function AppLayout() {
@@ -213,6 +280,9 @@ export function AppLayout() {
   const role = useAuthStore((s) => s.user?.role);
   const dir = dirOf(lang);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  // Confirm the stored token and refresh the home / onboarding it carried.
+  useSessionBootstrap();
 
   // <html> dir/lang and the .dark class are stamped globally by initDomSync
   // (src/lib/domSync.ts) so public routes get them too — no effects here.
@@ -238,8 +308,11 @@ export function AppLayout() {
               <div className="mb-4 px-2">
                 <Logo />
               </div>
-              <div className="mb-5 px-2">
+              <div className="mb-5 flex flex-col items-start gap-3 px-2">
                 <RoleBadge />
+                {role && (
+                  <RoleSwitchButton role={role} className="inline-flex" />
+                )}
               </div>
               <NavList role={role} onNavigate={() => setMobileNavOpen(false)} />
             </SheetContent>
@@ -253,8 +326,7 @@ export function AppLayout() {
           <div className="flex-1" />
 
           <CompanyPill role={role} />
-          {role === 'client' && <ClientVerifyPill />}
-          {role === 'prestataire' && <PrestataireVerifyPill />}
+          {role && <VerifyPill role={role} />}
           <button type="button" className={iconButtonCls} aria-label="Notifications">
             <Bell className="size-[18px]" />
           </button>
@@ -290,6 +362,7 @@ export function AppLayout() {
       <div className="mx-auto flex w-full max-w-[1400px] items-start px-4 sm:px-6 lg:px-10">
         <aside className="sticky top-[78px] hidden max-h-[calc(100vh-78px)] w-[248px] flex-none overflow-y-auto pb-10 pe-7 pt-[42px] lg:block">
           <NavList role={role} />
+          {role && <RoleSwitchButton role={role} className="mt-6 inline-flex w-full justify-center" />}
         </aside>
 
         <main className="min-w-0 flex-1 pb-[70px] pt-6 lg:ps-7 lg:pt-[42px]">
@@ -301,7 +374,6 @@ export function AppLayout() {
       <SupportHost />
       <DocViewHost />
       <WorkerViewHost />
-      <Toaster position="bottom-center" />
     </div>
   );
 }

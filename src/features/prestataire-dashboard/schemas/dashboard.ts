@@ -1,21 +1,7 @@
 import { z } from 'zod';
 
-export const dashboardSchema = z.object({
-  entreprise: z.string(),
-  verified: z.boolean(),
-  stats: z.object({
-    avenir: z.number(),
-    enCours: z.number(),
-    completes: z.number(),
-  }),
-  equipe: z.object({
-    used: z.number(),
-    total: z.number(),
-  }),
-  chiffreAffaireDa: z.number(),
-  activite: z.array(z.object({ title: z.string(), time: z.string() })),
-});
-export type Dashboard = z.infer<typeof dashboardSchema>;
+// The prestataire home is served by `GET /prestataire/accueil` — see
+// schemas/accueil.ts. What remains here is the stats screen.
 
 export const monthlyPointSchema = z.object({
   month: z.string(),

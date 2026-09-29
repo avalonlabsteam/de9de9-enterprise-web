@@ -5,7 +5,7 @@ export function ClientKycPage() {
   const L = useL();
   return (
     <KycForm
-      kycKey="client"
+      exitTo="/client"
       successPath="/client/kyc/success"
       subtitle={L(
         'Importez RC · NIF · NIS pour débloquer la publication.',

@@ -2,38 +2,56 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, FileText, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useT, useL } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
-import { FAMILY_BY_ID } from '@/lib/catalogue';
+import { toProblem } from '@/api/problem';
+import { WILAYAS } from '@/lib/catalogue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { CategoryChip, CategoryIcon } from '@/components/common/CategoryChip';
-import { PieceSlot, type PieceFile } from '@/components/common/PieceSlot';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { PieceSlot } from '@/components/common/PieceSlot';
 import { EmptyState } from '@/components/common/EmptyState';
+import { useCategorie, useNouvelleDemande } from '@/features/client-catalogue/api/nouvelleDemande';
+import type { FormOption } from '@/features/client-catalogue/schemas/nouvelleDemande';
+import { catalogueActions, useCatalogueStore } from '@/features/client-catalogue/stores/catalogueStore';
+import { useSendAppelOffres } from '../api/appelsOffres';
 import {
-  catalogueActions,
-  useCatalogueStore,
-} from '@/features/client-catalogue/stores/catalogueStore';
-import { usePublishTender } from '../api/tenders';
-import {
-  DELAIS,
-  RECURRENCES,
-  WILAYAS,
-  tenderPublishFormSchema,
-  type TenderPublishForm,
-} from '../schemas/tender';
+  appelOffresFormSchema,
+  buildAppelOffresPayload,
+  type AppelOffresForm,
+} from '../schemas/appelOffres';
+
+/** Arabic for the picker labels the API sends in French, by code. */
+const OPTION_AR: Record<string, string> = {
+  urgent: 'عاجل (48 ساعة)',
+  sous_7_jours: 'خلال 7 أيام',
+  sous_15_jours: 'خلال 15 يومًا',
+  sous_30_jours: 'خلال 30 يومًا',
+  flexible: 'مرن',
+  ponctuel: 'مرة واحدة',
+  recurrent: 'عقد متكرر',
+  hebdomadaire: 'أسبوعي',
+  bimensuel: 'نصف شهري',
+  mensuel: 'شهري',
+  trimestriel: 'فصلي',
+  annuel: 'سنوي',
+};
+
+/** An API field in a 400 → the form field that shows it. */
+const FIELD_OF: Record<string, keyof AppelOffresForm> = {
+  description: 'description',
+  wilaya: 'wilaya',
+  delai: 'delai',
+  budgetMaxDzd: 'budget',
+  cadence: 'typeBesoin',
+  frequence: 'frequence',
+  criteresSelection: 'criteres',
+};
 
 function Chip({
   active,
@@ -47,6 +65,7 @@ function Chip({
   return (
     <button
       type="button"
+      aria-pressed={active}
       onClick={onClick}
       className={cn(
         'rounded-full px-3.5 py-1.5 text-[13px] font-bold transition-shadow',
@@ -60,110 +79,169 @@ function Chip({
   );
 }
 
+/**
+ * « Nouvelle demande », screen 3: the « Appel d'offres » form. `POST /appels-offres`
+ * with the ticked services, then `POST /appels-offres/{id}/media` for the
+ * documents; de9de9's admins are notified as soon as it is sent.
+ */
 export function PublishTenderPage() {
   const t = useT();
   const L = useL();
   const navigate = useNavigate();
-  const { familyId = '' } = useParams();
-  const family = FAMILY_BY_ID[familyId];
+  const { familyId: code = '' } = useParams();
 
-  // Sub-service selection lives in the catalogue store: it is seeded on
-  // FamilyDetailPage and must survive the navigation (including the possible
-  // KYC detour) into this page.
+  const categorie = useCategorie(code);
+  const pickers = useNouvelleDemande();
+  const formulaire = pickers.data?.formulaire;
+
+  // Ticked on screen 2 (or pre-ticked by a search hit); kept in the store so
+  // the KYC detour does not lose them.
   const selectedSubs = useCatalogueStore((s) => s.selectedSubs);
-  const [attachment, setAttachment] = useState<PieceFile | null>(null);
-  const publish = usePublishTender();
+  const [files, setFiles] = useState<File[]>([]);
+  const [servicesError, setServicesError] = useState(false);
+  const send = useSendAppelOffres();
 
   const {
     control,
     handleSubmit,
+    setError,
     formState: { errors },
-  } = useForm<TenderPublishForm>({
-    resolver: zodResolver(tenderPublishFormSchema),
+  } = useForm<AppelOffresForm>({
+    resolver: zodResolver(appelOffresFormSchema),
     defaultValues: {
       description: '',
       wilaya: '',
       delai: '',
       budget: '',
-      type: 'ponctuel',
-      recurrence: undefined,
-      critere: '',
+      typeBesoin: 'ponctuel',
+      frequence: '',
+      criteres: '',
     },
   });
+  const typeBesoin = useWatch({ control, name: 'typeBesoin' });
 
-  const type = useWatch({ control, name: 'type' });
+  const optionLabel = (option: FormOption) => L(option.label, OPTION_AR[option.code] ?? option.label);
+  const required = L('Champ requis', 'حقل مطلوب');
 
-  if (!family) {
+  if (categorie.isPending || pickers.isPending) {
+    return (
+      <div className="mx-auto max-w-2xl px-4 py-6">
+        <div className="mb-5 h-10 w-48 animate-pulse rounded-lg bg-secondary" />
+        <div className="flex flex-col gap-4">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="h-20 animate-pulse rounded-xl bg-secondary" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  const cat = categorie.data;
+  if (!cat) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-10">
         <EmptyState
-          title={L('Famille introuvable', 'العائلة غير موجودة')}
+          title={L('Catégorie introuvable', 'الفئة غير موجودة')}
           description={L('Cette catégorie n’existe pas.', 'هذه الفئة غير موجودة.')}
         />
       </div>
     );
   }
 
-  const onSubmit = (form: TenderPublishForm) => {
-    const subNames = family.subs
-      .filter((sub) => selectedSubs.includes(sub.id))
-      .map((sub) => sub.name.fr);
-    const serviceName = subNames.length > 0 ? subNames.join(' · ') : family.name.fr;
-    publish.mutate(
+  const onSubmit = (form: AppelOffresForm) => {
+    // The ticks are the demand's services — and its name: there is no title field.
+    const subCategoryCodes = cat.services.map((s) => s.code).filter((c) => selectedSubs.includes(c));
+    if (subCategoryCodes.length === 0) {
+      setServicesError(true);
+      return;
+    }
+    setServicesError(false);
+
+    const payload = buildAppelOffresPayload(form, cat.code, subCategoryCodes, formulaire);
+
+    send.mutate(
+      { payload, files },
       {
-        familyId: family.id,
-        serviceName,
-        description: form.description,
-        wilaya: form.wilaya,
-        delai: form.delai,
-        budgetDzd: form.budget ? Number(form.budget) : undefined,
-        type: form.type,
-        recurrence: form.type === 'recurrent' ? form.recurrence : undefined,
-        critere: form.critere?.trim() || undefined,
-        attachments: attachment ? [attachment] : [],
-      },
-      {
-        onSuccess: () => {
+        onSuccess: ({ created, mediaFailed }) => {
+          if (mediaFailed) {
+            toast.warning(
+              L(
+                'Demande envoyée, mais les documents n’ont pas pu être joints. Transmettez-les au support.',
+                'تم إرسال الطلب، لكن تعذّر إرفاق المستندات. أرسلها إلى الدعم.',
+              ),
+            );
+          }
           catalogueActions.clearSubs();
-          toast.success(t('confirmTitle'));
-          navigate(`/client/publish/${family.id}/confirm`);
+          navigate(`/client/publish/${encodeURIComponent(cat.code)}/confirm`, {
+            state: { statusLabel: created.statusLabel ?? null },
+          });
         },
-        onError: () => toast.error(L('Échec de l’envoi', 'فشل الإرسال')),
+        onError: (error) => {
+          const problem = toProblem(error);
+          const field = problem.field ? FIELD_OF[problem.field] : undefined;
+          if (problem.status === 400 && field) {
+            setError(field, { type: 'server', message: problem.detail ?? required });
+            return;
+          }
+          if (problem.field === 'subCategoryCodes' || problem.field === 'categoryCode') {
+            setServicesError(true);
+            return;
+          }
+          toast.error(
+            problem.status === 403
+              ? L('Passez en espace client pour envoyer une demande.', 'انتقل إلى مساحة العميل لإرسال طلب.')
+              : problem.code === 'company_not_client'
+                ? L("L'espace client n'est pas activé pour votre entreprise.", 'مساحة العميل غير مفعّلة لشركتك.')
+                : (problem.detail ?? L('Échec de l’envoi. Réessayez.', 'فشل الإرسال. أعد المحاولة.')),
+          );
+        },
       },
     );
   };
 
+  /** The API's own French text for a server error; the generic label otherwise. */
+  const messageOf = (error?: { type?: string; message?: string }) =>
+    error ? (error.type === 'server' && error.message ? error.message : required) : null;
+
   return (
     <div className="mx-auto max-w-2xl px-4 py-6">
       <header className="mb-5 flex items-center gap-3">
-        <Button variant="outline" size="icon" onClick={() => navigate(-1)} aria-label="Retour">
-          <ArrowLeft className="size-4" />
+        <Button variant="outline" size="icon" onClick={() => navigate(-1)} aria-label={L('Retour', 'رجوع')}>
+          <ArrowLeft className="size-4 rtl:rotate-180" />
         </Button>
         <h1 className="text-xl font-extrabold text-de9-ink">{t('ficheTitle')}</h1>
       </header>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
         {/* Famille & catégorie */}
         <Card>
           <CardContent className="py-4">
             <Label className="mb-2 block">{t('familleLabel')}</Label>
             <div className="mb-3 flex items-center gap-3">
-              <CategoryIcon colorKey={family.colorKey} icon={family.icon} />
-              <div>
-                <CategoryChip colorKey={family.colorKey} label={family.name.fr} />
-              </div>
+              <span aria-hidden className="grid size-11 flex-none place-items-center rounded-full bg-de9-row text-[20px]">
+                {cat.icone ?? '🧰'}
+              </span>
+              <p className="text-sm font-bold text-de9-ink">{L(cat.libelle, cat.libelleAr ?? cat.libelle)}</p>
             </div>
             <div className="flex flex-wrap gap-2">
-              {family.subs.map((sub) => (
+              {cat.services.map((service) => (
                 <Chip
-                  key={sub.id}
-                  active={selectedSubs.includes(sub.id)}
-                  onClick={() => catalogueActions.toggleSub(sub.id)}
+                  key={service.code}
+                  active={selectedSubs.includes(service.code)}
+                  onClick={() => {
+                    catalogueActions.toggleSub(service.code);
+                    setServicesError(false);
+                  }}
                 >
-                  {sub.name.fr}
+                  {service.libelle}
                 </Chip>
               ))}
             </div>
+            {servicesError && (
+              <p className="mt-2 text-[12px] text-de9-red">
+                {L('Choisissez au moins un service.', 'اختر خدمة واحدة على الأقل.')}
+              </p>
+            )}
           </CardContent>
         </Card>
 
@@ -177,11 +255,7 @@ export function PublishTenderPage() {
             name="description"
             render={({ field }) => <Textarea id="description" rows={4} {...field} />}
           />
-          {errors.description && (
-            <p className="mt-1 text-[12px] text-de9-red">
-              {L('Champ requis', 'حقل مطلوب')}
-            </p>
-          )}
+          {errors.description && <p className="mt-1 text-[12px] text-de9-red">{messageOf(errors.description)}</p>}
         </div>
 
         {/* Wilaya */}
@@ -205,38 +279,29 @@ export function PublishTenderPage() {
               </Select>
             )}
           />
-          {errors.wilaya && (
-            <p className="mt-1 text-[12px] text-de9-red">{L('Champ requis', 'حقل مطلوب')}</p>
-          )}
+          {errors.wilaya && <p className="mt-1 text-[12px] text-de9-red">{messageOf(errors.wilaya)}</p>}
         </div>
 
-        {/* Délai */}
+        {/* Délai — the backend turns it into the wished-for date */}
         <div>
           <Label className="mb-2 block">{t('delaiLabel')}</Label>
           <Controller
             control={control}
             name="delai"
             render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={L('Choisir un délai', 'اختر أجلاً')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {DELAIS.map((d) => (
-                    <SelectItem key={d} value={d}>
-                      {d}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex flex-wrap gap-2">
+                {(formulaire?.delais ?? []).map((option) => (
+                  <Chip key={option.code} active={field.value === option.code} onClick={() => field.onChange(option.code)}>
+                    {optionLabel(option)}
+                  </Chip>
+                ))}
+              </div>
             )}
           />
-          {errors.delai && (
-            <p className="mt-1 text-[12px] text-de9-red">{L('Champ requis', 'حقل مطلوب')}</p>
-          )}
+          {errors.delai && <p className="mt-1 text-[12px] text-de9-red">{messageOf(errors.delai)}</p>}
         </div>
 
-        {/* Budget */}
+        {/* Budget — « / mois » is display only: the number is what is sent */}
         <div>
           <Label htmlFor="budget" className="mb-2 block">
             {t('budgetLabel')}
@@ -245,16 +310,27 @@ export function PublishTenderPage() {
             control={control}
             name="budget"
             render={({ field }) => (
-              <Input
-                id="budget"
-                type="number"
-                inputMode="numeric"
-                placeholder="DZD"
-                value={field.value ?? ''}
-                onChange={field.onChange}
-              />
+              <div className="relative">
+                <Input
+                  id="budget"
+                  inputMode="numeric"
+                  dir="ltr"
+                  placeholder="150000"
+                  className="pe-20"
+                  value={field.value}
+                  onChange={(e) => field.onChange(e.target.value.replace(/\s/g, ''))}
+                />
+                <span className="pointer-events-none absolute inset-y-0 end-3 flex items-center text-[13px] text-de9-gray">
+                  {typeBesoin === 'recurrent' ? L('DA / mois', 'دج / شهر') : L('DA', 'دج')}
+                </span>
+              </div>
             )}
           />
+          {errors.budget && (
+            <p className="mt-1 text-[12px] text-de9-red">
+              {errors.budget.type === 'server' ? errors.budget.message : L('Montant en DA, sans décimales.', 'المبلغ بالدينار دون كسور.')}
+            </p>
+          )}
         </div>
 
         {/* Type de besoin */}
@@ -262,49 +338,79 @@ export function PublishTenderPage() {
           <Label className="mb-2 block">{t('typeLabel')}</Label>
           <Controller
             control={control}
-            name="type"
+            name="typeBesoin"
             render={({ field }) => (
-              <div className="flex gap-2">
-                <Chip active={field.value === 'ponctuel'} onClick={() => field.onChange('ponctuel')}>
-                  {t('ponctuel')}
-                </Chip>
-                <Chip active={field.value === 'recurrent'} onClick={() => field.onChange('recurrent')}>
-                  {t('recurrent')}
-                </Chip>
+              <div className="flex flex-wrap gap-2">
+                {(formulaire?.typesBesoin.length
+                  ? formulaire.typesBesoin
+                  : [
+                      { code: 'ponctuel', label: t('ponctuel') },
+                      { code: 'recurrent', label: t('recurrent') },
+                    ]
+                ).map((option) => (
+                  <Chip key={option.code} active={field.value === option.code} onClick={() => field.onChange(option.code)}>
+                    {optionLabel(option)}
+                  </Chip>
+                ))}
               </div>
             )}
           />
         </div>
 
-        {/* Fréquence (récurrent) */}
-        {type === 'recurrent' && (
+        {/* Fréquence — only with a recurrent contract */}
+        {typeBesoin === 'recurrent' && (
           <div>
             <Label className="mb-2 block">{t('freqLabel')}</Label>
             <Controller
               control={control}
-              name="recurrence"
+              name="frequence"
               render={({ field }) => (
                 <div className="flex flex-wrap gap-2">
-                  {RECURRENCES.map((r) => (
-                    <Chip key={r} active={field.value === r} onClick={() => field.onChange(r)}>
-                      {r}
+                  {(formulaire?.frequences ?? []).map((option) => (
+                    <Chip key={option.code} active={field.value === option.code} onClick={() => field.onChange(option.code)}>
+                      {optionLabel(option)}
                     </Chip>
                   ))}
                 </div>
               )}
             />
+            {errors.frequence && <p className="mt-1 text-[12px] text-de9-red">{messageOf(errors.frequence)}</p>}
           </div>
         )}
 
-        {/* Documents joints */}
+        {/* Documents joints — sent right after the demand is created */}
         <div>
           <Label className="mb-2 block">{t('docsLabel')}</Label>
+          {files.length > 0 && (
+            <ul className="mb-2 flex flex-col gap-2">
+              {files.map((file, i) => (
+                <li
+                  key={`${file.name}-${i}`}
+                  className="flex items-center gap-3 rounded-lg bg-card px-3.5 py-2.5 shadow-soft dark:ring-1 dark:ring-border"
+                >
+                  <FileText className="size-4 flex-none text-de9-teal-dark" />
+                  <span className="min-w-0 flex-1 truncate text-[13px] text-de9-ink">{file.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => setFiles((prev) => prev.filter((_, j) => j !== i))}
+                    className="grid size-7 flex-none place-items-center rounded-full text-de9-gray hover:bg-secondary"
+                    aria-label={L('Retirer', 'إزالة')}
+                  >
+                    <X className="size-4" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
           <PieceSlot
-            label={t('docsLabel')}
+            label={files.length > 0 ? L('Ajouter un document', 'إضافة مستند') : t('docsLabel')}
             hint={L('PDF ou photo', 'PDF أو صورة')}
-            value={attachment}
-            onChange={setAttachment}
-            fileName="cahier-des-charges.pdf"
+            accept="application/pdf,image/*"
+            value={null}
+            onChange={(picked) => {
+              const file = picked?.file;
+              if (file) setFiles((prev) => [...prev, file]);
+            }}
           />
         </div>
 
@@ -315,25 +421,25 @@ export function PublishTenderPage() {
           </Label>
           <Controller
             control={control}
-            name="critere"
+            name="criteres"
             render={({ field }) => (
               <Textarea
                 id="critere"
                 rows={3}
                 placeholder={L('Prix, délai, certifications…', 'السعر، الأجل، الشهادات…')}
-                value={field.value ?? ''}
-                onChange={field.onChange}
+                {...field}
               />
             )}
           />
+          {errors.criteres && <p className="mt-1 text-[12px] text-de9-red">{messageOf(errors.criteres)}</p>}
         </div>
 
         <Button
           type="submit"
-          disabled={publish.isPending}
+          disabled={send.isPending}
           className="mt-1 h-11 bg-de9-teal text-white shadow-glow hover:bg-de9-teal-dark"
         >
-          {publish.isPending ? L('Envoi…', 'جارٍ الإرسال…') : t('submitPublish')}
+          {send.isPending ? L('Envoi…', 'جارٍ الإرسال…') : t('submitPublish')}
         </Button>
       </form>
     </div>
