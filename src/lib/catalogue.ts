@@ -19,9 +19,6 @@ export interface ServiceFamily {
   subs: ServiceSub[];
 }
 
-/** Families surfaced under "Top catégories du mois" (BTP · Maintenance · Nettoyage · IT). */
-export const TOP_FAMILY_IDS = ['9', '10', '6', '4'] as const;
-
 /** A bilingual label authored as a `[fr, ar]` tuple. */
 type Bilingual = [fr: string, ar: string];
 
@@ -280,13 +277,5 @@ export const WILAYAS = [
   'Ghardaïa',
 ] as const;
 
-export const DELAIS = [
-  'Immédiat',
-  'Sous 72h',
-  'Sous 1 semaine',
-  'Sous 1 mois',
-  '2 à 3 mois',
-  'Flexible',
-] as const;
-
-export const RECURRENCES = ['Hebdomadaire', 'Mensuel', 'Trimestriel', 'Annuel'] as const;
+// Délais and fréquences are not listed here: they come from the API
+// (`formulaire` in GET /client/nouvelle-demande), with their codes and numbers.

@@ -1,8 +1,9 @@
 import { create } from 'zustand';
 
 /**
- * Feature-local selection state for the client catalogue: which family is open,
- * which service sub-rows are ticked, and the current search query.
+ * Feature-local selection state for « Nouvelle demande »: which category is open
+ * (its code), which services are ticked (their codes — they become
+ * `subCategoryCodes`), and the current search text.
  */
 interface CatalogueState {
   selectedFamily: string | null;
@@ -10,11 +11,14 @@ interface CatalogueState {
   catSearch: string;
 }
 
-export const useCatalogueStore = create<CatalogueState>()(() => ({
+const initialState: CatalogueState = {
   selectedFamily: null,
   selectedSubs: [],
   catSearch: '',
-}));
+};
+
+// Imported by authStore (logout): must not import it back.
+export const useCatalogueStore = create<CatalogueState>()(() => initialState);
 
 export const catalogueActions = {
   /** Open a family. Clears the sub selection when the family actually changes. */
@@ -31,10 +35,18 @@ export const catalogueActions = {
         : [...selectedSubs, subId],
     });
   },
+  /** A search hit: open its category with that service already ticked. */
+  openWithService: (categoryCode: string, serviceCode: string): void => {
+    useCatalogueStore.setState({ selectedFamily: categoryCode, selectedSubs: [serviceCode], catSearch: '' });
+  },
   clearSubs: (): void => {
     useCatalogueStore.setState({ selectedSubs: [] });
   },
   setCatSearch: (value: string): void => {
     useCatalogueStore.setState({ catSearch: value });
+  },
+  /** Nothing picked: the next account must not open on this one's search and picks. */
+  reset: (): void => {
+    useCatalogueStore.setState(initialState);
   },
 };

@@ -10,6 +10,8 @@ export interface MockRequest {
   query: Record<string, string>;
   /** `:param` segments captured from the route pattern */
   pathParams: Record<string, string>;
+  /** Request headers, keys lower-cased. */
+  headers: Record<string, string>;
   body: unknown;
 }
 
@@ -74,7 +76,7 @@ export const mockAdapter: AxiosAdapter = async (config) => {
   const method = (config.method ?? 'get').toUpperCase() as MockMethod;
   const raw = `${config.baseURL ?? ''}${config.url ?? ''}`;
   const url = new URL(raw, 'http://mock.local');
-  const path = url.pathname.replace(/^\/api(?=\/|$)/, '');
+  const path = url.pathname.replace(/^\/api(\/v\d+)?(?=\/|$)/, '');
 
   const query: Record<string, string> = {};
   url.searchParams.forEach((value, key) => {
@@ -95,6 +97,13 @@ export const mockAdapter: AxiosAdapter = async (config) => {
     }
   }
 
+  const headers: Record<string, string> = {};
+  if (config.headers && typeof config.headers === 'object') {
+    for (const [key, value] of Object.entries(config.headers as Record<string, unknown>)) {
+      if (typeof value === 'string') headers[key.toLowerCase()] = value;
+    }
+  }
+
   const matched = matchRoute(method, path);
   if (!matched) {
     throw new AxiosError(
@@ -112,6 +121,7 @@ export const mockAdapter: AxiosAdapter = async (config) => {
       path,
       query,
       pathParams: matched.pathParams,
+      headers,
       body,
     });
     const status = result.status ?? 200;

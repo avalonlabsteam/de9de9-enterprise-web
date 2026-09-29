@@ -1,45 +1,57 @@
-import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Logo } from '@/components/common/Logo';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useClientSignup } from '../api/onboarding';
-import { clientSignupSchema, type ClientSignupValues } from '../schemas/onboarding';
-import { authActions } from '@/stores/authStore';
 import { useT, useL } from '@/lib/i18n';
+import { SignupField } from './SignupField';
+import { clientRegisterSchema, type ClientRegisterValues } from '../schemas/onboarding';
+import { normalizePhone } from '../lib/phone';
+import { useRegisterSubmit } from '../lib/useRegisterSubmit';
+import type { RegisterField } from '../lib/registerFlow';
 
 export function ClientSignupPage() {
   const t = useT();
   const L = useL();
-  const navigate = useNavigate();
-  const signup = useClientSignup();
 
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
-  } = useForm<ClientSignupValues>({
-    resolver: zodResolver(clientSignupSchema),
+  } = useForm<ClientRegisterValues>({
+    resolver: zodResolver(clientRegisterSchema),
     defaultValues: {
-      nom: 'Khelifi',
-      prenom: 'Amel',
-      entreprise: 'Hôtel El Aurassi',
+      lastName: '',
+      firstName: '',
+      companyName: '',
       rc: '',
-      phone: '',
+      telephone: '',
       email: '',
       password: '',
     },
   });
 
-  const onSubmit = (values: ClientSignupValues) => {
-    signup.mutate(values, {
-      onSuccess: (data) => {
-        authActions.login(data.token, data.user);
-        navigate('/client/kyc');
-      },
+  const { submit, isPending } = useRegisterSubmit({
+    onFieldError: (field: RegisterField, message) => {
+      if (field === 'proCount') return false; // not on this screen
+      setError(field, { message });
+      return true;
+    },
+  });
+
+  const onSubmit = (values: ClientRegisterValues) => {
+    const telephone = values.telephone.trim() ? normalizePhone(values.telephone) : null;
+    // No proCount: this session opens on the client side. The company is still
+    // created with both roles, so the user can switch later.
+    submit({
+      lastName: values.lastName.trim(),
+      firstName: values.firstName.trim(),
+      companyName: values.companyName.trim(),
+      rc: values.rc.trim(),
+      email: values.email.trim(),
+      password: values.password,
+      ...(telephone ? { telephone } : {}),
     });
   };
 
@@ -61,60 +73,76 @@ export function ClientSignupPage() {
 
             <form onSubmit={handleSubmit(onSubmit)} className="mt-5 space-y-4" noValidate>
               <div className="grid grid-cols-2 gap-3">
-                <TextField id="cli-nom" label={t('fieldNom')} error={!!errors.nom} {...register('nom')} />
-                <TextField id="cli-prenom" label={t('fieldPrenom')} error={!!errors.prenom} {...register('prenom')} />
+                <SignupField
+                  id="cli-nom"
+                  label={t('fieldNom')}
+                  error={errors.lastName?.message}
+                  {...register('lastName')}
+                />
+                <SignupField
+                  id="cli-prenom"
+                  label={t('fieldPrenom')}
+                  error={errors.firstName?.message}
+                  {...register('firstName')}
+                />
               </div>
-              <TextField
+              <SignupField
                 id="cli-entreprise"
                 label={t('fieldEntreprise')}
-                error={!!errors.entreprise}
-                {...register('entreprise')}
+                error={errors.companyName?.message}
+                {...register('companyName')}
               />
-              <TextField id="cli-rc" label={t('fieldRc')} error={!!errors.rc} {...register('rc')} />
-              <TextField
+              <SignupField
+                id="cli-rc"
+                label={t('fieldRc')}
+                placeholder="16/00-1234567 B 24"
+                // LTR so the groups keep their order in Arabic, right-aligned there.
+                dir="ltr"
+                className="rtl:text-right"
+                error={errors.rc?.message}
+                {...register('rc')}
+              />
+              <SignupField
                 id="cli-phone"
                 type="tel"
                 label={t('fieldPhone')}
-                error={!!errors.phone}
-                {...register('phone')}
+                placeholder="05 60 00 00 00"
+                dir="ltr"
+                className="rtl:text-right"
+                hint={
+                  <>
+                    {L('Facultatif · ex.', 'اختياري · مثال')} <bdi dir="ltr">05 60 00 00 00</bdi>
+                  </>
+                }
+                error={errors.telephone?.message}
+                {...register('telephone')}
               />
-              <TextField
+              <SignupField
                 id="cli-email"
                 type="email"
                 label={t('email')}
-                error={!!errors.email}
+                error={errors.email?.message}
                 {...register('email')}
               />
-              <TextField
+              <SignupField
                 id="cli-password"
                 type="password"
                 label={t('fieldPassword')}
-                error={!!errors.password}
+                hint={L(
+                  '8 caractères minimum, dont 1 chiffre, 1 minuscule et 1 majuscule.',
+                  '8 أحرف على الأقل، منها رقم وحرف صغير وحرف كبير.',
+                )}
+                error={errors.password?.message}
                 {...register('password')}
               />
 
-              <Button type="submit" size="lg" className="h-11 w-full text-[15px]" disabled={signup.isPending}>
-                {signup.isPending ? L('Chargement…', 'جارٍ…') : t('createAccountCta')}
+              <Button type="submit" size="lg" className="h-11 w-full text-[15px]" disabled={isPending}>
+                {isPending ? L('Chargement…', 'جارٍ…') : t('createAccountCta')}
               </Button>
             </form>
           </CardContent>
         </Card>
       </div>
     </main>
-  );
-}
-
-interface TextFieldProps extends React.ComponentProps<typeof Input> {
-  id: string;
-  label: string;
-  error?: boolean;
-}
-
-function TextField({ id, label, error, ...props }: TextFieldProps) {
-  return (
-    <div className="space-y-1.5">
-      <Label htmlFor={id}>{label}</Label>
-      <Input id={id} aria-invalid={error} {...props} />
-    </div>
   );
 }

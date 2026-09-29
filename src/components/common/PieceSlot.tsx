@@ -1,14 +1,20 @@
+import { useRef } from 'react';
 import { FileCheck2, UploadCloud, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-/** A mock file (only the name is tracked — no real upload happens). */
+/**
+ * A picked file. Screens whose endpoint takes real uploads (KYC) pass `accept`
+ * and read `file`; the others still get a placeholder with only a name.
+ */
 export interface PieceFile {
   name: string;
+  file?: File;
 }
 
 /**
- * A file-upload slot for the mock app. Clicking "uploads" a placeholder file so
- * the flow (KYC docs, facture proof, …) can proceed without a real backend.
+ * A file-upload slot. With `accept` it opens the file dialog and hands back the
+ * real File; without it, clicking "uploads" a placeholder so a flow with no
+ * upload endpoint yet (facture proof, tender attachment) can proceed.
  */
 export function PieceSlot({
   label,
@@ -16,6 +22,9 @@ export function PieceSlot({
   value,
   onChange,
   fileName = 'document.pdf',
+  accept,
+  onReject,
+  maxBytes,
   className,
 }: {
   label: string;
@@ -23,8 +32,14 @@ export function PieceSlot({
   value: PieceFile | null;
   onChange: (file: PieceFile | null) => void;
   fileName?: string;
+  /** Set it to pick a real file (e.g. `application/pdf,image/*`). */
+  accept?: string;
+  /** Called instead of `onChange` when the picked file is over `maxBytes`. */
+  onReject?: (file: File) => void;
+  maxBytes?: number;
   className?: string;
 }) {
+  const inputRef = useRef<HTMLInputElement>(null);
   if (value) {
     return (
       <div
@@ -54,7 +69,7 @@ export function PieceSlot({
   return (
     <button
       type="button"
-      onClick={() => onChange({ name: fileName })}
+      onClick={() => (accept ? inputRef.current?.click() : onChange({ name: fileName }))}
       className={cn(
         'flex w-full items-center gap-3 rounded-lg bg-de9-teal-soft px-3.5 py-3 text-start transition-shadow hover:shadow-lift',
         className,
@@ -68,6 +83,22 @@ export function PieceSlot({
       <span className="flex-none rounded-full bg-card px-2.5 py-1 text-[12px] font-bold text-de9-teal-dark shadow-soft">
         Importer
       </span>
+      {accept && (
+        <input
+          ref={inputRef}
+          type="file"
+          accept={accept}
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            // Reset first: picking the same file twice must still fire.
+            e.target.value = '';
+            if (!file) return;
+            if (maxBytes && file.size > maxBytes) onReject?.(file);
+            else onChange({ name: file.name, file });
+          }}
+        />
+      )}
     </button>
   );
 }

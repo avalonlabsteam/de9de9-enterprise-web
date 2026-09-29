@@ -137,10 +137,6 @@ export interface CalendarEvent {
   assignedWorkerId?: string;
 }
 
-export interface KycState {
-  clientValidated: boolean;
-  presValidated: boolean;
-}
 
 // ------------------------------------------------------------------ helpers
 const occ = (
@@ -318,16 +314,59 @@ const calendarEvents: CalendarEvent[] = [
   { id: 'E4', title: 'Réparation climatiseur — M. Tarek', start: '2026-06-26T16:00', wilaya: 'Blida', source: 'b2c', assignedWorkerId: 'W3' },
 ];
 
-const dashboard = {
-  entreprise: 'PlombEx',
-  verified: true,
-  stats: { avenir: 9, enCours: 3, completes: 512 },
-  equipe: { used: 3, total: 5 },
-  chiffreAffaireDa: 152000,
-  activite: [
-    { title: 'Nouvelle réservation', time: 'Il y a 2 h' },
-    { title: 'Nouvelle annonce publiée', time: 'Il y a 2 h' },
+/**
+ * `GET /prestataire/accueil` — the whole prestataire home. Shapes and sample
+ * values follow the « Accueil prestataire » guide: counters are B2B + B2C
+ * together, `equipe` splits own workers from de9de9 contractuels, and the
+ * revenue is the company's whole history in DA.
+ */
+const accueil = {
+  entreprise: {
+    id: 'company-3f2a',
+    nom: 'PlombEx',
+    // An authenticated file URL in production; the mock serves no file.
+    logoUrl: null,
+    verifie: true,
+    kycStatut: 'verified',
+    certifie: false,
+    nomUtilisateur: 'Nadir Mansouri',
+  },
+  activeRole: 'prestataire',
+  availableRoles: ['client', 'prestataire'],
+  compteurs: {
+    aVenir: 9,
+    enCours: 3,
+    completes: 512,
+    b2b: { aVenir: 6, enCours: 2, completes: 400 },
+    b2c: { aVenir: 3, enCours: 1, completes: 112 },
+  },
+  annonces: [
+    {
+      service: 'Climatisation, chauffage & froid (CVC)',
+      sousCategorieCode: 'climatisation-chauffage-et-froid-cvc',
+      categorieCode: 'btp-travaux-et-amenagement',
+      categorie: 'BTP, Travaux & Aménagement',
+      icone: '🏗️',
+      prixLabel: 'À partir de 4 000 DA',
+      prixMinDzd: 4000,
+      prixUnite: 'jour',
+      canaux: ['B2B', 'B2C'],
+    },
+    {
+      service: 'Nettoyage industriel & usines',
+      sousCategorieCode: 'nettoyage-industriel-et-usines',
+      categorieCode: 'nettoyage-et-hygiene',
+      categorie: 'Nettoyage & Hygiène',
+      icone: '🧼',
+      prixLabel: 'À partir de 4 000 DA',
+      prixMinDzd: 4000,
+      prixUnite: 'jour',
+      canaux: ['B2B'],
+    },
   ],
+  equipe: { ouvriers: 3, contractuels: 2, total: 5 },
+  chiffreAffaires: { totalDzd: 152000, b2bDzd: 120000, b2bNetDzd: 102000, b2cDzd: 32000 },
+  b2c: { statut: 'actif', donneesDisponibles: true },
 };
 
 const stats = {
@@ -352,7 +391,56 @@ const stats = {
   ],
 };
 
-const kyc: KycState = { clientValidated: false, presValidated: true };
+/**
+ * The company's KYC dossier (`GET /kyc/dossier`). de9de9 verifies or rejects it
+ * as a whole; the three rows are always sent in the order RC, NIF, NIS.
+ */
+const kyc = {
+  companyId: 'company-3f2a',
+  nom: 'PlombEx',
+  statut: 'pending' as 'pending' | 'verified' | 'rejected',
+  statutLabel: 'En attente',
+  motif: null as string | null,
+  revueLe: null as string | null,
+  identifiantsComplets: true,
+  rc: '16/00-1234567 B 24',
+  nif: '000016001234567',
+  nis: '000016012345678',
+  documents: [
+    { documentId: null as string | null, kind: 'KycRc', kindLabel: 'Registre de Commerce', fileName: null as string | null, url: null as string | null, uploadedAt: null as string | null, present: false },
+    { documentId: null as string | null, kind: 'KycNif', kindLabel: "Numéro d'Identification Fiscale", fileName: null as string | null, url: null as string | null, uploadedAt: null as string | null, present: false },
+    { documentId: null as string | null, kind: 'KycNis', kindLabel: "Numéro d'Identification Statistique", fileName: null as string | null, url: null as string | null, uploadedAt: null as string | null, present: false },
+  ],
+  soumisLe: null as string | null,
+};
+
+/**
+ * Who the client home shows. One company holds both roles, so the id is the
+ * session's and the KYC dossier's; the name and user are the client sample.
+ */
+const clientEntreprise = {
+  id: 'company-3f2a',
+  nom: 'Hôtel El Aurassi',
+  nomUtilisateur: 'Amel Khelifi',
+};
+
+/**
+ * E-mails already registered: `POST /auth/login` knows them (any password) and
+ * `POST /auth/register` answers 409 `email_taken` for them. Seeded with the
+ * client sample from the sign-up guide and the prestataire sample.
+ */
+const auth = {
+  registeredEmails: ['achats@elaurassi.dz', 'contact@plombex.dz'],
+  /** Filled by « Votre numéro » (POST /auth/me/telephone). */
+  telephone: null as string | null,
+  telephoneEntreprise: null as string | null,
+  /**
+   * The side of the most recent session — a sign-in opens there. The mock has
+   * one user, so only `POST /auth/switch-role` moves it. Until the first switch
+   * it is null and each sign-in route picks its own default.
+   */
+  lastRole: null as 'client' | 'prestataire' | null,
+};
 
 export const db = {
   tenders,
@@ -365,9 +453,11 @@ export const db = {
   b2bJobs,
   annonces,
   calendarEvents,
-  dashboard,
+  accueil,
+  clientEntreprise,
   stats,
   kyc,
+  auth,
 };
 
 // -------------------------------------------------------------- id + helpers
