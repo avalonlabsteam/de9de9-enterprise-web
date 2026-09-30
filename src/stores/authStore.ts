@@ -15,6 +15,8 @@ export interface AuthUser {
   id: string;
   name: string;
   role: Role;
+  /** The company the session acts for — the routes that carry it in their path (`/companies/{companyId}/…`). */
+  companyId?: string;
 }
 
 interface AuthState {
