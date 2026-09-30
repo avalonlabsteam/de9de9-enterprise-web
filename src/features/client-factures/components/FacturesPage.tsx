@@ -1,10 +1,8 @@
 import { useState } from 'react';
-import { HelpCircle, FileText, ArrowDown, RefreshCw } from 'lucide-react';
+import { FileText, ArrowDown, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { useL } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
-import { uiActions } from '@/stores/uiStore';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/common/EmptyState';
 import { StatusBadge } from '@/components/common/StatusBadge';
@@ -107,17 +105,11 @@ export function FacturesPage() {
 
   return (
     <div className="mx-auto flex max-w-[880px] flex-col gap-5">
-      <header className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-[22px] font-black text-de9-ink">{L('Factures', 'الفواتير')}</h1>
-          <p className="mt-0.5 text-[13px] text-de9-gray">
-            {L('Confirmez les factures de vos prestations.', 'أكّد فواتير خدماتك.')}
-          </p>
-        </div>
-        <Button variant="outline" size="sm" onClick={() => uiActions.openSupport()}>
-          <HelpCircle className="size-4" />
-          {L('Aide', 'مساعدة')}
-        </Button>
+      <header>
+        <h1 className="text-[22px] font-black text-de9-ink">{L('Factures', 'الفواتير')}</h1>
+        <p className="mt-0.5 text-[13px] text-de9-gray">
+          {L('Confirmez les factures de vos prestations.', 'أكّد فواتير خدماتك.')}
+        </p>
       </header>
 
       <div className="flex flex-wrap gap-2">

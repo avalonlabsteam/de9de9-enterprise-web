@@ -4,7 +4,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock,
-  HelpCircle,
   MapPin,
   RefreshCw,
   TriangleAlert,
@@ -14,7 +13,6 @@ import { useL } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { MONTHS_FR, MONTHS_AR, WEEKDAYS_AR } from '@/lib/dateLabels';
 import { toProblem } from '@/api/problem';
-import { uiActions } from '@/stores/uiStore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -101,15 +99,9 @@ export function ClientCalendrierPage() {
 
   return (
     <div className="mx-auto flex max-w-[880px] flex-col gap-5">
-      <header className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-[22px] font-black text-de9-ink">{L('Calendrier', 'التقويم')}</h1>
-          <p className="mt-0.5 text-[13px] text-de9-gray">{L('Vos interventions planifiées', 'تدخلاتك المبرمجة')}</p>
-        </div>
-        <Button variant="outline" size="sm" onClick={() => uiActions.openSupport()}>
-          <HelpCircle className="size-4" />
-          {L('Aide', 'مساعدة')}
-        </Button>
+      <header>
+        <h1 className="text-[22px] font-black text-de9-ink">{L('Calendrier', 'التقويم')}</h1>
+        <p className="mt-0.5 text-[13px] text-de9-gray">{L('Vos interventions planifiées', 'تدخلاتك المبرمجة')}</p>
       </header>
 
       <div className="grid gap-5 lg:grid-cols-[340px_minmax(0,1fr)] lg:items-start">

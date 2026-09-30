@@ -52,38 +52,41 @@
    Light values come straight from the reference tokens; dark mode is a
    derived counterpart so the existing theme toggle keeps working. */
 :root {
-    --background: #F8F9FA;
+    /* Light values: the reference hues, deepened where they carry text or an
+       edge — the Figma mint (#4FD1C5) and greys (#A0AEC0) read at ~2:1 on
+       white, so text, buttons and borders use darker shades of the same hues. */
+    --background: #F5F7FA;
     --foreground: #2D3748;
     --card: #ffffff;
     --card-foreground: #2D3748;
     --popover: #ffffff;
     --popover-foreground: #2D3748;
-    --primary: #4FD1C5;
+    --primary: #0F9488;
     --primary-foreground: #ffffff;
-    --secondary: #EDF0F3;
+    --secondary: #EEF1F5;
     --secondary-foreground: #2D3748;
-    --muted: #EDF0F3;
-    --muted-foreground: #A0AEC0;
-    --accent: #EAF8F7;
-    --accent-foreground: #3FBDB1;
-    --destructive: #E7464E;
-    --border: #EDF0F3;
-    --input: #EDF0F3;
-    --ring: #4FD1C5;
-    --chart-1: #4FD1C5;
-    --chart-2: #3FBDB1;
+    --muted: #EEF1F5;
+    --muted-foreground: #64748B;
+    --accent: #E6F6F4;
+    --accent-foreground: #0F766E;
+    --destructive: #D12F38;
+    --border: #E2E8F0;
+    --input: #D0D7E1;
+    --ring: #0F9488;
+    --chart-1: #0F9488;
+    --chart-2: #0F766E;
     --chart-3: #2D3748;
-    --chart-4: #E7464E;
+    --chart-4: #D12F38;
     --chart-5: #A0AEC0;
     --radius: 0.9375rem; /* 15px card radius */
     --sidebar: #ffffff;
     --sidebar-foreground: #2D3748;
-    --sidebar-primary: #4FD1C5;
+    --sidebar-primary: #0F9488;
     --sidebar-primary-foreground: #ffffff;
-    --sidebar-accent: #EAF8F7;
-    --sidebar-accent-foreground: #3FBDB1;
-    --sidebar-border: #EDF0F3;
-    --sidebar-ring: #4FD1C5;
+    --sidebar-accent: #E6F6F4;
+    --sidebar-accent-foreground: #0F766E;
+    --sidebar-border: #E2E8F0;
+    --sidebar-ring: #0F9488;
 }
 
 .dark {
@@ -146,23 +149,23 @@
 
 :root {
     color-scheme: light;
-    --de9-red: #E7464E;
-    --de9-teal: #4FD1C5;
-    --de9-teal-dark: #3FBDB1;
+    --de9-red: #D12F38;
+    --de9-teal: #0F9488;
+    --de9-teal-dark: #0F766E;
     --de9-ink: #2D3748;
-    --de9-slate: #848688;
-    --de9-gray: #A0AEC0;
-    --de9-line: #EDF0F3;
-    --de9-bg: #F8F9FA;
+    --de9-slate: #525F6F;
+    --de9-gray: #64748B;
+    --de9-line: #E2E8F0;
+    --de9-bg: #F5F7FA;
     --de9-row: #EAF8F7;
-    --de9-scrollbar: #D2D4D7;
+    --de9-scrollbar: #C5CCD6;
     /* Deg Deg additions */
-    --de9-teal-soft: #AEF7EB;
-    --de9-teal-tint: rgba(103, 202, 196, 0.09);
-    --de9-blue: #0099D6;
+    --de9-teal-soft: #CFF3ED;
+    --de9-teal-tint: rgba(15, 148, 136, 0.08);
+    --de9-blue: #0077B6;
     --de9-blue-soft: #6AB5FF;
     --de9-orange: #FFC581;
-    --de9-orange-deep: #F0982D;
+    --de9-orange-deep: #B45309;
     --de9-red-soft: #FDE7E8;
     --de9-blue-tint: #E8F1FD;
 }
@@ -206,11 +209,11 @@
 :root {
     --cat-noir: #2D3748;
     --cat-noir-soft: #EDF0F3;
-    --cat-bleu: #0099D6;
+    --cat-bleu: #0077B6;
     --cat-bleu-soft: #E8F1FD;
-    --cat-vert: #3FBDB1;
+    --cat-vert: #0F766E;
     --cat-vert-soft: #EAF8F7;
-    --cat-rouge: #E7464E;
+    --cat-rouge: #D12F38;
     --cat-rouge-soft: #FDE7E8;
 }
 
@@ -226,11 +229,29 @@
 }
 
 /* ===== Deg Deg shadows (generate shadow-soft / shadow-lift / shadow-glow /
-   shadow-float / shadow-modal utilities). ===== */
+   shadow-float / shadow-modal utilities). Soft, lift and glow follow the
+   theme: dark surfaces draw their edge with `dark:ring-1 dark:ring-border`,
+   light ones get it from a 1px hairline in the shadow itself — white cards on
+   the light page have no other edge. ===== */
+@theme inline {
+    --shadow-soft: var(--de9-shadow-soft);
+    --shadow-lift: var(--de9-shadow-lift);
+    --shadow-glow: var(--de9-shadow-glow);
+}
+
+:root {
+    --de9-shadow-soft: 0 0 0 1px rgba(15, 23, 42, 0.07), 0 1px 3px rgba(15, 23, 42, 0.06);
+    --de9-shadow-lift: 0 0 0 1px rgba(15, 23, 42, 0.08), 0 6px 16px rgba(15, 23, 42, 0.1);
+    --de9-shadow-glow: 0 6px 20px rgba(15, 148, 136, 0.28);
+}
+
+.dark {
+    --de9-shadow-soft: 0 3.5px 5.5px rgba(0, 0, 0, 0.02);
+    --de9-shadow-lift: 0 3.5px 5.5px rgba(0, 0, 0, 0.09);
+    --de9-shadow-glow: 0 9px 41.6px rgba(79, 209, 197, 0.25);
+}
+
 @theme {
-    --shadow-soft: 0 3.5px 5.5px rgba(0, 0, 0, 0.02);
-    --shadow-lift: 0 3.5px 5.5px rgba(0, 0, 0, 0.09);
-    --shadow-glow: 0 9px 41.6px rgba(79, 209, 197, 0.25);
     --shadow-float: 0 3px 21.9px 3px rgba(1, 35, 110, 0.24);
     --shadow-modal: 0 18px 60px rgba(1, 35, 110, 0.18);
 
