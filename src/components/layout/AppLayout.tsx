@@ -5,7 +5,7 @@ import {
   Menu,
   Moon,
   Sun,
-  HelpCircle,
+  Headset,
   Bell,
   Home,
   ClipboardList,
@@ -336,7 +336,7 @@ export function AppLayout() {
             className={iconButtonCls}
             aria-label="Support"
           >
-            <HelpCircle className="size-[18px]" />
+            <Headset className="size-[18px]" />
           </button>
           <button
             type="button"

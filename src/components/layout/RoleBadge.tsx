@@ -13,7 +13,7 @@ export function RoleBadge({ className }: { className?: string }) {
       className={cn(
         'rounded-full px-2.5 py-1 text-[10.5px] font-extrabold tracking-[.1em]',
         isClient
-          ? 'bg-[#EAF2FD] text-[#2F7FD0] dark:bg-[#17293A] dark:text-[#5BB6F0]'
+          ? 'bg-[#EAF2FD] text-[#1D6FC2] dark:bg-[#17293A] dark:text-[#5BB6F0]'
           : 'bg-[#E5F7F4] text-de9-teal-dark dark:bg-[#14322E]',
         className,
       )}

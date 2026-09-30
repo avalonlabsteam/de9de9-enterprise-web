@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Clock, MessageCircle, Phone, Search, ShieldAlert, ShieldCheck, X } from 'lucide-react';
+import { Clock, Search, ShieldAlert, ShieldCheck, X } from 'lucide-react';
 import { useL } from '@/lib/i18n';
 import { uiActions } from '@/stores/uiStore';
 import { cn } from '@/lib/utils';
@@ -7,7 +7,6 @@ import { toProblem } from '@/api/problem';
 import { useDebouncedValue } from '@/lib/useDebouncedValue';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/common/EmptyState';
 import { ClientHomeSummary } from '@/features/client-accueil/components/ClientHomeSummary';
 import { useKycState } from '@/features/kyc/api/kyc';
@@ -278,35 +277,6 @@ export function CataloguePage() {
                 />
               ))}
             </div>
-          </section>
-
-          {/* Je cherche autre chose */}
-          <section>
-            <Card>
-              <CardContent className="flex flex-col gap-4 py-6 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm font-bold text-de9-ink">
-                    {L('Je cherche autre chose', 'أبحث عن شيء آخر')}
-                  </p>
-                  <p className="mt-1 text-sm text-de9-gray">
-                    {L(
-                      'Notre équipe vous aide à trouver le bon prestataire.',
-                      'يساعدك فريقنا في العثور على مقدّم الخدمة المناسب.',
-                    )}
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => uiActions.openSupport()}>
-                    <MessageCircle className="size-4" />
-                    {L('WhatsApp', 'واتساب')}
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => uiActions.openSupport()}>
-                    <Phone className="size-4" />
-                    {L('Appeler', 'اتصال')}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
           </section>
         </div>
       )}

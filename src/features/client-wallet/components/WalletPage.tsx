@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { ChevronRight, Info, Loader2, Phone, Plus, RotateCw } from 'lucide-react';
+import { ChevronRight, Info, Loader2, Plus } from 'lucide-react';
 import { useL } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { toneBox, tonePill, toneText } from '@/lib/tones';
@@ -87,32 +87,12 @@ export function WalletPage() {
     if (route) navigate(route);
   };
 
-  const appel = screen?.feuilleRecharge?.canaux.find((c) => c.code === 'appel');
   const loadError = query.isError && !screen ? toProblem(query.error) : null;
 
   return (
     <div className="mx-auto flex max-w-[720px] flex-col gap-5">
-      <header className="flex items-center justify-between gap-3">
+      <header>
         <h1 className="text-[22px] font-black text-de9-ink">{L('Portefeuille', 'المحفظة')}</h1>
-        <div className="flex gap-2">
-          {appel && (
-            <a
-              href={appel.href}
-              aria-label={appel.label}
-              className="grid size-10 place-items-center rounded-full bg-card text-de9-teal shadow-soft hover:shadow-lift dark:ring-1 dark:ring-border"
-            >
-              <Phone className="size-4" />
-            </a>
-          )}
-          <button
-            type="button"
-            onClick={refresh}
-            aria-label={L('Actualiser', 'تحديث')}
-            className="grid size-10 place-items-center rounded-full bg-card text-de9-teal shadow-soft hover:shadow-lift dark:ring-1 dark:ring-border"
-          >
-            <RotateCw className={cn('size-4', query.isRefetching && 'animate-spin')} />
-          </button>
-        </div>
       </header>
 
       {query.isPending && (

@@ -36,7 +36,7 @@ function MesAnnoncesTab() {
     <div className="flex flex-col gap-4">
       <Button className="w-full sm:w-fit" onClick={() => navigate('/prestataire/annonces?create=1')}>
         <Plus className="size-4" />
-        {L('+ Créer une annonce', '+ إنشاء إعلان')}
+        {L('Créer une annonce', 'إنشاء إعلان')}
       </Button>
 
       {isPending && (
