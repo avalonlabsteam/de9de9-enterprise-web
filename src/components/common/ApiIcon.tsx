@@ -3,15 +3,22 @@ import {
   ArrowUp,
   CalendarDays,
   Check,
+  FileSignature,
   FileText,
+  Headset,
   Hourglass,
   Landmark,
   Lock,
   LockOpen,
+  MapPin,
+  NotebookPen,
+  Paperclip,
+  Phone,
   Plus,
   RefreshCw,
   Star,
   TriangleAlert,
+  UsersRound,
 } from 'lucide-react';
 
 /**
@@ -47,6 +54,20 @@ export function ApiIcon({ code, className }: { code?: string | null; className?:
       return <Plus className={className} />;
     case 'banque':
       return <Landmark className={className} />;
+    case 'equipe':
+      return <UsersRound className={className} />;
+    case 'support':
+      return <Headset className={className} />;
+    case 'telephone':
+      return <Phone className={className} />;
+    case 'adresse':
+      return <MapPin className={className} />;
+    case 'note':
+      return <NotebookPen className={className} />;
+    case 'devis':
+      return <FileSignature className={className} />;
+    case 'piece_jointe':
+      return <Paperclip className={className} />;
     default:
       return null;
   }

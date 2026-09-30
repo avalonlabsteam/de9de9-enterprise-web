@@ -1,26 +1,39 @@
 import { apiClient } from '@/api/apiClient';
 import { toProblem } from '@/api/problem';
 import { apiUrl } from '@/api/hostUrl';
+import type { ApiAction, Champ } from './schema';
 
 export { apiUrl };
-import type { Champ, SuiviAction } from '../schemas/suivi';
 
 /** The values a confirmation sheet collected, by field `code`. */
 export interface SheetValues {
   values: Record<string, unknown>;
-  files: Record<string, File>;
+  files: Record<string, File[]>;
+}
+
+/** Fields the user types into — the others are files, or lines only to read. */
+const isInput = (champ: Champ) => champ.type !== 'fichier' && champ.type !== 'lecture_seule';
+
+/** A sheet as it opens: each field prefilled with its `valeur` (the current amount, the last valid day…). */
+export function initialSheet(action: ApiAction): SheetValues {
+  const values: Record<string, unknown> = {};
+  for (const champ of action.confirm?.champs ?? []) {
+    if (isInput(champ) && champ.valeur !== undefined) values[champ.code] = champ.valeur;
+  }
+  return { values, files: {} };
 }
 
 /**
- * The body: `corps` (a constant, maybe `{}`) plus each sheet field under its
- * code — except `date_chips`, whose `{ date, time }` object is merged in, and
- * `fichier`, which travels as its own multipart part.
+ * The body: `corps` (a constant, maybe `{}`, maybe a `version`) plus each sheet
+ * field under its code — except `date_chips`, whose `{ date, time }` object is
+ * merged in, `fichier`, which travels as its own multipart part, and
+ * `lecture_seule`, which is never sent.
  */
-export function buildBody(action: SuiviAction, sheet: SheetValues): Record<string, unknown> {
+export function buildBody(action: ApiAction, sheet: SheetValues): Record<string, unknown> {
   const body: Record<string, unknown> = { ...(action.corps ?? {}) };
   for (const champ of action.confirm?.champs ?? []) {
     const value = sheet.values[champ.code];
-    if (champ.type === 'fichier' || value === undefined || value === '') continue;
+    if (!isInput(champ) || value === undefined || value === '') continue;
     if (champ.type === 'date_chips' && value && typeof value === 'object') Object.assign(body, value);
     else body[champ.code] = value;
   }
@@ -29,9 +42,22 @@ export function buildBody(action: SuiviAction, sheet: SheetValues): Record<strin
 
 /** `requis: true` keeps the confirm button disabled until the field is filled. */
 export function champFilled(champ: Champ, sheet: SheetValues): boolean {
-  if (champ.type === 'fichier') return !!sheet.files[champ.code];
+  if (champ.type === 'fichier') return (sheet.files[champ.code]?.length ?? 0) > 0;
+  if (champ.type === 'lecture_seule') return true;
   const value = sheet.values[champ.code];
   return value !== undefined && value !== '' && value !== null;
+}
+
+/** A typed amount below `min` is not sent — the button waits for a valid one. */
+export function champValid(champ: Champ, sheet: SheetValues): boolean {
+  if (champ.type !== 'montant_dzd') return true;
+  const value = sheet.values[champ.code];
+  return value === undefined || (typeof value === 'number' && value >= (champ.min ?? 1));
+}
+
+/** Every `requis` field filled, every typed value valid. */
+export function sheetReady(champs: Champ[], sheet: SheetValues): boolean {
+  return champs.every((champ) => (!champ.requis || champFilled(champ, sheet)) && champValid(champ, sheet));
 }
 
 function newIdempotencyKey(): string {
@@ -47,7 +73,7 @@ function newIdempotencyKey(): string {
  */
 const retryKeys = new Map<string, string>();
 
-function keyFor(action: SuiviAction): string {
+function keyFor(action: ApiAction): string {
   const slot = `${action.method}:${action.href}`;
   const existing = retryKeys.get(slot);
   if (existing) return existing;
@@ -56,16 +82,26 @@ function keyFor(action: SuiviAction): string {
   return key;
 }
 
+export interface SendOptions {
+  /**
+   * Send a `multipart/form-data` action as multipart even when no file rides
+   * along (the `payload` part alone). The prestataire routes refuse JSON there;
+   * the client screens send JSON when they carry no file.
+   */
+  multipartAlways?: boolean;
+}
+
 /**
- * Send one press — steps 3 to 6 of the guide's single algorithm. JSON, or
+ * Send one press — steps 3 to 6 of the guides' single algorithm. JSON, or
  * multipart with the JSON in a `payload` text part and each file under its
  * field's code. Resolves with the raw 2xx body; the caller reads it by
  * `reponse`.
  */
 export async function sendAction(
-  action: SuiviAction,
+  action: ApiAction,
   body: Record<string, unknown>,
   files: Record<string, File | File[]> = {},
+  { multipartAlways = false }: SendOptions = {},
 ): Promise<unknown> {
   if (!action.href || !action.method) throw new Error('action_without_route');
 
@@ -77,7 +113,7 @@ export async function sendAction(
     (Array.isArray(f) ? f : [f]).map((file) => [code, file] as const),
   );
   let data: unknown = body;
-  if (action.contentType === 'multipart/form-data' && fileEntries.length > 0) {
+  if (action.contentType === 'multipart/form-data' && (multipartAlways || fileEntries.length > 0)) {
     const form = new FormData();
     form.append('payload', JSON.stringify(body));
     for (const [code, file] of fileEntries) form.append(code, file);
@@ -103,11 +139,12 @@ export async function sendAction(
 }
 
 /**
- * The sentence to print for a refused press. Routes under `/client/…` answer a
- * French `detail`; the reused ones answer English, so their `erreurs` map
- * (`*` as fallback) carries the sentence.
+ * The sentence to print for a refused press. Routes under `/client/…` and
+ * `/prestataire/…` answer a French `detail` (a field rule: its sentence in
+ * `errors`); the reused ones answer English, so their `erreurs` map (`*` as
+ * fallback) carries the sentence.
  */
-export function actionErrorMessage(action: SuiviAction, error: unknown, fallback: string): string {
+export function actionErrorMessage(action: ApiAction, error: unknown, fallback: string): string {
   const problem = toProblem(error);
   if (action.erreurs) return action.erreurs[problem.code] ?? action.erreurs['*'] ?? problem.detail ?? fallback;
   return problem.detail ?? fallback;

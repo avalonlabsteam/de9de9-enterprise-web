@@ -73,7 +73,8 @@ const PRESTATAIRE_NAV: NavGroup[] = [
     items: [
       { to: '/prestataire', labelKey: 'pNavHome', icon: Home, end: true },
       { to: '/prestataire/b2c', labelKey: 'pNavB2c', icon: Users },
-      { to: '/prestataire/b2b', labelKey: 'pNavB2b', icon: Building2 },
+      { to: '/prestataire/missions', labelKey: 'pNavB2b', icon: Building2 },
+      { to: '/prestataire/demandes-devis', labelKey: 'pNavDevis', icon: FileText },
       { to: '/prestataire/calendar', labelKey: 'pNavCal', icon: Calendar },
     ],
   },

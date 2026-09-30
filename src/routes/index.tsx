@@ -1,6 +1,6 @@
 import { createBrowserRouter, Navigate, Outlet, type RouteObject } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { RequireAuth, RequireRole } from './guards';
+import { ProAlias, RequireAuth, RequireRole } from './guards';
 
 /**
  * Route-level code splitting: each page loads its own chunk on first visit.
@@ -73,8 +73,13 @@ export const router = createBrowserRouter([
     children: [
       { index: true, lazy: page(() => import('@/features/prestataire-dashboard/components/DashboardPage'), 'DashboardPage') },
       { path: 'b2c', lazy: page(() => import('@/features/prestataire-b2c/components/B2cPage'), 'B2cPage') },
-      { path: 'b2b', lazy: page(() => import('@/features/prestataire-b2b/components/B2bPage'), 'B2bPage') },
-      { path: 'b2b/:id', lazy: page(() => import('@/features/prestataire-b2b/components/B2bDetailPage'), 'B2bDetailPage') },
+      // « B2B · Entreprises » and « Détail de la mission » (guide 12); `b2b` is the old address.
+      { path: 'missions', lazy: page(() => import('@/features/prestataire-missions/components/MissionsPage'), 'MissionsPage') },
+      { path: 'missions/:id', lazy: page(() => import('@/features/prestataire-missions/components/MissionDetailPage'), 'MissionDetailPage') },
+      { path: 'b2b/*', element: <Navigate to="/prestataire/missions" replace /> },
+      // « Demandes de devis » (guide 13).
+      { path: 'demandes-devis', lazy: page(() => import('@/features/prestataire-devis/components/DemandesDevisPage'), 'DemandesDevisPage') },
+      { path: 'demandes-devis/:id', lazy: page(() => import('@/features/prestataire-devis/components/DemandeDevisPage'), 'DemandeDevisPage') },
       { path: 'calendar', lazy: page(() => import('@/features/prestataire-calendar/components/CalendarPage'), 'CalendarPage') },
       { path: 'annonces', lazy: page(() => import('@/features/prestataire-annonces/components/AnnoncesPage'), 'AnnoncesPage') },
       { path: 'annonce/create', lazy: page(() => import('@/features/prestataire-annonces/components/CreateAnnoncePage'), 'CreateAnnoncePage') },
@@ -87,6 +92,9 @@ export const router = createBrowserRouter([
       { path: 'profile', lazy: page(() => import('@/features/prestataire-profil/components/PrestataireProfilePage'), 'PrestataireProfilePage') },
     ],
   },
+
+  // The API's alerts and guides name the pro screens `/pro/…` (`/pro/missions/{id}?occurrence=…`).
+  { path: '/pro/*', element: <ProAlias /> },
 
   { path: '*', element: <Navigate to="/" replace /> },
 ]);

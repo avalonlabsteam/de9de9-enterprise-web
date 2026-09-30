@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore, type Role } from '@/stores/authStore';
 
 /** The home route for a persona. */
@@ -23,3 +23,8 @@ export function RequireRole({ role, children }: { role: Role; children: ReactNod
   return <>{children}</>;
 }
 
+/** `/pro/missions/…?occurrence=…` → the same screen under `/prestataire/…`, query kept. */
+export function ProAlias() {
+  const { pathname, search } = useLocation();
+  return <Navigate to={pathname.replace(/^\/pro(?=\/|$)/, '/prestataire') + search} replace />;
+}
