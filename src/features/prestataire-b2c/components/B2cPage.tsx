@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MapPin, Plus, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useT, useL } from '@/lib/i18n';
@@ -360,6 +360,13 @@ export function B2cPage() {
   const navigate = useNavigate();
   const tab = useB2cStore((s) => s.tab);
   const setTab = useB2cStore((s) => s.setTab);
+
+  // From an alert: `onglet=recues|confirmes` opens that tab.
+  const [params] = useSearchParams();
+  const onglet = params.get('onglet');
+  useEffect(() => {
+    if (onglet === 'recues' || onglet === 'explorer' || onglet === 'confirmes') setTab(onglet);
+  }, [onglet, setTab]);
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-6 pb-24">

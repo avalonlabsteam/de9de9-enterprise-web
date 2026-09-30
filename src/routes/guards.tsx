@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { generatePath, Navigate, useLocation, useParams } from 'react-router-dom';
 import { useAuthStore, type Role } from '@/stores/authStore';
+import { appPath } from '@/features/alertes/lib/chemin';
 
 /** The home route for a persona. */
 function roleHome(role: Role | undefined): string {
@@ -23,10 +24,15 @@ export function RequireRole({ role, children }: { role: Role; children: ReactNod
   return <>{children}</>;
 }
 
-/** `/pro/missions/…?occurrence=…` → the same screen under `/prestataire/…`, query kept. */
-export function ProAlias() {
+/**
+ * A screen by the API's name for it — an alert's `cible.chemin`, a guide's
+ * link (`/pro/missions/…?occurrence=…`, `/client/demandes/{id}`, `/kyc`) —
+ * sent to where this app files it, query kept.
+ */
+export function ApiPathAlias() {
   const { pathname, search } = useLocation();
-  return <Navigate to={pathname.replace(/^\/pro(?=\/|$)/, '/prestataire') + search} replace />;
+  const role = useAuthStore((s) => s.user?.role);
+  return <Navigate to={appPath(pathname + search, role ?? 'client')} replace />;
 }
 
 /** An old address kept alive: the same `:params`, under a new path. */

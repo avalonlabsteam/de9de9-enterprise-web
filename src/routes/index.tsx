@@ -1,6 +1,6 @@
 import { createBrowserRouter, Navigate, Outlet, type RouteObject } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { ProAlias, RedirectWithParams, RequireAuth, RequireRole } from './guards';
+import { ApiPathAlias, RedirectWithParams, RequireAuth, RequireRole } from './guards';
 
 /**
  * Route-level code splitting: each page loads its own chunk on first visit.
@@ -59,6 +59,11 @@ export const router = createBrowserRouter([
       { path: 'wallet/mouvements/:id', lazy: page(() => import('@/features/client-wallet/components/MouvementDetailPage'), 'MouvementDetailPage') },
       { path: 'factures', lazy: page(() => import('@/features/client-factures/components/FacturesPage'), 'FacturesPage') },
       { path: 'profile', lazy: page(() => import('@/features/client-profil/components/ClientProfilePage'), 'ClientProfilePage') },
+      // The API's names for these screens (alerts, guides) — see features/alertes/lib/chemin.ts.
+      ...['demandes', 'demandes/:id', 'factures/:id', 'portefeuille/*', 'profil', 'sous-traitance/*'].map((path) => ({
+        path,
+        element: <ApiPathAlias />,
+      })),
     ],
   },
 
@@ -94,8 +99,10 @@ export const router = createBrowserRouter([
     ],
   },
 
-  // The API's alerts and guides name the pro screens `/pro/…` (`/pro/missions/{id}?occurrence=…`).
-  { path: '/pro/*', element: <ProAlias /> },
+  // The API's alerts and guides name the pro screens `/pro/…` (`/pro/missions/{id}?occurrence=…`),
+  // and « Vérifier mon entreprise » `/kyc` on both sides.
+  { path: '/pro/*', element: <ApiPathAlias /> },
+  { path: '/kyc', element: <ApiPathAlias /> },
 
   { path: '*', element: <Navigate to="/" replace /> },
 ]);

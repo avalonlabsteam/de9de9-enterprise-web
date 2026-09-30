@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, BadgeCheck, MapPin, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { useL } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { toProblem } from '@/api/problem';
+import { useScrollToAnchor } from '@/lib/useScrollToAnchor';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -35,6 +36,14 @@ export function SuiviDemandePage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const query = useDemandeSuivi(id);
+  // From an alert: `section=devis|commande` scrolls to that block, `occurrence` to that visit.
+  const [params] = useSearchParams();
+  const section = params.get('section');
+  const occurrence = params.get('occurrence');
+  useScrollToAnchor(
+    [occurrence && `occurrence-${occurrence}`, section === 'devis' || section === 'commande' ? `section-${section}` : null],
+    !!query.data,
+  );
 
   const [confirmFor, setConfirmFor] = useState<SuiviAction | null>(null);
   const [viewer, setViewer] = useState<SuiviAction | null>(null);
@@ -261,11 +270,22 @@ export function SuiviDemandePage() {
       )}
 
       {/* The devis to choose from — « Assigné » only */}
-      {d.devis && <DevisBlock devis={d.devis} busyKey={busyKey} onPress={press} />}
+      {d.devis && (
+        <div id="section-devis" className="scroll-mt-24">
+          <DevisBlock devis={d.devis} busyKey={busyKey} onPress={press} />
+        </div>
+      )}
 
       {/* Visits, invoices, review — once contracted */}
       {d.commande && (
-        <CommandeSection commande={d.commande} highlightId={pa?.occurrenceId} busyKey={busyKey} onPress={press} />
+        <div id="section-commande" className="scroll-mt-24">
+          <CommandeSection
+            commande={d.commande}
+            highlightId={occurrence ?? pa?.occurrenceId}
+            busyKey={busyKey}
+            onPress={press}
+          />
+        </div>
       )}
 
       {/* The buttons at the bottom, in screen order */}

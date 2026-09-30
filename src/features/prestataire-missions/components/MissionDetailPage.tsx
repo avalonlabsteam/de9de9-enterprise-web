@@ -9,6 +9,7 @@ import { toProblem } from '@/api/problem';
 import { proLoadError } from '@/lib/proErrors';
 import { toneBox, toneText } from '@/lib/tones';
 import type { ApiAction } from '@/lib/actions/schema';
+import { useScrollToAnchor } from '@/lib/useScrollToAnchor';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -53,6 +54,9 @@ export function MissionDetailPage() {
     lastShown.current = shownId;
     window.scrollTo({ top: 0 });
   }, [shownId]);
+
+  // From an alert: `facture` asks for the invoice block of the focused visit.
+  useScrollToAnchor([params.get('facture') ? 'facture' : null], !!d?.facture);
 
   /** The occurrence on screen — the one every action and every reload is about. */
   const focus = occurrence ?? d?.occurrence?.id ?? null;
@@ -305,7 +309,7 @@ export function MissionDetailPage() {
 
         {/* The focused occurrence's invoice — from V5 on */}
         {d.facture && (
-          <Card>
+          <Card id="facture" className="scroll-mt-24">
             <CardContent className="flex flex-col gap-3 py-4">
               <div className="flex items-center justify-between gap-2">
                 <p className="flex items-center gap-1.5 text-[15px] font-bold text-de9-ink">

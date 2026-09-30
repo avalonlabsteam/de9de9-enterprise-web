@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { NavLink, Link, Outlet, useNavigate } from 'react-router-dom';
 import {
   ArrowLeftRight,
@@ -6,7 +6,6 @@ import {
   Moon,
   Sun,
   Headset,
-  Bell,
   Home,
   ClipboardList,
   Calendar,
@@ -34,6 +33,9 @@ import { useKycState } from '@/features/kyc/api/kyc';
 import { toProblem } from '@/api/problem';
 import { useSwitchRole, otherRole } from '@/features/auth/api/session';
 import { useSessionBootstrap } from '@/features/auth/api/bootstrap';
+import { AlertesBell } from '@/features/alertes/components/AlertesBell';
+import { enableAlertes } from '@/features/alertes/hub';
+import { useAlertesStore } from '@/features/alertes/stores/alertesStore';
 
 interface NavItem {
   to: string;
@@ -225,10 +227,16 @@ function RoleSwitchButton({ role, className }: { role: Role; className?: string 
   const navigate = useNavigate();
   const switchRole = useSwitchRole();
   const target = otherRole(role);
+  // Unread alerts that exist only on the other side (the hub's `autreCote`).
+  const otherUnread = useAlertesStore((s) => s.compteurs?.autreCote?.nonLues ?? 0);
   const label =
     target === 'prestataire'
       ? L('Passer en espace prestataire', 'التبديل إلى مساحة المهني')
       : L('Passer en espace client', 'التبديل إلى مساحة العميل');
+  const title =
+    otherUnread > 0
+      ? `${label} · ${L(`${otherUnread} alerte(s) non lue(s)`, `${otherUnread} تنبيه غير مقروء`)}`
+      : label;
 
   const onError = (error: unknown) => {
     const problem = toProblem(error);
@@ -264,13 +272,17 @@ function RoleSwitchButton({ role, className }: { role: Role; className?: string 
         })
       }
       className={cn(
-        'h-10 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-full border border-de9-teal bg-card px-4 text-xs font-semibold text-de9-teal transition-[filter] hover:brightness-97 disabled:opacity-60',
+        'relative h-10 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-full border border-de9-teal bg-card px-4 text-xs font-semibold text-de9-teal transition-[filter] hover:brightness-97 disabled:opacity-60',
         className,
       )}
-      title={label}
+      title={title}
+      aria-label={title}
     >
       <ArrowLeftRight className="size-4" />
       {label}
+      {otherUnread > 0 && (
+        <span aria-hidden className="absolute -end-0.5 -top-0.5 size-2.5 rounded-full bg-de9-red ring-2 ring-card" />
+      )}
     </button>
   );
 }
@@ -284,6 +296,10 @@ export function AppLayout() {
 
   // Confirm the stored token and refresh the home / onboarding it carried.
   useSessionBootstrap();
+  // Live alerts from then on (the hub, and the bell's catch-up).
+  useEffect(() => {
+    void enableAlertes();
+  }, []);
 
   // <html> dir/lang and the .dark class are stamped globally by initDomSync
   // (src/lib/domSync.ts) so public routes get them too — no effects here.
@@ -328,9 +344,7 @@ export function AppLayout() {
 
           <CompanyPill role={role} />
           {role && <VerifyPill role={role} />}
-          <button type="button" className={iconButtonCls} aria-label="Notifications">
-            <Bell className="size-[18px]" />
-          </button>
+          <AlertesBell className={iconButtonCls} />
           <button
             type="button"
             onClick={uiActions.openSupport}

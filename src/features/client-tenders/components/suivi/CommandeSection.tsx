@@ -106,7 +106,7 @@ function OccurrenceRow({
     <div
       id={`occurrence-${occurrence.id}`}
       className={cn(
-        'flex flex-col gap-3 rounded-xl bg-card p-4 shadow-soft dark:ring-1 dark:ring-border',
+        'flex scroll-mt-24 flex-col gap-3 rounded-xl bg-card p-4 shadow-soft dark:ring-1 dark:ring-border',
         highlighted && 'ring-2 ring-de9-teal dark:ring-2 dark:ring-de9-teal',
       )}
     >

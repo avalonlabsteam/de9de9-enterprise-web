@@ -95,6 +95,34 @@ async function refreshAccessToken(): Promise<RefreshResult> {
   return { kind: "ok", token: parsed.data.accessToken };
 }
 
+/** When the access token expires (ms since epoch), from its `exp` claim — null when unreadable. */
+function expiresAt(token: string): number | null {
+  try {
+    const payload = token.split(".")[1] ?? "";
+    const claims = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/"))) as { exp?: unknown };
+    return typeof claims.exp === "number" ? claims.exp * 1000 : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Renew an access token that is expired or about to be, before a connection
+ * that cannot go through the 401 dance below — the alerts hub's socket, which
+ * the server closes with its token. A refused refresh ends the session, as it
+ * does for a REST call.
+ */
+export async function refreshIfNeeded(): Promise<void> {
+  const { token, refreshToken } = useAuthStore.getState();
+  if (!token || !refreshToken) return;
+  const exp = expiresAt(token);
+  if (exp === null || exp - Date.now() > 60_000) return;
+  refreshing ??= refreshAccessToken().finally(() => {
+    refreshing = null;
+  });
+  if ((await refreshing).kind === "rejected") authActions.logout();
+}
+
 apiClient.interceptors.response.use(
   (response) => {
     // `null` → absent, so the schemas' optional / default fields hold (see
