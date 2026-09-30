@@ -56,32 +56,35 @@ export function otherRole(role: 'client' | 'prestataire'): 'client' | 'prestatai
  *
  * A 401 here was already refreshed and replayed once by the api client (that
  * covers `session_refresh_required`); the caller handles what is left.
+ *
+ * A plain function too, for what switches outside a screen: an alert of the
+ * other side, or the hub saying this side was switched off.
  */
-export function useSwitchRole() {
-  return useMutation({
-    mutationFn: async (): Promise<AccueilEnvelope> => {
-      const epoch = sessionEpoch();
-      const res = await apiClient.post('/auth/switch-role');
-      const { accessToken, refreshToken, user, accueil } = switchRoleResponseSchema.parse(res.data);
-      // Signed out (or into another account) meanwhile: this answer must not
-      // bring the old session back.
-      if (sessionEpoch() !== epoch) throw new Error('session_changed');
-      bumpSessionEpoch();
-      const current = useAuthStore.getState();
-      authActions.login(
-        accessToken,
-        {
-          id: user?.userId ?? current.user?.id ?? '',
-          name: companyNameOf(accueil) ?? current.user?.name ?? '',
-          role: accueil.role,
-          companyId: user?.companyId ?? current.user?.companyId,
-        },
-        refreshToken ?? current.refreshToken,
-      );
-      accueilActions.set(accueil);
-      // The other side's screens must not read what this one cached.
-      void queryClient.invalidateQueries();
-      return accueil;
+export async function switchRole(): Promise<AccueilEnvelope> {
+  const epoch = sessionEpoch();
+  const res = await apiClient.post('/auth/switch-role');
+  const { accessToken, refreshToken, user, accueil } = switchRoleResponseSchema.parse(res.data);
+  // Signed out (or into another account) meanwhile: this answer must not
+  // bring the old session back.
+  if (sessionEpoch() !== epoch) throw new Error('session_changed');
+  bumpSessionEpoch();
+  const current = useAuthStore.getState();
+  authActions.login(
+    accessToken,
+    {
+      id: user?.userId ?? current.user?.id ?? '',
+      name: companyNameOf(accueil) ?? current.user?.name ?? '',
+      role: accueil.role,
+      companyId: user?.companyId ?? current.user?.companyId,
     },
-  });
+    refreshToken ?? current.refreshToken,
+  );
+  accueilActions.set(accueil);
+  // The other side's screens must not read what this one cached.
+  void queryClient.invalidateQueries();
+  return accueil;
+}
+
+export function useSwitchRole() {
+  return useMutation({ mutationFn: switchRole });
 }

@@ -100,6 +100,11 @@ export async function validateSession(): Promise<boolean> {
 let done = false;
 let running: Promise<void> | null = null;
 
+/** Settles once the app-start check is over (at once when none is running). */
+export function sessionChecked(): Promise<void> {
+  return running ?? Promise.resolve();
+}
+
 /** Run the check once per page load, from the app shell. */
 export function useSessionBootstrap(): void {
   useEffect(() => {

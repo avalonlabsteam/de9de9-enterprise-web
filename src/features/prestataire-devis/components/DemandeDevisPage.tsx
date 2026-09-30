@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, ChevronRight, Clock, FileText, MapPin, MessageSquareText, RefreshCw } from 'lucide-react';
 import { useL } from '@/lib/i18n';
@@ -7,6 +7,7 @@ import { toProblem } from '@/api/problem';
 import { proLoadError } from '@/lib/proErrors';
 import { toneBox, toneText } from '@/lib/tones';
 import type { ApiAction } from '@/lib/actions/schema';
+import { useScrollToAnchor } from '@/lib/useScrollToAnchor';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -29,6 +30,9 @@ export function DemandeDevisPage() {
   const queryClient = useQueryClient();
   const query = useDemandeDevis(id);
   const d = query.data;
+  // From an alert: `devis` asks for « Mon devis ».
+  const [params] = useSearchParams();
+  useScrollToAnchor([params.get('devis') ? 'mon-devis' : null], !!d);
 
   const reload = () => {
     void queryClient.invalidateQueries({ queryKey: demandeDevisKey(id ?? '') });
@@ -184,7 +188,7 @@ export function DemandeDevisPage() {
 
       {/* « Mon devis » — once answered */}
       {monDevis && (
-        <Card>
+        <Card id="mon-devis" className="scroll-mt-24">
           <CardContent className="flex flex-col gap-3 py-4">
             <div className="flex items-center justify-between gap-2">
               <p className="text-[15px] font-bold text-de9-ink">{L('Mon devis', 'عرضي')}</p>

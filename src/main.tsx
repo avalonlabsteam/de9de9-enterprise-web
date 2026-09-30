@@ -6,11 +6,16 @@ import { Toaster } from '@/components/ui/sonner';
 import { queryClient } from '@/lib/queryClient';
 import { initCrossTabSync } from '@/lib/crossTabSync';
 import { initDomSync } from '@/lib/domSync';
+import { setAppNavigate } from '@/lib/navigation';
+import { initAlertes } from '@/features/alertes/hub';
 import { router } from '@/routes';
 import './index.css';
 
 initDomSync();
 initCrossTabSync();
+initAlertes();
+// Toasts and live events navigate from outside the router's tree.
+setAppNavigate((to) => void router.navigate(to));
 
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Root element #root not found');
