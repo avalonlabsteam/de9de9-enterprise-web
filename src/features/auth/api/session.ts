@@ -34,6 +34,7 @@ export function adoptSignIn(
       id: session.user.userId,
       name: companyNameOf(accueil) ?? fallbackName ?? session.user.email ?? '',
       role: accueil?.role ?? session.user.activeRole,
+      companyId: session.user.companyId,
     },
     session.refreshToken ?? null,
   );
@@ -73,6 +74,7 @@ export function useSwitchRole() {
           id: user?.userId ?? current.user?.id ?? '',
           name: companyNameOf(accueil) ?? current.user?.name ?? '',
           role: accueil.role,
+          companyId: user?.companyId ?? current.user?.companyId,
         },
         refreshToken ?? current.refreshToken,
       );

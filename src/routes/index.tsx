@@ -1,6 +1,6 @@
 import { createBrowserRouter, Navigate, Outlet, type RouteObject } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { ProAlias, RequireAuth, RequireRole } from './guards';
+import { ProAlias, RedirectWithParams, RequireAuth, RequireRole } from './guards';
 
 /**
  * Route-level code splitting: each page loads its own chunk on first visit.
@@ -86,8 +86,9 @@ export const router = createBrowserRouter([
       { path: 'annonce/assign', lazy: page(() => import('@/features/prestataire-annonces/components/AssignAnnoncePage'), 'AssignAnnoncePage') },
       { path: 'effectif', lazy: page(() => import('@/features/prestataire-equipe/components/EffectifPage'), 'EffectifPage') },
       { path: 'effectif/:id', lazy: page(() => import('@/features/prestataire-equipe/components/ProDetailPage'), 'ProDetailPage') },
-      { path: 'worker/:id', lazy: page(() => import('@/features/prestataire-equipe/components/WorkerProfilePage'), 'WorkerProfilePage') },
-      { path: 'agrandir', lazy: page(() => import('@/features/prestataire-equipe/components/AgrandirPage'), 'AgrandirPage') },
+      // The member's profile is « Gestion du professionnel »; « Agrandir » has no prestataire-side route (guide 15).
+      { path: 'worker/:id', element: <RedirectWithParams to="/prestataire/effectif/:id" /> },
+      { path: 'agrandir', element: <Navigate to="/prestataire/effectif" replace /> },
       { path: 'stats', lazy: page(() => import('@/features/prestataire-dashboard/components/StatsPage'), 'StatsPage') },
       { path: 'profile', lazy: page(() => import('@/features/prestataire-profil/components/PrestataireProfilePage'), 'PrestataireProfilePage') },
     ],

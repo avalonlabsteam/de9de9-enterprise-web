@@ -127,7 +127,7 @@ export function MissionDetailPage() {
           return true;
         case 'profil_ouvrier': {
           const member = memberIdOf(action.href);
-          if (member) navigate(`/prestataire/worker/${encodeURIComponent(member)}`);
+          if (member) navigate(`/prestataire/effectif/${encodeURIComponent(member)}`);
           return true;
         }
       }

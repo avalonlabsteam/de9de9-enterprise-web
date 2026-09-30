@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { generatePath, Navigate, useLocation, useParams } from 'react-router-dom';
 import { useAuthStore, type Role } from '@/stores/authStore';
 
 /** The home route for a persona. */
@@ -27,4 +27,10 @@ export function RequireRole({ role, children }: { role: Role; children: ReactNod
 export function ProAlias() {
   const { pathname, search } = useLocation();
   return <Navigate to={pathname.replace(/^\/pro(?=\/|$)/, '/prestataire') + search} replace />;
+}
+
+/** An old address kept alive: the same `:params`, under a new path. */
+export function RedirectWithParams({ to }: { to: string }) {
+  const params = useParams();
+  return <Navigate to={generatePath(to, params)} replace />;
 }

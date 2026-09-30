@@ -1,41 +1,86 @@
 import { z } from 'zod';
 
-/** Mirrors the Worker row shape in api/mock/db.ts (do not import from db). */
-export const workerSchema = z.object({
+/**
+ * « Mon effectif » (guide 15) — the company's team under
+ * `/companies/{companyId}/equipe` and `/equipe/{id}/profil`.
+ */
+
+const text = z.string().nullish();
+
+/** ouvrier · contractuel_de9de9 (placed by de9de9 → « Salarié de9de9 »). Unknown kinds read as ouvrier. */
+const kindSchema = z.string().default('ouvrier');
+
+export const teamMemberSchema = z.object({
   id: z.string(),
-  name: z.string(),
-  role: z.string(),
-  available: z.boolean(),
-  colorHex: z.string(),
-  status: z.enum(['active', 'pending', 'empty']).optional(),
-  type: z.enum(['pro', 'salarie']).optional(),
-  skills: z.array(z.string()).optional(),
-  avail: z.string().optional(),
-  hours: z.string().optional(),
-  tarif: z.string().optional(),
-  note: z.number().optional(),
-  token: z.string().optional(),
-  phone: z.string().optional(),
+  fullName: z.string(),
+  phone: text,
+  /** Free text; « · » separates several competences. */
+  skill: text,
+  isActive: z.boolean().default(true),
+  kind: kindSchema,
+});
+export type TeamMember = z.infer<typeof teamMemberSchema>;
+
+export const teamPageSchema = z.object({
+  items: z.array(teamMemberSchema).default([]),
+  nextCursor: text,
+  count: z.number().nullish(),
 });
 
-export const workersSchema = z.array(workerSchema);
-
-export type Worker = z.infer<typeof workerSchema>;
-
-/** Live-editable fields on the "Fiche — éditable" card. */
-export const memberFieldSchema = z.object({
-  role: z.string().optional(),
-  hours: z.string().optional(),
-  tarif: z.string().optional(),
-  avail: z.string().optional(),
+const workerMissionSchema = z.object({
+  visiteId: z.string(),
+  contractId: z.string(),
+  contractRef: text,
+  /** V0…V7, V5.C, VX */
+  statut: text,
+  prevueLe: text,
+  prevueLeLabel: text,
+  adresse: text,
+  roleOnSite: text,
 });
-export type MemberFields = z.infer<typeof memberFieldSchema>;
+export type WorkerMission = z.infer<typeof workerMissionSchema>;
 
-export const agrandirSchema = z.object({
-  societe: z.string().min(1),
-  phone: z.string().min(1),
-  email: z.string().email(),
-  proActuels: z.string().min(1),
-  proDesires: z.string().min(1),
+export const workerProfileSchema = z.object({
+  id: z.string(),
+  nom: z.string(),
+  role: text,
+  skill: text,
+  /** `skill` already split — for the chips. */
+  competences: z.array(z.string()).default([]),
+  phone: text,
+  /** Falls back to `phone`. */
+  whatsApp: text,
+  actif: z.boolean().default(true),
+  heuresParSemaine: z.number().nullish(),
+  tarifHoraireCredits: z.number().nullish(),
+  /** The one to print: « 900 DA/h ». */
+  tarifHoraireDzd: z.number().nullish(),
+  analytics: z
+    .object({
+      missionsRealisees: z.number().default(0),
+      satisfactionPercent: z.number().nullish(),
+      delaiReponseHeures: z.number().nullish(),
+    })
+    .default({ missionsRealisees: 0 }),
+  missionsAVenir: z.array(workerMissionSchema).default([]),
+  missionsPassees: z.array(workerMissionSchema).default([]),
+  kind: kindSchema,
 });
-export type AgrandirInput = z.infer<typeof agrandirSchema>;
+export type WorkerProfile = z.infer<typeof workerProfileSchema>;
+
+/** `PUT …/equipe/{id}/fiche` — a full replacement: a field left out is cleared. */
+export interface FicheBody {
+  role: string | null;
+  weeklyHours: number | null;
+  hourlyRateCredits: number | null;
+  whatsAppPhone: string | null;
+  skill: string | null;
+}
+
+/** « Ajouter un membre » — `POST /companies/{companyId}/equipe`. */
+export const addMemberSchema = z.object({
+  fullName: z.string().trim().min(1).max(256),
+  phone: z.string().trim().max(32),
+  skill: z.string().trim().max(128),
+});
+export type AddMemberInput = z.infer<typeof addMemberSchema>;

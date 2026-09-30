@@ -47,6 +47,8 @@ function applyAnswer(data: unknown): void {
         id,
         name: companyNameOf(answer.accueil) ?? current.user?.name ?? answer.user?.email ?? '',
         role,
+        // A session stored before the company id was kept gets it here, at app start.
+        companyId: answer.user?.companyId ?? current.user?.companyId,
       },
       renewed ? (answer.refreshToken as string) : current.refreshToken,
     );

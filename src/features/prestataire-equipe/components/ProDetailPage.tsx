@@ -1,32 +1,82 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, BadgeCheck } from 'lucide-react';
+import { useState, type ComponentProps } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { ArrowLeft, BadgeCheck, ChevronRight, Loader2, MapPin } from 'lucide-react';
+import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EmptyState } from '@/components/common/EmptyState';
 import { WorkerAvatar } from '@/components/common/WorkerAvatar';
+import { TonePill } from '@/components/actions/parts';
 import { useL } from '@/lib/i18n';
-import { useWorker, useUpdateMember } from '../api/workers';
-import type { MemberFields } from '../schemas/worker';
+import { cn } from '@/lib/utils';
+import { personColour } from '@/lib/personColour';
+import { proLoadError } from '@/lib/proErrors';
+import { toProblem } from '@/api/problem';
+import { missionPath } from '@/features/prestataire-missions/lib/paths';
+import { useUpdateFiche, useWorker } from '../api/workers';
+import type { WorkerMission, WorkerProfile } from '../schemas/worker';
+import { ficheBody, shownOf, type Drafts, type FicheField } from '../lib/fiche';
+import { visiteTag } from '../lib/visiteStatut';
 
+/**
+ * « Gestion du professionnel » — a member's profile and missions
+ * (`GET /equipe/{id}/profil`, guide 15). The fiche saves on each blur.
+ */
 export function ProDetailPage() {
   const L = useL();
   const navigate = useNavigate();
   const { id } = useParams();
-  const { data, isPending, isError } = useWorker(id);
-  const update = useUpdateMember();
+  const { data, isPending, isError, error, refetch } = useWorker(id);
+  const update = useUpdateFiche(id);
+  const [drafts, setDrafts] = useState<Drafts>({});
 
-  const [fields, setFields] = useState<MemberFields>({});
-  useEffect(() => {
-    if (data) setFields({ role: data.role, hours: data.hours, tarif: data.tarif, avail: data.avail });
-  }, [data]);
+  const saveWith = async (profile: WorkerProfile, pending: Drafts, retry: boolean): Promise<void> => {
+    const built = ficheBody(profile, pending);
+    if ('invalid' in built) {
+      toast.error(
+        built.invalid === 'heures'
+          ? L('Heures / semaine : un nombre entier entre 0 et 168.', 'الساعات / الأسبوع: عدد صحيح بين 0 و168.')
+          : L('Tarif horaire : un montant positif en DA.', 'التعرفة بالساعة: مبلغ موجب بالدينار.'),
+      );
+      return;
+    }
+    try {
+      await update.mutateAsync(built.body);
+      // Saved: the answer is in the cache — drop the drafts it covers, unless retyped meanwhile.
+      setDrafts((d) => {
+        const next = { ...d };
+        for (const [field, value] of Object.entries(pending) as [FicheField, string][]) {
+          if (next[field] === value) delete next[field];
+        }
+        return next;
+      });
+    } catch (e) {
+      const problem = toProblem(e);
+      // Saved by someone else meanwhile: reload the profile, then save again over it.
+      if (problem.status === 409 && retry) {
+        const fresh = await refetch();
+        if (fresh.data) return saveWith(fresh.data, pending, false);
+      }
+      toast.error(problem.detail ?? L("La fiche n'a pas pu être enregistrée. Réessayez.", 'تعذّر حفظ البطاقة. أعد المحاولة.'));
+    }
+  };
 
-  function commit(key: keyof MemberFields, value: string) {
-    if (!id) return;
-    update.mutate({ id, patch: { [key]: value } });
-  }
+  const commit = () => {
+    if (!data) return;
+    const shown = shownOf(data);
+    // Only the fields that differ from the profile.
+    const pending = Object.fromEntries(
+      (Object.entries(drafts) as [FicheField, string][]).filter(([field, value]) => value.trim() !== shown[field].trim()),
+    ) as Drafts;
+    if (Object.keys(pending).length === 0) {
+      setDrafts({});
+      return;
+    }
+    void saveWith(data, pending, true);
+  };
 
   return (
     <div className="mx-auto flex max-w-[880px] flex-col gap-5">
@@ -39,117 +89,117 @@ export function ProDetailPage() {
         {L('Retour', 'رجوع')}
       </button>
 
-      <h1 className="text-[20px] font-extrabold text-de9-ink">
-        {L('Gestion du professionnel', 'إدارة المحترف')}
-      </h1>
+      <h1 className="text-[20px] font-extrabold text-de9-ink">{L('Gestion du professionnel', 'إدارة المحترف')}</h1>
 
       {isError && (
         <EmptyState
           title={L('Professionnel introuvable', 'المحترف غير موجود')}
-          description={L('Veuillez réessayer plus tard.', 'يرجى المحاولة لاحقًا.')}
+          description={toProblem(error).status === 404 ? undefined : proLoadError(toProblem(error), L)}
+          action={
+            <Button variant="outline" size="sm" onClick={() => navigate('/prestataire/effectif')}>
+              {L('Mon effectif', 'فريقي')}
+            </Button>
+          }
         />
       )}
 
       {isPending && !isError && (
-        <div className="h-40 animate-pulse rounded-lg bg-card shadow-soft dark:ring-1 dark:ring-border" />
+        <div className="flex animate-pulse flex-col gap-4">
+          <div className="h-24 rounded-lg bg-card shadow-soft dark:ring-1 dark:ring-border" />
+          <div className="h-48 rounded-lg bg-card shadow-soft dark:ring-1 dark:ring-border" />
+        </div>
       )}
 
       {data && (
         <>
-          {/* Header card */}
+          {/* Header */}
           <Card>
-            <CardContent className="flex items-center gap-4 py-5">
-              <WorkerAvatar worker={data} size={48} />
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5">
-                  <span className="truncate text-[16px] font-bold text-de9-ink">{data.name}</span>
-                  {data.type === 'salarie' && (
-                    <BadgeCheck className="size-4 shrink-0 text-de9-blue" />
-                  )}
+            <CardContent className="flex flex-col gap-3 py-5">
+              <div className="flex items-center gap-4">
+                <WorkerAvatar worker={{ name: data.nom, colorHex: personColour(data.id) }} size={48} />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="truncate text-[16px] font-bold text-de9-ink">{data.nom}</span>
+                    {data.kind === 'contractuel_de9de9' && <BadgeCheck className="size-4 shrink-0 text-de9-blue" />}
+                  </div>
+                  <p className="truncate text-[12.5px] text-de9-gray">
+                    {data.role ?? data.skill ?? L('Ouvrier', 'عامل')}
+                    {data.kind === 'contractuel_de9de9' && L(' · Salarié de9de9', ' · موظّف de9de9')}
+                  </p>
                 </div>
-                <p className="truncate text-[12.5px] text-de9-gray">{data.role}</p>
+                <span
+                  className={cn(
+                    'flex-none rounded-full px-2.5 py-1 text-[11.5px] font-bold',
+                    data.actif ? 'bg-de9-teal-soft text-de9-teal-dark' : 'bg-secondary text-de9-gray',
+                  )}
+                >
+                  {data.actif ? L('● Actif', '● نشط') : L('● Inactif', '● غير نشط')}
+                </span>
               </div>
-              <span className="flex-none rounded-full bg-de9-teal-soft px-2.5 py-1 text-[11.5px] font-bold text-de9-teal-dark">
-                {L('● Actif', '● نشط')}
-              </span>
+              {data.competences.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {data.competences.map((c) => (
+                    <span key={c} className="rounded-full bg-de9-teal-tint px-2.5 py-1 text-[12px] font-semibold text-de9-teal-dark">
+                      {c}
+                    </span>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
 
-          {/* Fiche — éditable */}
+          {/* Fiche — éditable: each blur saves the whole fiche */}
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-sm font-semibold text-de9-gray">{L('Fiche — éditable', 'البطاقة — قابلة للتعديل')}</CardTitle>
+              {update.isPending && <Loader2 className="size-4 animate-spin text-de9-teal" aria-label={L('Enregistrement…', 'جارٍ الحفظ…')} />}
             </CardHeader>
             <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <FieldEditor
-                label={L('Rôle', 'الدور')}
-                value={fields.role ?? ''}
-                onChange={(v) => setFields((f) => ({ ...f, role: v }))}
-                onCommit={(v) => commit('role', v)}
-              />
-              <FieldEditor
-                label={L('Heures travaillées', 'ساعات العمل')}
-                value={fields.hours ?? ''}
-                onChange={(v) => setFields((f) => ({ ...f, hours: v }))}
-                onCommit={(v) => commit('hours', v)}
-              />
-              <FieldEditor
-                label={L('Tarif', 'التعرفة')}
-                value={fields.tarif ?? ''}
-                onChange={(v) => setFields((f) => ({ ...f, tarif: v }))}
-                onCommit={(v) => commit('tarif', v)}
-              />
-              <FieldEditor
-                label={L('Disponibilité', 'التوفّر')}
-                value={fields.avail ?? ''}
-                onChange={(v) => setFields((f) => ({ ...f, avail: v }))}
-                onCommit={(v) => commit('avail', v)}
-              />
+              {(
+                [
+                  { field: 'role', label: L('Rôle', 'الدور'), maxLength: 128 },
+                  { field: 'heures', label: L('Heures / semaine', 'الساعات / الأسبوع'), type: 'number', min: 0, max: 168 },
+                  { field: 'tarif', label: L('Tarif horaire (DA)', 'التعرفة بالساعة (دج)'), type: 'number', min: 0 },
+                  { field: 'whatsApp', label: 'WhatsApp', type: 'tel', ltr: true },
+                  { field: 'skill', label: L('Compétences', 'المهارات'), maxLength: 128, hint: L('Séparées par « · »', 'مفصولة بـ « · »') },
+                ] as const
+              ).map((f) => (
+                <FieldEditor
+                  key={f.field}
+                  label={f.label}
+                  hint={'hint' in f ? f.hint : undefined}
+                  value={drafts[f.field] ?? shownOf(data)[f.field]}
+                  inputProps={{
+                    type: 'type' in f ? f.type : 'text',
+                    min: 'min' in f ? f.min : undefined,
+                    max: 'max' in f ? f.max : undefined,
+                    maxLength: 'maxLength' in f ? f.maxLength : undefined,
+                    dir: 'ltr' in f ? 'ltr' : undefined,
+                  }}
+                  onChange={(v) => setDrafts((d) => ({ ...d, [f.field]: v }))}
+                  onCommit={commit}
+                />
+              ))}
             </CardContent>
           </Card>
 
-          {data.type === 'salarie' && (
-            <>
-              {/* Analytics */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm font-semibold text-de9-gray">{L('Analytics', 'التحليلات')}</CardTitle>
-                </CardHeader>
-                <CardContent className="grid grid-cols-3 gap-3">
-                  <Metric value="128" label={L('Missions réalisées', 'المهام المنجزة')} />
-                  <Metric value="96%" label={L('Satisfaction', 'الرضا')} />
-                  <Metric value="2h" label={L('Délai de réponse', 'مدة الاستجابة')} />
-                </CardContent>
-              </Card>
-
-              {/* Statistiques */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm font-semibold text-de9-gray">{L('Statistiques', 'الإحصائيات')}</CardTitle>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    <Metric value="312 000 DA" label={L('CA global', 'رقم الأعمال الإجمالي')} />
-                    <Metric value="47" label={L('Sollicitations', 'الطلبات')} />
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    <p className="text-[13px] font-semibold text-de9-gray">
-                      {L('CA par sous-catégorie', 'رقم الأعمال حسب الفئة الفرعية')}
-                    </p>
-                    <BarRow label={L('Nettoyage', 'التنظيف')} value={128000} max={128000} />
-                    <BarRow label={L('Climatisation', 'التكييف')} value={96000} max={128000} />
-                    <BarRow label={L('Plomberie', 'السباكة')} value={88000} max={128000} />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <Metric value="12" label={L('Offres postulées', 'العروض المقدَّمة')} />
-                    <Metric value="7" label={L('Offres retenues', 'العروض المقبولة')} />
-                  </div>
-                </CardContent>
-              </Card>
-            </>
-          )}
+          {/* Analytics */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm font-semibold text-de9-gray">{L('Analytics', 'التحليلات')}</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-3 gap-3">
+              <Metric value={String(data.analytics.missionsRealisees)} label={L('Missions réalisées', 'المهام المنجزة')} />
+              <Metric
+                value={data.analytics.satisfactionPercent != null ? `${data.analytics.satisfactionPercent} %` : '—'}
+                label={L('Satisfaction', 'الرضا')}
+              />
+              <Metric
+                value={data.analytics.delaiReponseHeures != null ? `${data.analytics.delaiReponseHeures} h` : '—'}
+                label={L('Délai de réponse', 'مدة الاستجابة')}
+              />
+            </CardContent>
+          </Card>
 
           {/* Missions assignées */}
           <Card>
@@ -159,20 +209,32 @@ export function ProDetailPage() {
             <CardContent>
               <Tabs defaultValue="avenir">
                 <TabsList>
-                  <TabsTrigger value="avenir">{L('À venir', 'قادمة')}</TabsTrigger>
-                  <TabsTrigger value="passees">{L('Passées', 'سابقة')}</TabsTrigger>
+                  <TabsTrigger value="avenir">
+                    {L('À venir', 'قادمة')} · {data.missionsAVenir.length}
+                  </TabsTrigger>
+                  <TabsTrigger value="passees">
+                    {L('Passées', 'سابقة')} · {data.missionsPassees.length}
+                  </TabsTrigger>
                 </TabsList>
                 <TabsContent value="avenir" className="pt-3">
-                  <EmptyState
-                    title={L('Aucune mission à venir', 'لا توجد مهام قادمة')}
-                    description={L('Les missions affectées apparaîtront ici.', 'ستظهر المهام المسنَدة هنا.')}
-                  />
+                  {data.missionsAVenir.length > 0 ? (
+                    <MissionList missions={data.missionsAVenir} />
+                  ) : (
+                    <EmptyState
+                      title={L('Aucune mission à venir', 'لا توجد مهام قادمة')}
+                      description={L('Les missions affectées apparaîtront ici.', 'ستظهر المهام المسنَدة هنا.')}
+                    />
+                  )}
                 </TabsContent>
                 <TabsContent value="passees" className="pt-3">
-                  <EmptyState
-                    title={L('Aucune mission passée', 'لا توجد مهام سابقة')}
-                    description={L('Les missions terminées apparaîtront ici.', 'ستظهر المهام المنتهية هنا.')}
-                  />
+                  {data.missionsPassees.length > 0 ? (
+                    <MissionList missions={data.missionsPassees} />
+                  ) : (
+                    <EmptyState
+                      title={L('Aucune mission passée', 'لا توجد مهام سابقة')}
+                      description={L('Les missions terminées apparaîtront ici.', 'ستظهر المهام المنتهية هنا.')}
+                    />
+                  )}
                 </TabsContent>
               </Tabs>
             </CardContent>
@@ -183,25 +245,66 @@ export function ProDetailPage() {
   );
 }
 
+/** One visit the member is on — opens « Détail de la mission » focused on it. */
+function MissionList({ missions }: { missions: WorkerMission[] }) {
+  const L = useL();
+  return (
+    <ul className="divide-y divide-border">
+      {missions.map((m) => {
+        const tag = visiteTag(m.statut, L);
+        return (
+          <li key={m.visiteId}>
+            <Link to={missionPath(m.contractId, m.visiteId)} className="flex items-center gap-3 py-3 hover:bg-secondary/40">
+              <div className="min-w-0 flex-1">
+                <p className="text-[13.5px] font-bold text-de9-ink">{m.prevueLeLabel ?? L('Date à fixer', 'التاريخ سيُحدّد')}</p>
+                <p className="flex flex-wrap items-center gap-x-1.5 text-[12px] text-de9-slate">
+                  {m.contractRef && <span dir="ltr">{m.contractRef}</span>}
+                  {m.contractRef && m.roleOnSite && <span aria-hidden>·</span>}
+                  {m.roleOnSite && <span>{m.roleOnSite}</span>}
+                </p>
+                {m.adresse && (
+                  <p className="mt-0.5 flex items-center gap-1 text-[12px] text-de9-gray">
+                    <MapPin className="size-3.5 flex-none text-de9-teal" />
+                    {m.adresse}
+                  </p>
+                )}
+              </div>
+              {tag && <TonePill tag={tag} className="flex-none" />}
+              <ChevronRight className="size-4 flex-none text-de9-gray rtl:rotate-180" />
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 function FieldEditor({
   label,
+  hint,
   value,
+  inputProps,
   onChange,
   onCommit,
 }: {
   label: string;
+  hint?: string;
   value: string;
+  inputProps: ComponentProps<typeof Input>;
   onChange: (v: string) => void;
-  onCommit: (v: string) => void;
+  onCommit: () => void;
 }) {
   return (
     <div className="flex flex-col gap-1.5">
       <Label className="text-[12.5px] text-de9-gray">{label}</Label>
       <Input
+        {...inputProps}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        onBlur={(e) => onCommit(e.target.value)}
+        onBlur={onCommit}
+        onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
       />
+      {hint && <span className="text-[11.5px] text-de9-gray">{hint}</span>}
     </div>
   );
 }
@@ -211,21 +314,6 @@ function Metric({ value, label }: { value: string; label: string }) {
     <div className="flex flex-col items-center gap-0.5 rounded-lg bg-background px-2 py-3 text-center">
       <span className="text-[20px] font-bold text-de9-ink">{value}</span>
       <span className="text-[11.5px] font-semibold text-de9-gray">{label}</span>
-    </div>
-  );
-}
-
-function BarRow({ label, value, max }: { label: string; value: number; max: number }) {
-  const pct = Math.max(6, Math.round((value / max) * 100));
-  return (
-    <div className="flex items-center gap-3">
-      <span className="w-24 shrink-0 text-[12.5px] text-de9-gray">{label}</span>
-      <div className="h-2.5 flex-1 overflow-hidden rounded-sm bg-background">
-        <div className="h-full bg-de9-teal" style={{ width: `${pct}%` }} />
-      </div>
-      <span className="w-20 shrink-0 text-end text-[12px] font-bold text-de9-ink">
-        {value.toLocaleString('fr-FR')}
-      </span>
     </div>
   );
 }
