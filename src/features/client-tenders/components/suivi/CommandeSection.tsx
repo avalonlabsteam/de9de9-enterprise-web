@@ -3,7 +3,7 @@ import { useL } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import type { Commande, Occurrence, SuiviAction } from '../../schemas/suivi';
 import { toneText } from '@/lib/tones';
-import { ActionButton, TonePill } from './parts';
+import { ActionButton, TonePill } from '@/components/actions/parts';
 import { ApiIcon } from '@/components/common/ApiIcon';
 
 const keyOf = (a: SuiviAction) => `${a.method}:${a.href}`;

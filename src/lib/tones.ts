@@ -71,5 +71,12 @@ const ICON_CODES = new Set([
   'alerte',
   'plus',
   'banque',
+  'equipe',
+  'support',
+  'telephone',
+  'adresse',
+  'note',
+  'devis',
+  'piece_jointe',
 ]);
 export const hasIcon = (code?: string | null): boolean => ICON_CODES.has(code ?? '');

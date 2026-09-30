@@ -12,13 +12,14 @@ import { EmptyState } from '@/components/common/EmptyState';
 import { suiviQueryKey, useDemandeSuivi } from '../api/suivi';
 import { demandesQueryKey } from '../api/demandes';
 import { portefeuilleKey } from '@/features/client-wallet/api/portefeuille';
-import { actionErrorMessage, buildBody, sendAction, type SheetValues } from '../lib/suiviActions';
+import { actionErrorMessage, buildBody, sendAction, type SheetValues } from '@/lib/actions/run';
 import { toneBox, tonePill } from '@/lib/tones';
 import { actionReponseSchema, messageOnlySchema, type SuiviAction } from '../schemas/suivi';
-import { ActionButton, EtapesBar, PrestataireIdentity, TonePill } from './suivi/parts';
+import { ActionButton, EtapesBar, TonePill } from '@/components/actions/parts';
+import { PrestataireIdentity } from './suivi/parts';
 import { BriefDialog } from './suivi/BriefDialog';
 import { CommandeSection } from './suivi/CommandeSection';
-import { ConfirmDialog, SupportDialog, ViewerDialog } from './suivi/Dialogs';
+import { ConfirmDialog, SupportDialog, ViewerDialog } from '@/components/actions/ActionDialogs';
 import { DevisBlock } from './suivi/DevisBlock';
 
 const keyOf = (a: SuiviAction) => `${a.method}:${a.href}`;

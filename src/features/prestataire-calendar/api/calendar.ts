@@ -1,24 +1,34 @@
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/api/apiClient';
-import { calWorkersSchema, calendarEventsSchema } from '../schemas/calendar';
+import { calendrierSchema } from '../schemas/calendar';
 
-export function useCalendar() {
-  return useQuery({
-    queryKey: ['prestataire', 'calendar'],
-    queryFn: async () => {
-      const res = await apiClient.get('/prestataire/calendar');
-      return calendarEventsSchema.parse(res.data);
-    },
-  });
+export const calendrierKey = ['prestataire', 'calendrier'] as const;
+
+export interface CalendrierWindow {
+  /** `yyyy-MM-dd`, Algiers days, both included — at most 93 days. */
+  du: string;
+  au: string;
+  /** tous · b2b · b2c */
+  source: string;
+  /** Keeps the events where that person is on the crew. */
+  salarieId?: string | null;
 }
 
-/** Active workers for the employee filter chips + colour tags. */
-export function useCalendarWorkers() {
+/**
+ * One call per visible window (guide 14). The previous window stays on screen
+ * while the next one loads, so moving through weeks does not flash empty.
+ */
+export function useCalendrier({ du, au, source, salarieId }: CalendrierWindow) {
   return useQuery({
-    queryKey: ['workers'],
-    queryFn: async () => {
-      const res = await apiClient.get('/workers');
-      return calWorkersSchema.parse(res.data);
-    },
+    queryKey: [...calendrierKey, du, au, source, salarieId ?? ''],
+    placeholderData: keepPreviousData,
+    queryFn: async () =>
+      calendrierSchema.parse(
+        (
+          await apiClient.get('/prestataire/calendrier', {
+            params: { du, au, source, ...(salarieId ? { salarieId } : {}) },
+          })
+        ).data,
+      ),
   });
 }

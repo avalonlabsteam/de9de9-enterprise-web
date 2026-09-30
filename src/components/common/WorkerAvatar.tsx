@@ -3,6 +3,8 @@ import { cn } from '@/lib/utils';
 export interface AvatarWorker {
   name: string;
   colorHex?: string;
+  /** Initials the API already worked out — used as is. */
+  initials?: string;
 }
 
 /** Derive up-to-2 initials from a worker name; falls back to a neutral glyph. */
@@ -43,7 +45,7 @@ export function WorkerAvatar({
       }}
       aria-hidden="true"
     >
-      {initialsOf(worker.name)}
+      {worker.initials ?? initialsOf(worker.name)}
     </span>
   );
 }

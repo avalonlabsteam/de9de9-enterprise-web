@@ -3,7 +3,8 @@ import { FileText, History, ShieldCheck } from 'lucide-react';
 import { useL } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import type { DemandeSuivi, SuiviAction } from '../../schemas/suivi';
-import { ActionButton, PrestataireIdentity, TonePill } from './parts';
+import { ActionButton, TonePill } from '@/components/actions/parts';
+import { PrestataireIdentity } from './parts';
 
 /**
  * « Assigné » — the devis de9de9 proposed, valid ones first. A card without

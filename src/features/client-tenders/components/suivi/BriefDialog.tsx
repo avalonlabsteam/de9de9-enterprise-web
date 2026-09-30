@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { PieceSlot } from '@/components/common/PieceSlot';
 import type { Brief, SuiviAction } from '../../schemas/suivi';
-import { ConfirmDialog } from './Dialogs';
+import { ConfirmDialog } from '@/components/actions/ActionDialogs';
 
 function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (

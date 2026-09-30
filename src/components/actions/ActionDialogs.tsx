@@ -1,16 +1,17 @@
 import { useState } from 'react';
-import { Download, Eye, Loader2, Mail, MessageCircle, Phone, Star } from 'lucide-react';
+import { Download, Eye, Loader2, Lock, Mail, MessageCircle, Phone, Star } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiClient } from '@/api/apiClient';
 import { openAuthedFile } from '@/lib/authedFile';
 import { useL } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { PieceSlot } from '@/components/common/PieceSlot';
-import type { Champ, SuiviAction, Support } from '../../schemas/suivi';
-import { apiUrl, champFilled, type SheetValues } from '../../lib/suiviActions';
+import type { ApiAction, Champ, Support } from '@/lib/actions/schema';
+import { apiUrl, initialSheet, sheetReady, type SheetValues } from '@/lib/actions/run';
 import { confirmStyle, hasIcon } from '@/lib/tones';
 import { TonePill } from './parts';
 import { ApiIcon } from '@/components/common/ApiIcon';
@@ -18,9 +19,10 @@ import { ApiIcon } from '@/components/common/ApiIcon';
 // ------------------------------------------------------------ confirmation sheet
 
 /**
- * The sheet an action's `confirm` describes: its text, its fields, « Revenir »
- * and the coloured confirm button — disabled until every `requis` field is
- * filled. Key it on the action so each opening starts empty.
+ * The sheet an action's `confirm` describes: its text, its fields (prefilled
+ * with their `valeur`), « Revenir » and the coloured confirm button — disabled
+ * until every `requis` field is filled. Key it on the action so each opening
+ * starts afresh.
  */
 export function ConfirmDialog({
   action,
@@ -28,25 +30,19 @@ export function ConfirmDialog({
   onClose,
   onConfirm,
 }: {
-  action: SuiviAction;
+  action: ApiAction;
   busy: boolean;
   onClose: () => void;
   onConfirm: (sheet: SheetValues) => void;
 }) {
-  const [sheet, setSheet] = useState<SheetValues>({ values: {}, files: {} });
+  const [sheet, setSheet] = useState<SheetValues>(() => initialSheet(action));
   const confirm = action.confirm;
   if (!confirm) return null;
 
-  const ready = confirm.champs.every((champ) => !champ.requis || champFilled(champ, sheet));
+  const ready = sheetReady(confirm.champs, sheet);
   const setValue = (code: string, value: unknown) =>
     setSheet((s) => ({ ...s, values: { ...s.values, [code]: value } }));
-  const setFile = (code: string, file: File | null) =>
-    setSheet((s) => {
-      const files = { ...s.files };
-      if (file) files[code] = file;
-      else delete files[code];
-      return { ...s, files };
-    });
+  const setFiles = (code: string, files: File[]) => setSheet((s) => ({ ...s, files: { ...s.files, [code]: files } }));
 
   return (
     <Dialog open onOpenChange={(open) => !open && !busy && onClose()}>
@@ -68,9 +64,9 @@ export function ConfirmDialog({
                 key={champ.code}
                 champ={champ}
                 value={sheet.values[champ.code]}
-                file={sheet.files[champ.code]}
+                files={sheet.files[champ.code] ?? []}
                 onValue={(v) => setValue(champ.code, v)}
-                onFile={(f) => setFile(champ.code, f)}
+                onFiles={(f) => setFiles(champ.code, f)}
               />
             ))}
           </div>
@@ -98,19 +94,22 @@ export function ConfirmDialog({
   );
 }
 
+const Aide = ({ text }: { text?: string | null }) =>
+  text ? <p className="mt-1.5 text-[12px] text-de9-gray">{text}</p> : null;
+
 /** One sheet field, drawn by its `type`. */
 function ChampInput({
   champ,
   value,
-  file,
+  files,
   onValue,
-  onFile,
+  onFiles,
 }: {
   champ: Champ;
   value: unknown;
-  file?: File;
+  files: File[];
   onValue: (value: unknown) => void;
-  onFile: (file: File | null) => void;
+  onFiles: (files: File[]) => void;
 }) {
   const L = useL();
   const label = champ.label && (
@@ -223,6 +222,66 @@ function ChampInput({
               {(typeof value === 'string' ? value.length : 0).toLocaleString('fr-FR')} / {champ.max.toLocaleString('fr-FR')}
             </p>
           )}
+          <Aide text={champ.aide} />
+        </div>
+      );
+
+    case 'date':
+      return (
+        <div>
+          {label}
+          <Input
+            type="date"
+            value={typeof value === 'string' ? value : ''}
+            onChange={(e) => onValue(e.target.value)}
+            className="w-full sm:w-52"
+            dir="ltr"
+          />
+          <Aide text={champ.aide} />
+        </div>
+      );
+
+    case 'montant_dzd': {
+      const amount = typeof value === 'number' ? value : undefined;
+      return (
+        <div>
+          {label}
+          <div className="relative">
+            <Input
+              type="number"
+              inputMode="numeric"
+              min={champ.min ?? 1}
+              step={1}
+              value={amount ?? ''}
+              onChange={(e) => onValue(e.target.value === '' ? undefined : Number(e.target.value))}
+              className="pe-12 tabular-nums"
+              dir="ltr"
+            />
+            <span className="pointer-events-none absolute end-4 top-1/2 -translate-y-1/2 text-[13px] font-semibold text-de9-gray">
+              DA
+            </span>
+          </div>
+          {amount != null && amount > 0 && (
+            <p className="mt-1 text-[12px] font-semibold text-de9-teal-dark tabular-nums">
+              = {(amount * 10).toLocaleString('fr-FR')} {L('crédits', 'رصيد')}
+            </p>
+          )}
+          <Aide text={champ.aide} />
+        </div>
+      );
+    }
+
+    case 'lecture_seule':
+      return (
+        <div className="rounded-lg bg-secondary px-3.5 py-2.5">
+          <p className="flex items-center justify-between gap-3 text-[13px]">
+            <span className="flex items-center gap-1.5 text-de9-gray">
+              <Lock className="size-3.5" />
+              {champ.label}
+            </span>
+            <span className="text-end font-semibold text-de9-slate">{String(champ.valeur ?? '—')}</span>
+          </p>
+          <Aide text={champ.aide} />
         </div>
       );
 
@@ -230,20 +289,88 @@ function ChampInput({
       return (
         <div>
           {label}
-          <PieceSlot
-            label={champ.bouton ?? champ.label ?? L('Joindre un fichier', 'إرفاق ملف')}
-            accept={champ.accepte ?? 'application/pdf,image/*'}
-            maxBytes={champ.maxOctets ?? undefined}
-            onReject={() => toast.error(L('Fichier trop lourd.', 'الملف ثقيل.'))}
-            value={file ? { name: file.name, file } : null}
-            onChange={(picked) => onFile(picked?.file ?? null)}
-          />
+          <FileField champ={champ} files={files} onFiles={onFiles} />
+          <Aide text={champ.aide} />
         </div>
       );
 
     default:
       return null;
   }
+}
+
+/** `application/pdf,image/*` against a file — what a drop must be checked on (the picker filters by itself). */
+function accepts(accept: string | null | undefined, file: File): boolean {
+  if (!accept) return true;
+  const name = file.name.toLowerCase();
+  return accept.split(',').some((raw) => {
+    const rule = raw.trim().toLowerCase();
+    if (!rule) return false;
+    if (rule.startsWith('.')) return name.endsWith(rule);
+    if (rule.endsWith('/*')) return file.type.startsWith(rule.slice(0, -1));
+    return file.type === rule;
+  });
+}
+
+/**
+ * A `fichier` field: at most `max` files (1 when null) of `maxOctets` each,
+ * picked or dropped. Each picked file shows as a removable slot; the picker
+ * stays while there is room for another.
+ */
+function FileField({ champ, files, onFiles }: { champ: Champ; files: File[]; onFiles: (files: File[]) => void }) {
+  const L = useL();
+  const [dragging, setDragging] = useState(false);
+  const max = champ.max ?? 1;
+  const tooBig = L('Fichier trop lourd.', 'الملف ثقيل.');
+
+  const add = (picked: File[]) => {
+    const kept: File[] = [];
+    for (const file of picked) {
+      if (!accepts(champ.accepte, file)) toast.error(L(`« ${file.name} » : type non accepté.`, `« ${file.name} »: نوع غير مقبول.`));
+      else if (champ.maxOctets && file.size > champ.maxOctets) toast.error(`${file.name} — ${tooBig}`);
+      else kept.push(file);
+    }
+    const next = [...files, ...kept];
+    if (next.length > max) toast.error(L(`${max} fichier(s) au plus.`, `${max} ملف(ات) على الأكثر.`));
+    // One file allowed: a new pick replaces it.
+    onFiles(max === 1 ? next.slice(-1) : next.slice(0, max));
+  };
+
+  return (
+    <div
+      onDragOver={(e) => {
+        e.preventDefault();
+        setDragging(true);
+      }}
+      onDragLeave={() => setDragging(false)}
+      onDrop={(e) => {
+        e.preventDefault();
+        setDragging(false);
+        add([...e.dataTransfer.files]);
+      }}
+      className={cn('flex flex-col gap-2 rounded-lg', dragging && 'ring-2 ring-de9-teal ring-offset-2 ring-offset-background')}
+    >
+      {files.map((file, i) => (
+        <PieceSlot
+          key={`${file.name}-${i}`}
+          label={champ.label ?? file.name}
+          value={{ name: file.name, file }}
+          onChange={() => onFiles(files.filter((_, j) => j !== i))}
+        />
+      ))}
+      {files.length < max && (
+        <PieceSlot
+          label={champ.bouton ?? champ.label ?? L('Joindre un fichier', 'إرفاق ملف')}
+          hint={champ.placeholder ?? undefined}
+          accept={champ.accepte ?? 'application/pdf,image/*'}
+          maxBytes={champ.maxOctets ?? undefined}
+          onReject={() => toast.error(tooBig)}
+          value={null}
+          onChange={(picked) => picked?.file && add([picked.file])}
+        />
+      )}
+    </div>
+  );
 }
 
 // ------------------------------------------------------------ support sheet
@@ -254,7 +381,7 @@ function CanalIcon({ code }: { code?: string | null }) {
   return <Phone className="size-4" />;
 }
 
-/** « Contacter le support »: no call — one button per channel of the answer. */
+/** « Contacter le support » / « Contacter de9de9 »: no call — one button per channel of the answer. */
 export function SupportDialog({ support, onClose }: { support: Support; onClose: () => void }) {
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
@@ -303,12 +430,23 @@ function fileNameOf(disposition: unknown): string | undefined {
 /**
  * `ouvre: "document"`: the viewer's frame (title, facts, status chip) around
  * the file. The file is private — fetched with the bearer token, never a bare
- * link. No `href` → the « no file yet » sentence instead.
+ * link. No `href` → the « no file yet » sentence instead. `ouvre: "motif"`:
+ * the same frame, alone — there is no file to open.
  */
-export function ViewerDialog({ action, onClose }: { action: SuiviAction; onClose: () => void }) {
+export function ViewerDialog({
+  action,
+  title,
+  onClose,
+}: {
+  action: ApiAction;
+  /** When the action carries no `visionneuse` (a file row): the file's name. */
+  title?: string;
+  onClose: () => void;
+}) {
   const L = useL();
   const [loading, setLoading] = useState<'apercu' | 'telecharger' | null>(null);
   const v = action.visionneuse;
+  const fileless = action.ouvre === 'motif';
 
   const preview = async () => {
     const href = action.apercuHref ?? action.href;
@@ -331,7 +469,7 @@ export function ViewerDialog({ action, onClose }: { action: SuiviAction; onClose
       const url = URL.createObjectURL(res.data as Blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = fileNameOf(res.headers['content-disposition']) ?? v?.titre ?? 'document';
+      a.download = fileNameOf(res.headers['content-disposition']) ?? title ?? v?.titre ?? 'document';
       a.click();
       setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch {
@@ -345,7 +483,7 @@ export function ViewerDialog({ action, onClose }: { action: SuiviAction; onClose
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{v?.titre ?? action.label}</DialogTitle>
+          <DialogTitle className="break-words">{v?.titre ?? title ?? action.label}</DialogTitle>
         </DialogHeader>
         {v?.statut && <TonePill tag={v.statut} className="self-start" />}
         {v && v.lignes.length > 0 && (
@@ -358,7 +496,7 @@ export function ViewerDialog({ action, onClose }: { action: SuiviAction; onClose
             ))}
           </dl>
         )}
-        {action.href ? (
+        {fileless ? null : action.href ? (
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => void preview()} disabled={!!loading}>
               {loading === 'apercu' ? <Loader2 className="size-4 animate-spin" /> : <Eye className="size-4" />}
