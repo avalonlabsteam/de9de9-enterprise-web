@@ -67,14 +67,16 @@ function buildResponse(config: InternalAxiosRequestConfig, status: number, data:
 }
 
 /**
- * Custom Axios adapter serving the in-memory mock backend. Not wired in: the
- * app always calls the real API (see apiClient).
+ * Custom Axios adapter serving the in-memory mock backend. The app calls the
+ * real API; only the annonce demo of development mode goes through here (see
+ * apiClient and annoncesDemo).
  */
 export const mockAdapter: AxiosAdapter = async (config) => {
   await new Promise((resolve) => setTimeout(resolve, LATENCY_MS));
 
   const method = (config.method ?? 'get').toUpperCase() as MockMethod;
-  const raw = `${config.baseURL ?? ''}${config.url ?? ''}`;
+  // An absolute address (an action's `href`) stands on its own, as axios itself reads it.
+  const raw = /^https?:\/\//.test(config.url ?? '') ? (config.url ?? '') : `${config.baseURL ?? ''}${config.url ?? ''}`;
   const url = new URL(raw, 'http://mock.local');
   const path = url.pathname.replace(/^\/api(\/v\d+)?(?=\/|$)/, '');
 

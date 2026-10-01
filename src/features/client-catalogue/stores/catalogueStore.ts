@@ -1,19 +1,37 @@
 import { create } from 'zustand';
 
 /**
+ * The offer a demande is asked from (« Demander un devis », guide 19b §11): it
+ * travels with the demande as `annonceId`, narrows the form's wilayas and adds
+ * the locked line « Prestataire souhaité ».
+ */
+export interface OffreSouhaitee {
+  annonceId: string;
+  categoryCode: string;
+  /** The wilayas the offer covers; empty = no narrowing. */
+  wilayas: string[];
+  /** « Prestataire souhaité : Cleanium » */
+  prestataireSouhaite: string;
+  note: string | null;
+}
+
+/**
  * Feature-local selection state for « Nouvelle demande »: which category is open
  * (its code), which services are ticked (their codes — they become
- * `subCategoryCodes`), and the current search text.
+ * `subCategoryCodes`), the offer the demande comes from, and the current
+ * search text.
  */
 interface CatalogueState {
   selectedFamily: string | null;
   selectedSubs: string[];
+  offre: OffreSouhaitee | null;
   catSearch: string;
 }
 
 const initialState: CatalogueState = {
   selectedFamily: null,
   selectedSubs: [],
+  offre: null,
   catSearch: '',
 };
 
@@ -25,7 +43,7 @@ export const catalogueActions = {
   selectFamily: (id: string): void => {
     const { selectedFamily } = useCatalogueStore.getState();
     if (selectedFamily === id) return;
-    useCatalogueStore.setState({ selectedFamily: id, selectedSubs: [] });
+    useCatalogueStore.setState({ selectedFamily: id, selectedSubs: [], offre: null });
   },
   toggleSub: (subId: string): void => {
     const { selectedSubs } = useCatalogueStore.getState();
@@ -37,10 +55,19 @@ export const catalogueActions = {
   },
   /** A search hit: open its category with that service already ticked. */
   openWithService: (categoryCode: string, serviceCode: string): void => {
-    useCatalogueStore.setState({ selectedFamily: categoryCode, selectedSubs: [serviceCode], catSearch: '' });
+    useCatalogueStore.setState({ selectedFamily: categoryCode, selectedSubs: [serviceCode], offre: null, catSearch: '' });
   },
+  /** « Demander un devis » on an offer: its category, with its services ticked and the offer attached. */
+  openWithOffre: (offre: OffreSouhaitee, serviceCodes: string[]): void => {
+    useCatalogueStore.setState({ selectedFamily: offre.categoryCode, selectedSubs: serviceCodes, offre });
+  },
+  /** The demande goes on without a wished prestataire. */
+  clearOffre: (): void => {
+    useCatalogueStore.setState({ offre: null });
+  },
+  /** The demande was sent: its ticks and its offer are done with. */
   clearSubs: (): void => {
-    useCatalogueStore.setState({ selectedSubs: [] });
+    useCatalogueStore.setState({ selectedSubs: [], offre: null });
   },
   setCatSearch: (value: string): void => {
     useCatalogueStore.setState({ catSearch: value });

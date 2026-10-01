@@ -66,9 +66,10 @@ function Chip({
       onClick={onClick}
       className={cn(
         'inline-flex flex-none cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-[12px] font-bold transition-all',
+        // No glow on the selected chip: this row scrolls sideways, and a scrolling box cuts a glow into a rectangle.
         selected
-          ? 'bg-de9-teal text-white shadow-glow'
-          : 'bg-card text-de9-teal-dark shadow-soft hover:shadow-lift dark:ring-1 dark:ring-border',
+          ? 'bg-de9-teal text-white'
+          : 'bg-card text-de9-teal-dark shadow-soft dark:ring-1 dark:ring-border',
         !selected && count === 0 && 'opacity-55',
       )}
     >
@@ -181,7 +182,7 @@ function AlertesDrawer() {
             </button>
           ))}
         </div>
-        <div role="tablist" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
+        <div role="tablist" className="-mx-4 -my-1.5 flex gap-2 overflow-x-auto px-4 py-1.5 [scrollbar-width:none]">
           <Chip label={L('Tout', 'الكل')} selected={vue.categorie === null} onClick={() => select({ categorie: null })} />
           {CATEGORIES.map((c) => (
             <Chip

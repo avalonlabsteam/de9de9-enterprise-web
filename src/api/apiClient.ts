@@ -12,6 +12,18 @@ export const apiClient = axios.create({
   timeout: 15_000,
 });
 
+// The one exception, in development only and opt-in (VITE_DEMO_ANNONCES=1):
+// the annonce routes of guides 19 are a design the API does not serve yet, so
+// an in-browser stand-in answers `/prestataire/annonces…` and the screens can
+// be used. Every other call stays real; a production build drops this block.
+if (import.meta.env.DEV && import.meta.env.VITE_DEMO_ANNONCES === "1") {
+  const real = axios.getAdapter(apiClient.defaults.adapter);
+  const demo = import("./mock/annoncesDemo").then((m) =>
+    m.annoncesDemoAdapter(real, apiClient.defaults.baseURL),
+  );
+  apiClient.defaults.adapter = async (config) => (await demo)(config);
+}
+
 /**
  * A request as the interceptors see it: whether it already went through the
  * refresh dance once, and which session (epoch) sent it.

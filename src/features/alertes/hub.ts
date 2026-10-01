@@ -7,10 +7,12 @@ import { appNavigate } from '@/lib/navigation';
 import { queryClient } from '@/lib/queryClient';
 import { accueilActions } from '@/stores/accueilStore';
 import { authActions, useAuthStore } from '@/stores/authStore';
+import { refreshAccueil } from '@/features/auth/api/accueil';
 import { sessionChecked } from '@/features/auth/api/bootstrap';
 import { switchRole } from '@/features/auth/api/session';
 import { dossierQueryKey } from '@/features/kyc/api/kyc';
 import { paiementsListeKey, portefeuilleKey } from '@/features/client-wallet/api/keys';
+import { annoncesKey } from '@/features/prestataire-annonces/api/keys';
 import { catchUp, loadVue } from './api/alertes';
 import { lNow } from './lib/libelles';
 import { alerteSchema, compteursSchema, sessionEventSchema, type Alerte } from './schemas/alerte';
@@ -45,12 +47,29 @@ async function caughtUp(): Promise<void> {
   notifyCaughtUp(await catchUp());
 }
 
+const ACCES_CODES = new Set([
+  'b2c.acces_accorde',
+  'b2c.acces_retire',
+  'b2c.compte_actif',
+  'entreprise.b2b_active',
+  'entreprise.b2b_desactive',
+]);
+
 /** What the app does besides the bell when some alerts arrive. */
 function sideEffects(a: Alerte): void {
   // The KYC pill reads the sign-in's home: fold the verdict in, as a submit does.
   if (a.code === 'kyc.verifie') accueilActions.patchEntreprise({ kycStatut: 'verified', verifie: true });
   else if (a.code === 'kyc.document_refuse') accueilActions.patchEntreprise({ kycStatut: 'rejected', verifie: false });
   if (a.categorie === 'kyc') void queryClient.invalidateQueries({ queryKey: dossierQueryKey });
+  // de9de9 granted or revoked an access, or the de9de9 account went live: no session event is sent
+  // for it, so the home is read again and the menus follow (guide 21 §15).
+  if (ACCES_CODES.has(a.code)) void refreshAccueil();
+  // de9de9 approved, refused, suspended or restored an annonce: the list and the annonce on screen
+  // are read again (guide 19b §13).
+  if (a.code.startsWith('annonce.')) {
+    void queryClient.invalidateQueries({ queryKey: annoncesKey });
+    void refreshAccueil(); // the home's block is the published annonces
+  }
   // A recharge credited, a payment refused: the wallet never reloads on its own (guide 17 §11).
   if (a.categorie === 'credits') {
     void queryClient.invalidateQueries({ queryKey: portefeuilleKey });

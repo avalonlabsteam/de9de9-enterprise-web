@@ -8,6 +8,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { EmptyState } from '@/components/common/EmptyState';
+import { OngletBar } from '@/components/common/OngletBar';
+import { CategorieVisual } from '@/features/client-catalogue/components/CategorieVisual';
 import { useClientDemandes } from '../api/demandes';
 import {
   VUES,
@@ -140,36 +142,27 @@ export function MyTendersPage() {
   };
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-6">
+    <div className="mx-auto max-w-3xl">
       <header className="mb-5">
         <h1 className="text-xl font-extrabold text-de9-ink">{t('suiviTitle')}</h1>
         <p className="mt-0.5 text-[13px] text-de9-slate">{t('suiviHint')}</p>
       </header>
 
-      <div role="tablist" className="-mx-4 mb-5 flex gap-2 overflow-x-auto px-4 pb-1">
-        {onglets.map((onglet) => {
-          const selected = onglet.code === vue;
+      {/* Wrapping chips, as on the other lists: nothing scrolls sideways, nothing is cut off. */}
+      <OngletBar
+        className="mb-5"
+        active={vue}
+        onSelect={selectVue}
+        onglets={onglets.map((onglet) => {
           const code = vueSchema.safeParse(onglet.code);
-          return (
-            <button
-              key={onglet.code}
-              type="button"
-              role="tab"
-              aria-selected={selected}
-              onClick={() => selectVue(onglet.code)}
-              className={cn(
-                'flex-none rounded-full px-3.5 py-1.5 text-[13px] font-bold whitespace-nowrap transition-shadow',
-                selected
-                  ? 'bg-de9-teal text-white shadow-glow'
-                  : 'bg-card text-de9-teal-dark shadow-soft hover:shadow-lift dark:ring-1 dark:ring-border',
-              )}
-            >
-              {L(onglet.label, code.success ? VUE_AR[code.data] : onglet.label)}
-              {loaded && ` · ${onglet.count}`}
-            </button>
-          );
+          return {
+            code: onglet.code,
+            label: L(onglet.label, code.success ? VUE_AR[code.data] : onglet.label),
+            // Counts ignore the selected tab; none are shown until the first answer.
+            count: loaded ? onglet.count : undefined,
+          };
         })}
-      </div>
+      />
 
       {query.isPending && (
         <div className="flex flex-col gap-3">
@@ -191,8 +184,8 @@ export function MyTendersPage() {
             <button key={card.id} type="button" onClick={() => openCard(card)} className="text-start">
               <Card className={cn('transition-shadow hover:shadow-lift', card.annulee && 'opacity-60')}>
                 <CardContent className="flex items-center gap-3.5 py-4">
-                  <span className="grid size-11 flex-none place-items-center rounded-full bg-secondary text-[20px]">
-                    {card.icone ?? '🧰'}
+                  <span aria-hidden className="grid size-11 flex-none place-items-center rounded-full bg-secondary">
+                    <CategorieVisual icone={card.icone} iconClassName="size-8" emojiClassName="text-[20px]" />
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="flex items-center gap-1.5 text-base font-bold text-de9-ink">

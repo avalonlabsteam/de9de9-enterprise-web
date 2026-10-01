@@ -1,6 +1,6 @@
 import { createBrowserRouter, Navigate, Outlet, type RouteObject } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { ApiPathAlias, RedirectWithParams, RequireAuth, RequireRole } from './guards';
+import { ApiPathAlias, NotFoundRedirect, RedirectWithParams, RequireAuth, RequireRole, ScrollToTop } from './guards';
 
 /**
  * Route-level code splitting: each page loads its own chunk on first visit.
@@ -12,7 +12,7 @@ const page =
   (loader: () => Promise<PageModule>, name: string): RouteObject['lazy'] =>
   async () => ({ Component: (await loader())[name] });
 
-export const router = createBrowserRouter([
+const routes: RouteObject[] = [
   // ===== public / auth =====
   { path: '/login', lazy: page(() => import('@/features/auth/components/LoginPage'), 'LoginPage') },
   { path: '/role', lazy: page(() => import('@/features/onboarding/components/RoleChoosePage'), 'RoleChoosePage') },
@@ -47,6 +47,8 @@ export const router = createBrowserRouter([
     children: [
       { index: true, lazy: page(() => import('@/features/client-catalogue/components/CataloguePage'), 'CataloguePage') },
       { path: 'family/:id', lazy: page(() => import('@/features/client-catalogue/components/FamilyDetailPage'), 'FamilyDetailPage') },
+      // One offer of a prestataire — a published B2B annonce (guide 19b §10).
+      { path: 'offres/:id', lazy: page(() => import('@/features/client-offres/components/OffrePage'), 'OffrePage') },
       { path: 'kyc', lazy: page(() => import('@/features/kyc/components/ClientKycPage'), 'ClientKycPage') },
       { path: 'kyc/success', lazy: page(() => import('@/features/kyc/components/ClientKycSuccessPage'), 'ClientKycSuccessPage') },
       { path: 'publish/:familyId', lazy: page(() => import('@/features/client-tenders/components/PublishTenderPage'), 'PublishTenderPage') },
@@ -92,7 +94,10 @@ export const router = createBrowserRouter([
       { path: 'demandes-devis/:id', lazy: page(() => import('@/features/prestataire-devis/components/DemandeDevisPage'), 'DemandeDevisPage') },
       { path: 'calendar', lazy: page(() => import('@/features/prestataire-calendar/components/CalendarPage'), 'CalendarPage') },
       { path: 'annonces', lazy: page(() => import('@/features/prestataire-annonces/components/AnnoncesPage'), 'AnnoncesPage') },
-      // « Mes annonces » is read-only: the directory card is written by de9de9 (guide 16b §11).
+      // One annonce, its form (B2B) or wizard (B2C), and « Créer une annonce » (guides 19, 19a, 19b).
+      { path: 'annonces/:id', lazy: page(() => import('@/features/prestataire-annonces/components/AnnonceDetailPage'), 'AnnonceDetailPage') },
+      { path: 'annonces/:id/modifier', lazy: page(() => import('@/features/prestataire-annonces/components/AnnonceFormPages'), 'AnnonceEditPage') },
+      { path: 'annonce/create', lazy: page(() => import('@/features/prestataire-annonces/components/AnnonceFormPages'), 'AnnonceCreatePage') },
       { path: 'annonce/*', element: <Navigate to="/prestataire/annonces" replace /> },
       { path: 'effectif', lazy: page(() => import('@/features/prestataire-equipe/components/EffectifPage'), 'EffectifPage') },
       { path: 'effectif/:id', lazy: page(() => import('@/features/prestataire-equipe/components/ProDetailPage'), 'ProDetailPage') },
@@ -109,5 +114,8 @@ export const router = createBrowserRouter([
   { path: '/pro/*', element: <ApiPathAlias /> },
   { path: '/kyc', element: <ApiPathAlias /> },
 
-  { path: '*', element: <Navigate to="/" replace /> },
-]);
+  { path: '*', element: <NotFoundRedirect /> },
+];
+
+// One root over them all, so every navigation opens its page at the top.
+export const router = createBrowserRouter([{ element: <ScrollToTop />, children: routes }]);

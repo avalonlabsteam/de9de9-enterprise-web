@@ -38,6 +38,8 @@ export interface AppelOffresPayload {
   /** `formulaire.frequences[].valeur`, only with the recurrent cadence. */
   frequence?: number;
   criteresSelection?: string;
+  /** The offer the demande was asked from (guide 19b §11) — stored on it; nobody is invited by it. */
+  annonceId?: string;
 }
 
 /** 201 — the demand at S1 « En attente ». */

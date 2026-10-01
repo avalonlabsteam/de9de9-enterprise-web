@@ -289,6 +289,17 @@
   html {
     @apply font-sans;
     }
+  /* Tailwind resets buttons to the arrow cursor: anything pressable shows the hand. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="tab"],
+  [role="checkbox"],
+  [role="switch"],
+  [role="menuitem"],
+  label[for],
+  summary {
+    cursor: pointer;
+    }
   [dir="rtl"] body,
   [dir="rtl"] {
     font-family: var(--font-arabic);

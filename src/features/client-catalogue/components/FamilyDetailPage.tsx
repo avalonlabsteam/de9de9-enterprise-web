@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/common/EmptyState';
 import { useKycState } from '@/features/kyc/api/kyc';
+import { OffresSection } from '@/features/client-offres/components/OffresSection';
 import { useCategorie } from '../api/nouvelleDemande';
 import { useCatalogueStore, catalogueActions } from '../stores/catalogueStore';
 import { CategorieVisual } from './CategorieVisual';
@@ -24,8 +25,10 @@ export function FamilyDetailPage() {
   const selectedSubs = useCatalogueStore((s) => s.selectedSubs);
 
   // Opening another category clears the ticks (a search hit already set its own).
+  // Browsing here is a demande of one's own: an offer picked earlier no longer rides with it.
   useEffect(() => {
     if (code) catalogueActions.selectFamily(code);
+    catalogueActions.clearOffre();
   }, [code]);
 
   const cat = categorie.data;
@@ -42,7 +45,7 @@ export function FamilyDetailPage() {
 
   if (categorie.isPending) {
     return (
-      <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6">
+      <div className="mx-auto w-full max-w-3xl">
         <div className="mb-6 h-16 animate-pulse rounded-2xl bg-secondary" />
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {Array.from({ length: 8 }).map((_, i) => (
@@ -55,7 +58,7 @@ export function FamilyDetailPage() {
 
   if (categorie.isError || !cat) {
     return (
-      <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
+      <div className="mx-auto w-full max-w-3xl py-6">
         <EmptyState
           title={L('Catégorie introuvable', 'الفئة غير موجودة')}
           description={L('Cette catégorie n’existe pas ou plus.', 'هذه الفئة غير موجودة.')}
@@ -70,7 +73,7 @@ export function FamilyDetailPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 py-6 pb-28 sm:px-6">
+    <div className="mx-auto w-full max-w-3xl">
       <button
         type="button"
         onClick={() => navigate('/client')}
@@ -143,9 +146,13 @@ export function FamilyDetailPage() {
         </ul>
       )}
 
-      {/* Sticky CTA */}
-      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-30 bg-gradient-to-t from-background via-background/95 to-transparent px-4 pt-10 pb-4 sm:px-6">
-        <div className="pointer-events-auto mx-auto w-full max-w-3xl">
+      {/* The B2B annonces published in this category (guide 19b §10). */}
+      <OffresSection categorie={cat.code} />
+
+      {/* Sticky CTA — pinned to the bottom of the window, yet inside the page's own column
+          (a fixed bar would centre on the window and sit off the column beside the sidebar). */}
+      <div className="pointer-events-none sticky bottom-0 z-30 bg-gradient-to-t from-background via-background/95 to-transparent pt-10 pb-4">
+        <div className="pointer-events-auto w-full">
           <Button size="lg" className="h-13 w-full rounded-xl text-[15px]" disabled={count === 0} onClick={goPublish}>
             {count > 0
               ? `${L('Publier un appel d’offres', 'نشر طلب عروض')} (${count})`

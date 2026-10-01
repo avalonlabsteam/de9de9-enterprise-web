@@ -29,7 +29,7 @@ export function DemandesDevisPage() {
   const current = last?.onglet == null || last.onglet === onglet;
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 py-6 pb-24">
+    <div className="mx-auto w-full max-w-4xl">
       <header className="mb-5">
         <h1 className="text-[22px] font-black text-de9-ink">{last?.titre ?? L('Demandes de devis', 'طلبات عروض الأسعار')}</h1>
         <p className="mt-1 text-[14px] text-de9-gray">

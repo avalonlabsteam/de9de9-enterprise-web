@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   BadgeCheck,
   UsersRound,
@@ -18,7 +18,9 @@ import { useAuthedImage } from '@/lib/useAuthedImage';
 import { useAccueilStore } from '@/stores/accueilStore';
 import { uiActions } from '@/stores/uiStore';
 import { useKycState } from '@/features/kyc/api/kyc';
+import { useAccesB2b, useAccesB2c } from '@/features/auth/api/accueil';
 import type { AnnonceCard } from '@/features/auth/schemas/accueil';
+import { useAnnoncesDisponibles } from '@/features/prestataire-annonces/api/keys';
 
 const formatDa = (n: number) => n.toLocaleString('fr-FR');
 
@@ -39,7 +41,11 @@ export function DashboardPage() {
   // answer; the store holds it. There is no home route to retry.
   // Same source as the header pill, so the card and the pill never disagree.
   const kyc = useKycState();
+  const accesB2b = useAccesB2b();
+  const accesB2c = useAccesB2c();
   const data = useAccueilStore((s) => (s.accueil?.role === 'prestataire' ? s.accueil.prestataire : null));
+  // Nothing published: can the company write an annonce itself? Asked only then.
+  const creerAnnonce = useAnnoncesDisponibles(data?.annonces.length === 0);
 
   return (
     <div className="mx-auto flex max-w-[880px] flex-col gap-5">
@@ -153,15 +159,21 @@ export function DashboardPage() {
                   {data.annonces.length === 0 ? (
                     <div className="mt-3 flex flex-col items-start gap-3">
                       <p className="text-[13px] text-de9-slate">
-                        {L(
-                          "Aucun service publié pour l'instant.",
-                          'لا توجد خدمات منشورة حاليًا.',
-                        )}
+                        {creerAnnonce
+                          ? L("Aucune annonce publiée pour l'instant.", 'لا يوجد إعلان منشور حاليًا.')
+                          : L("Aucun service publié pour l'instant.", 'لا توجد خدمات منشورة حاليًا.')}
                       </p>
-                      {/* The directory card is filled by de9de9: there is no company route to write it. */}
-                      <Button variant="outline" className="h-10 text-[14px]" onClick={uiActions.openSupport}>
-                        {L('Demander à de9de9 de compléter ma fiche', 'اطلب من de9de9 إكمال بطاقتي')}
-                      </Button>
+                      {creerAnnonce ? (
+                        // « Créer une annonce » lands on the kind picker of « Mes annonces ».
+                        <Button className="h-10 text-[14px]" onClick={() => navigate('/prestataire/annonces?creer=1')}>
+                          {L('Créer une annonce', 'إنشاء إعلان')}
+                        </Button>
+                      ) : (
+                        // No annonce route on this API: the directory card is filled by de9de9.
+                        <Button variant="outline" className="h-10 text-[14px]" onClick={uiActions.openSupport}>
+                          {L('Demander à de9de9 de compléter ma fiche', 'اطلب من de9de9 إكمال بطاقتي')}
+                        </Button>
+                      )}
                     </div>
                   ) : (
                     <ul className="mt-2 flex flex-col divide-y divide-border">
@@ -175,7 +187,16 @@ export function DashboardPage() {
             </div>
           </div>
 
-          <B2cNotice b2c={data.b2c} />
+          {!accesB2b && (
+            <p className="rounded-lg bg-de9-orange/15 px-4 py-3 text-[13px] font-semibold text-de9-orange-deep">
+              {L(
+                'Accès B2B suspendu par de9de9 : vos missions en cours se poursuivent ; vous n’apparaissez plus dans la recherche et ne recevez plus de nouvelles demandes de devis.',
+                'تم تعليق وصول B2B من طرف de9de9: مهامك الجارية مستمرة؛ لم تعد تظهر في البحث ولن تتلقى طلبات عروض أسعار جديدة.',
+              )}
+            </p>
+          )}
+          {/* Without the B2C access there is nothing to say about the de9de9 app. */}
+          {accesB2c !== 'non_autorise' && <B2cNotice b2c={data.b2c} />}
         </>
       )}
 
@@ -202,10 +223,10 @@ function CompanyLogo({ name, logoUrl }: { name: string; logoUrl?: string | null 
   );
 }
 
-/** One service of the company's directory profile. */
+/** One published annonce — or, on an API that stores none yet, one service of the directory card. */
 function AnnonceRow({ annonce }: { annonce: AnnonceCard }) {
-  return (
-    <li className="flex items-center gap-3 py-3">
+  const contenu = (
+    <>
       <span className="grid size-10 flex-none place-items-center rounded-full bg-secondary text-[18px]">
         {annonce.icone ?? '🧰'}
       </span>
@@ -219,13 +240,25 @@ function AnnonceRow({ annonce }: { annonce: AnnonceCard }) {
             key={canal}
             className={cn(
               'rounded-full px-2 py-0.5 text-[11px] font-bold',
-              canal === 'B2C' ? 'bg-de9-blue-soft text-white' : 'bg-accent text-de9-teal-dark',
+              // One convention everywhere: B2C teal, B2B blue.
+              canal === 'B2C' ? 'bg-de9-teal-soft text-de9-teal-dark' : 'bg-de9-blue-tint text-de9-blue',
             )}
           >
             {canal}
           </span>
         ))}
       </div>
+    </>
+  );
+  return (
+    <li>
+      {annonce.id ? (
+        <Link to={`/prestataire/annonces/${encodeURIComponent(annonce.id)}`} className="flex items-center gap-3 py-3 hover:opacity-80">
+          {contenu}
+        </Link>
+      ) : (
+        <div className="flex items-center gap-3 py-3">{contenu}</div>
+      )}
     </li>
   );
 }

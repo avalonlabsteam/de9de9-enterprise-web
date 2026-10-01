@@ -6,12 +6,10 @@ import { StatusBadge } from '@/components/common/StatusBadge';
 import { useL } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import type { ClientAccueil, DemandeRecente } from '@/features/auth/schemas/accueil';
+import { useAccesB2b } from '@/features/auth/api/accueil';
+import { scrollToCatalogue } from '../lib/catalogue';
 import { demandeBadgeKind, shortDate, statutLabelAr } from '../lib/format';
-
-/** New requests start from a service family, so the empty state points at the catalogue below. */
-function scrollToCatalogue() {
-  document.getElementById('catalogue')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
+import { CategorieVisual } from '@/features/client-catalogue/components/CategorieVisual';
 
 /** The latest five requests, newest first, as the backend lists them. */
 export function RecentDemandes({ demandes }: { demandes: ClientAccueil['demandes'] }) {
@@ -19,6 +17,7 @@ export function RecentDemandes({ demandes }: { demandes: ClientAccueil['demandes
   const navigate = useNavigate();
   const recentes = demandes.recentes.slice(0, 5);
   const empty = recentes.length === 0;
+  const accesB2b = useAccesB2b();
 
   return (
     <Card className="@container flex-1">
@@ -49,10 +48,12 @@ export function RecentDemandes({ demandes }: { demandes: ClientAccueil['demandes
             <p className="text-[13px] text-de9-slate">
               {L("Aucune demande pour l'instant", 'لا توجد طلبات حاليًا')}
             </p>
-            <Button className="h-10 gap-2 text-[14px] shadow-glow" onClick={scrollToCatalogue}>
-              <Plus className="size-4" />
-              {L('Créer une demande', 'إنشاء طلب')}
-            </Button>
+            {accesB2b && (
+              <Button className="h-10 gap-2 text-[14px] shadow-glow" onClick={scrollToCatalogue}>
+                <Plus className="size-4" />
+                {L('Créer une demande', 'إنشاء طلب')}
+              </Button>
+            )}
           </div>
         ) : (
           <ul className="mt-2 flex flex-col divide-y divide-border">
@@ -82,8 +83,8 @@ function DemandeRow({ demande, onOpen }: { demande: DemandeRecente; onOpen: () =
         onClick={onOpen}
         className={cn('group flex w-full items-center gap-3 py-3 text-start', demande.annulee && 'opacity-60')}
       >
-        <span className="grid size-10 flex-none place-items-center rounded-full bg-secondary text-[18px]">
-          {demande.icone || '🧰'}
+        <span aria-hidden className="grid size-10 flex-none place-items-center rounded-full bg-secondary">
+          <CategorieVisual icone={demande.icone} iconClassName="size-7" emojiClassName="text-[18px]" />
         </span>
         {/* The pill drops under the title on a narrow card so the title keeps its width. */}
         <span className="flex min-w-0 flex-1 flex-col gap-1 @lg:flex-row @lg:items-center @lg:gap-3">

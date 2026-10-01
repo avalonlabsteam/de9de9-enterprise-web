@@ -18,7 +18,7 @@ export function TenderConfirmPage() {
   const statusLabel = state?.statusLabel;
 
   return (
-    <div className="mx-auto max-w-lg px-4 py-10">
+    <div className="mx-auto max-w-lg py-6">
       <Card className="animate-slide-up">
         <CardContent className="flex flex-col items-center gap-4 py-10 text-center">
           <StatusBadge

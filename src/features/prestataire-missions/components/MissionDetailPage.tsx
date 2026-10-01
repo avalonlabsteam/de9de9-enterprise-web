@@ -151,7 +151,7 @@ export function MissionDetailPage() {
 
   if (query.isPending) {
     return (
-      <div className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-6">
+      <div className="mx-auto flex max-w-3xl flex-col gap-4">
         <div className="h-8 w-48 animate-pulse rounded-lg bg-secondary" />
         <div className="h-36 animate-pulse rounded-2xl bg-secondary" />
         <div className="h-24 animate-pulse rounded-2xl bg-secondary" />
@@ -163,7 +163,7 @@ export function MissionDetailPage() {
   if (query.isError || !d) {
     const problem = toProblem(query.error);
     return (
-      <div className="mx-auto max-w-3xl px-4 py-10">
+      <div className="mx-auto max-w-3xl py-6">
         <EmptyState
           title={
             problem.status === 404
@@ -192,7 +192,7 @@ export function MissionDetailPage() {
   const stale = query.isPlaceholderData;
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-6 pb-16">
+    <div className="mx-auto flex max-w-3xl flex-col gap-4">
       <header className="flex items-center gap-3">
         <Button
           variant="outline"
