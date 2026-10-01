@@ -1,5 +1,5 @@
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Building2, CalendarDays, Loader2, Plus } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { Building2, CalendarDays, Loader2 } from 'lucide-react';
 import { useL } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { toProblem } from '@/api/problem';
@@ -19,7 +19,6 @@ import { CategoryBubble } from '@/components/common/CategoryBubble';
  */
 export function MissionsPage() {
   const L = useL();
-  const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const onglet = params.get('onglet') ?? 'toutes';
   const query = useMissions(onglet);
@@ -84,15 +83,6 @@ export function MissionsPage() {
           )}
         </>
       )}
-
-      <button
-        type="button"
-        aria-label={L('Créer une annonce B2B', 'إنشاء إعلان B2B')}
-        onClick={() => navigate('/prestataire/annonce/create?type=b2b')}
-        className="fixed bottom-24 end-6 z-30 inline-flex size-14 items-center justify-center rounded-full bg-de9-blue text-white shadow-float transition-transform hover:scale-105 hover:bg-de9-blue/90 active:scale-95"
-      >
-        <Plus className="size-6" />
-      </button>
     </div>
   );
 }

@@ -1,5 +1,4 @@
-// Side-effect import registers every mock route before the adapter is used.
+// Side-effect import registers every mock route.
 import './handlers';
 
-export { mockAdapter } from './router';
 export type { MockRequest, MockResponse, MockHandler, MockMethod } from './router';

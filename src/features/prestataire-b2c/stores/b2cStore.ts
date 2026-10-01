@@ -1,21 +1,14 @@
 import { create } from 'zustand';
 
-export type B2cTab = 'recues' | 'explorer' | 'confirmes';
 export type ExplorerPill = 'voirOffres' | 'offresEnvoyees';
 
+/** Which half of « Explorer les offres » is open — kept while moving between tabs. The tab itself lives in the URL. */
 interface B2cState {
-  tab: B2cTab;
   explorerPill: ExplorerPill;
-}
-
-interface B2cActions {
-  setTab: (tab: B2cTab) => void;
   setExplorerPill: (pill: ExplorerPill) => void;
 }
 
-export const useB2cStore = create<B2cState & B2cActions>((set) => ({
-  tab: 'recues',
+export const useB2cStore = create<B2cState>((set) => ({
   explorerPill: 'voirOffres',
-  setTab: (tab) => set({ tab }),
   setExplorerPill: (explorerPill) => set({ explorerPill }),
 }));
