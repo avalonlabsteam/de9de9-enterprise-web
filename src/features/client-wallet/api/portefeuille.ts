@@ -1,6 +1,7 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/api/apiClient';
 import { apiUrl } from '@/api/hostUrl';
+import { portefeuilleKey } from './keys';
 import {
   mouvementDetailSchema,
   mouvementsPageSchema,
@@ -9,11 +10,7 @@ import {
   type Portefeuille,
 } from '../schemas/portefeuille';
 
-/**
- * Invalidate after anything that moves money (an invoice approved or
- * contested): the card and the rows change. Never polled.
- */
-export const portefeuilleKey = ['client', 'portefeuille'] as const;
+export { portefeuilleKey };
 
 export interface PortefeuillePage {
   /** The whole screen — page 1 only. */

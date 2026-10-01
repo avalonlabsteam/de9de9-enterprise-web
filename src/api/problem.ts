@@ -58,3 +58,19 @@ function firstModelError(errors: unknown): { field: string; message: string } | 
   }
   return undefined;
 }
+
+/**
+ * `toProblem` for a call made with `responseType: 'blob'` (a PDF): a failure
+ * then carries its problem JSON as a Blob, which has to be read first.
+ */
+export async function toProblemOfBlob(error: unknown): Promise<ApiProblem> {
+  if (axios.isAxiosError(error) && error.response?.data instanceof Blob) {
+    try {
+      const body: unknown = JSON.parse(await error.response.data.text());
+      return toProblem({ ...error, isAxiosError: true, response: { ...error.response, data: body } });
+    } catch {
+      /* not JSON: the status alone is all there is */
+    }
+  }
+  return toProblem(error);
+}

@@ -5,21 +5,11 @@ import { useL } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { toneText } from '@/lib/tones';
 import { apiUrl } from '@/api/hostUrl';
-import { openAuthedFile } from '@/lib/authedFile';
+import { openAuthedFile, saveBlob } from '@/lib/authedFile';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { fetchFile } from '../api/portefeuille';
 import type { Fichier } from '../schemas/portefeuille';
-
-/** Save a blob under the server's file name. */
-function saveBlob(blob: Blob, name: string) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = name;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 60_000);
-}
 
 /**
  * The viewer sheet of a document card: its title and rows as sent, then

@@ -10,6 +10,7 @@ import { authActions, useAuthStore } from '@/stores/authStore';
 import { sessionChecked } from '@/features/auth/api/bootstrap';
 import { switchRole } from '@/features/auth/api/session';
 import { dossierQueryKey } from '@/features/kyc/api/kyc';
+import { paiementsListeKey, portefeuilleKey } from '@/features/client-wallet/api/keys';
 import { catchUp, loadVue } from './api/alertes';
 import { lNow } from './lib/libelles';
 import { alerteSchema, compteursSchema, sessionEventSchema, type Alerte } from './schemas/alerte';
@@ -50,6 +51,11 @@ function sideEffects(a: Alerte): void {
   if (a.code === 'kyc.verifie') accueilActions.patchEntreprise({ kycStatut: 'verified', verifie: true });
   else if (a.code === 'kyc.document_refuse') accueilActions.patchEntreprise({ kycStatut: 'rejected', verifie: false });
   if (a.categorie === 'kyc') void queryClient.invalidateQueries({ queryKey: dossierQueryKey });
+  // A recharge credited, a payment refused: the wallet never reloads on its own (guide 17 §11).
+  if (a.categorie === 'credits') {
+    void queryClient.invalidateQueries({ queryKey: portefeuilleKey });
+    void queryClient.invalidateQueries({ queryKey: paiementsListeKey });
+  }
 }
 
 /** `session` (common guide §9): the session ends, or moves to the other side. */

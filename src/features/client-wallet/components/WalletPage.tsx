@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { ChevronRight, Info, Loader2, Plus } from 'lucide-react';
+import { ChevronRight, Clock, Info, Loader2, Plus } from 'lucide-react';
 import { useL } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { toneBox, tonePill, toneText } from '@/lib/tones';
@@ -30,9 +30,9 @@ const darkTone = (ton?: string | null) => DARK_TONE[ton ?? ''] ?? 'text-white';
 let savedScrollY = 0;
 
 /**
- * « Portefeuille » (client) — read-only. The card, the banner, « ＋ Recharger »
- * (a contact sheet, no payment) and the « Mouvements », all printed as the
- * answer gives them. Nobody pays in the app: de9de9 credits the wallet.
+ * « Portefeuille » (client). The card, the banners, « ＋ Recharger » and the
+ * « Mouvements », all printed as the answer gives them. The sheet is a contact
+ * sheet, plus a card payment when the answer offers one (guide 17).
  */
 export function WalletPage() {
   const L = useL();
@@ -146,6 +146,26 @@ export function WalletPage() {
             </p>
           )}
 
+          {/* An online payment still payable, or under de9de9's review */}
+          {screen.paiementEnCours && (
+            <button
+              type="button"
+              onClick={() => navigate(`/client/wallet/paiements/${encodeURIComponent(screen.paiementEnCours?.paiementId ?? '')}`)}
+              className={cn(
+                'flex cursor-pointer items-start gap-2 rounded-xl border-s-4 px-4 py-3 text-start text-[13px] font-medium',
+                toneBox('attention'),
+                toneText('attention'),
+              )}
+            >
+              <Clock className="mt-0.5 size-4 flex-none" />
+              <span className="min-w-0 flex-1">{screen.paiementEnCours.texte}</span>
+              <span className="inline-flex flex-none items-center gap-0.5 font-bold">
+                {L('Voir', 'عرض')}
+                <ChevronRight className="size-4 rtl:rotate-180" />
+              </span>
+            </button>
+          )}
+
           {screen.recharger && screen.feuilleRecharge && (
             <button
               type="button"
@@ -154,6 +174,17 @@ export function WalletPage() {
             >
               {screen.recharger.icone === 'plus' ? <Plus className="size-5" /> : <ApiIcon code={screen.recharger.icone} className="size-5" />}
               {screen.recharger.label}
+            </button>
+          )}
+
+          {(screen.feuilleRecharge?.enLigne || screen.paiementEnCours) && (
+            <button
+              type="button"
+              onClick={() => navigate('/client/wallet/paiements')}
+              className="inline-flex cursor-pointer items-center gap-0.5 self-start text-[13px] font-semibold text-de9-teal-dark hover:underline"
+            >
+              {L('Paiements en ligne', 'المدفوعات الإلكترونية')}
+              <ChevronRight className="size-4 rtl:rotate-180" />
             </button>
           )}
 
@@ -198,7 +229,7 @@ export function WalletPage() {
           </section>
 
           {sheetOpen && screen.feuilleRecharge && (
-            <RechargeSheet feuille={screen.feuilleRecharge} onClose={() => setParams({}, { replace: true })} />
+            <RechargeSheet feuille={screen.feuilleRecharge} onClose={() => setParams({}, { replace: true })} onRefresh={refresh} />
           )}
         </>
       )}

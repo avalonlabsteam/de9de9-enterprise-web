@@ -3,6 +3,7 @@ import {
   ArrowUp,
   CalendarDays,
   Check,
+  CreditCard,
   FileSignature,
   FileText,
   Headset,
@@ -30,6 +31,8 @@ export function ApiIcon({ code, className }: { code?: string | null; className?:
   switch (code) {
     case 'coche':
       return <Check className={className} />;
+    case 'carte':
+      return <CreditCard className={className} />;
     case 'cadenas':
       return <Lock className={className} />;
     case 'cadenas_ouvert':

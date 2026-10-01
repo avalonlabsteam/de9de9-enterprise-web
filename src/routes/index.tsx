@@ -57,6 +57,11 @@ export const router = createBrowserRouter([
       { path: 'calendrier', lazy: page(() => import('@/features/client-calendrier/components/ClientCalendrierPage'), 'ClientCalendrierPage') },
       { path: 'wallet', lazy: page(() => import('@/features/client-wallet/components/WalletPage'), 'WalletPage') },
       { path: 'wallet/mouvements/:id', lazy: page(() => import('@/features/client-wallet/components/MouvementDetailPage'), 'MouvementDetailPage') },
+      // Online payments (guide 17). `paiement/retour` is where the bank sends the payer back: it is set
+      // once in the GuiddiniPay dashboard, so this path must not change.
+      { path: 'wallet/paiement/retour', lazy: page(() => import('@/features/client-wallet/components/PaiementRetourPage'), 'PaiementRetourPage') },
+      { path: 'wallet/paiements', lazy: page(() => import('@/features/client-wallet/components/PaiementsPage'), 'PaiementsPage') },
+      { path: 'wallet/paiements/:id', lazy: page(() => import('@/features/client-wallet/components/PaiementPage'), 'PaiementPage') },
       { path: 'factures', lazy: page(() => import('@/features/client-factures/components/FacturesPage'), 'FacturesPage') },
       { path: 'profile', lazy: page(() => import('@/features/client-profil/components/ClientProfilePage'), 'ClientProfilePage') },
       // The API's names for these screens (alerts, guides) — see features/alertes/lib/chemin.ts.
