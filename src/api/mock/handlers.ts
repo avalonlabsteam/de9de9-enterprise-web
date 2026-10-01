@@ -736,6 +736,5 @@ register('POST', '/workers/invite', () => {
 });
 register('POST', '/workers/agrandir', () => ok({ ok: true }));
 
-// ===================== recruter / handicap =====================
-register('POST', '/sub/demandes', () => ok({ ok: true }));
+// ===================== handicap =====================
 register('POST', '/handicap', () => ok({ ok: true }));
