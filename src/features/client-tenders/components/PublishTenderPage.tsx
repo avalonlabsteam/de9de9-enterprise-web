@@ -18,7 +18,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PieceSlot } from '@/components/common/PieceSlot';
 import { EmptyState } from '@/components/common/EmptyState';
-import { useCategorie, useNouvelleDemande } from '@/features/client-catalogue/api/nouvelleDemande';
+import { nouvelleDemandeKey, useBlocageB2b, useCategorie, useNouvelleDemande } from '@/features/client-catalogue/api/nouvelleDemande';
+import { AccesB2bSuspendu } from '@/features/client-catalogue/components/AccesB2bSuspendu';
 import type { FormOption } from '@/features/client-catalogue/schemas/nouvelleDemande';
 import { catalogueActions, useCatalogueStore } from '@/features/client-catalogue/stores/catalogueStore';
 import { accesRefuse } from '@/features/auth/api/accueil';
@@ -111,6 +112,10 @@ export function PublishTenderPage() {
   const souhaite = offre?.categoryCode === code ? offre : null;
   /** 422 `annonce_non_disponible`: the offer went offline while the form was filled. */
   const [indisponible, setIndisponible] = useState(false);
+  // de9de9 suspended the company's B2B access (guide 21 §13-14): known from the home, from this
+  // screen's pickers, or from the 403 of a submission — whose sentence is then kept.
+  const blocage = useBlocageB2b();
+  const [refusB2b, setRefusB2b] = useState<string | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   const [servicesError, setServicesError] = useState(false);
   const send = useSendAppelOffres();
@@ -136,6 +141,15 @@ export function PublishTenderPage() {
 
   const optionLabel = (option: FormOption) => L(option.label, OPTION_AR[option.code] ?? option.label);
   const required = L('Champ requis', 'حقل مطلوب');
+
+  // Nothing new starts: the sentence takes the form's place, with the way back to « Mes demandes ».
+  if (blocage.bloque || refusB2b !== null) {
+    return (
+      <div className="mx-auto max-w-2xl py-6">
+        <AccesB2bSuspendu message={blocage.message ?? refusB2b} />
+      </div>
+    );
+  }
 
   if (categorie.isPending || pickers.isPending) {
     return (
@@ -195,11 +209,12 @@ export function PublishTenderPage() {
         },
         onError: (error) => {
           const problem = toProblem(error);
-          // B2B suspended by de9de9 meanwhile: nothing was created. The menus follow, and back to the demandes.
+          // B2B suspended by de9de9 meanwhile: nothing was created. The server's sentence takes the
+          // form's place, the menus follow, and the catalogue is read again for its own wording.
           if (problem.code === 'b2b_access_disabled') {
+            setRefusB2b(problem.detail ?? '');
             accesRefuse('b2b');
-            toast.error(problem.detail ?? L("L'accès B2B de votre entreprise est suspendu par l'administration de9de9 : vos contrats en cours se poursuivent, aucune nouvelle demande n'est possible.", 'تم تعليق وصول مؤسستك إلى B2B من طرف إدارة de9de9: عقودك الجارية مستمرة، ولا يمكن إنشاء طلبات جديدة.'), { duration: 10_000 });
-            navigate('/client/tenders');
+            void queryClient.invalidateQueries({ queryKey: nouvelleDemandeKey });
             return;
           }
           // The offer is no longer published (or no longer this client's to see): nothing was created.

@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Clock, Lock, Search, ShieldAlert, ShieldCheck, X } from 'lucide-react';
+import { Clock, Search, ShieldAlert, ShieldCheck, X } from 'lucide-react';
 import { useL } from '@/lib/i18n';
 import { uiActions } from '@/stores/uiStore';
 import { cn } from '@/lib/utils';
@@ -10,10 +10,10 @@ import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/common/EmptyState';
 import { ClientHomeSummary } from '@/features/client-accueil/components/ClientHomeSummary';
 import { useKycState } from '@/features/kyc/api/kyc';
-import { useAccesB2b } from '@/features/auth/api/accueil';
-import { useCatalogueSearch, useNouvelleDemande } from '../api/nouvelleDemande';
+import { useBlocageB2b, useCatalogueSearch, useNouvelleDemande } from '../api/nouvelleDemande';
 import type { CategorieTile, RechercheHit } from '../schemas/nouvelleDemande';
 import { useCatalogueStore, catalogueActions } from '../stores/catalogueStore';
+import { AccesB2bSuspendu } from './AccesB2bSuspendu';
 import { CategorieVisual, FamilleBadge } from './CategorieVisual';
 
 /** Search as the client types, once the typing pauses. */
@@ -58,23 +58,14 @@ export function CataloguePage() {
   const loadError = catalogue.isError ? toProblem(catalogue.error) : null;
 
   // de9de9 suspended the company's B2B access (guide 21): running contracts go on, nothing new
-  // starts. The server's sentence takes the place of the grid and the search.
-  const accesB2b = useAccesB2b();
-  const entreprise = catalogue.data?.entreprise;
-  if (entreprise?.accesB2b === false || !accesB2b) {
+  // starts. The server's sentence takes the place of the grid and the search. No button here:
+  // « Mes demandes » is in the menu beside it.
+  const blocage = useBlocageB2b();
+  if (blocage.bloque) {
     return (
       <div className="mx-auto w-full max-w-5xl">
         <ClientHomeSummary />
-        <EmptyState
-          icon={<Lock className="size-6" />}
-          title={L('Nouvelles demandes suspendues', 'الطلبات الجديدة معلّقة')}
-          description={entreprise?.blocage ?? L("L'accès B2B de votre entreprise est suspendu par l'administration de9de9 : vos contrats en cours se poursuivent, aucune nouvelle demande n'est possible.", 'تم تعليق وصول مؤسستك إلى B2B من طرف إدارة de9de9: عقودك الجارية مستمرة، ولا يمكن إنشاء طلبات جديدة.')}
-          action={
-            <Button variant="outline" size="sm" onClick={() => navigate('/client/tenders')}>
-              {L('Mes demandes', 'طلباتي')}
-            </Button>
-          }
-        />
+        <AccesB2bSuspendu message={blocage.message} retour={false} />
       </div>
     );
   }

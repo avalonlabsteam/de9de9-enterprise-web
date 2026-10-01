@@ -7,10 +7,12 @@ import { appNavigate } from '@/lib/navigation';
 import { queryClient } from '@/lib/queryClient';
 import { accueilActions } from '@/stores/accueilStore';
 import { authActions, useAuthStore } from '@/stores/authStore';
+import { useB2cSessionStore } from '@/stores/b2cSessionStore';
 import { refreshAccueil } from '@/features/auth/api/accueil';
 import { sessionChecked } from '@/features/auth/api/bootstrap';
 import { switchRole } from '@/features/auth/api/session';
 import { dossierQueryKey } from '@/features/kyc/api/kyc';
+import { nouvelleDemandeKey } from '@/features/client-catalogue/api/keys';
 import { paiementsListeKey, portefeuilleKey } from '@/features/client-wallet/api/keys';
 import { annoncesKey } from '@/features/prestataire-annonces/api/keys';
 import { catchUp, loadVue } from './api/alertes';
@@ -44,7 +46,11 @@ function sessionKeyOf(s: ReturnType<typeof useAuthStore.getState>): string {
 let sessionKey = sessionKeyOf(useAuthStore.getState());
 
 async function caughtUp(): Promise<void> {
-  notifyCaughtUp(await catchUp());
+  const missed = await catchUp();
+  // Alerts read back after the socket was down ran none of their side effects: one of them may
+  // be an access de9de9 granted or took back (guide 21 §12), so the home is read again.
+  if (missed > 0) void refreshAccueil();
+  notifyCaughtUp(missed);
 }
 
 const ACCES_CODES = new Set([
@@ -64,6 +70,12 @@ function sideEffects(a: Alerte): void {
   // de9de9 granted or revoked an access, or the de9de9 account went live: no session event is sent
   // for it, so the home is read again and the menus follow (guide 21 §15).
   if (ACCES_CODES.has(a.code)) void refreshAccueil();
+  // « Nouvelle demande » words the B2B suspension itself (`blocage`): held for minutes, it is read
+  // again — else a restored access would still find the catalogue closed.
+  if (a.code.startsWith('entreprise.b2b_')) void queryClient.invalidateQueries({ queryKey: nouvelleDemandeKey });
+  // The B2C access opened, or the de9de9 account went live: what the exchange refused before no
+  // longer stands, and the page asks again.
+  if (a.code === 'b2c.acces_accorde' || a.code === 'b2c.compte_actif') useB2cSessionStore.setState({ refusal: null });
   // de9de9 approved, refused, suspended or restored an annonce: the list and the annonce on screen
   // are read again (guide 19b §13).
   if (a.code.startsWith('annonce.')) {

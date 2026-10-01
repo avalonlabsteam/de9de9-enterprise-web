@@ -7,8 +7,9 @@ import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/common/EmptyState';
 import { useKycState } from '@/features/kyc/api/kyc';
 import { OffresSection } from '@/features/client-offres/components/OffresSection';
-import { useCategorie } from '../api/nouvelleDemande';
+import { useBlocageB2b, useCategorie } from '../api/nouvelleDemande';
 import { useCatalogueStore, catalogueActions } from '../stores/catalogueStore';
+import { AccesB2bSuspendu } from './AccesB2bSuspendu';
 import { CategorieVisual } from './CategorieVisual';
 
 /**
@@ -22,6 +23,7 @@ export function FamilyDetailPage() {
 
   const categorie = useCategorie(code);
   const kyc = useKycState();
+  const blocage = useBlocageB2b();
   const selectedSubs = useCatalogueStore((s) => s.selectedSubs);
 
   // Opening another category clears the ticks (a search hit already set its own).
@@ -42,6 +44,15 @@ export function FamilyDetailPage() {
     }
     navigate(`/client/publish/${encodeURIComponent(code)}`);
   };
+
+  // A link saved before de9de9 suspended the B2B access: no services to tick, the sentence instead.
+  if (blocage.bloque) {
+    return (
+      <div className="mx-auto w-full max-w-3xl py-6">
+        <AccesB2bSuspendu message={blocage.message} />
+      </div>
+    );
+  }
 
   if (categorie.isPending) {
     return (
