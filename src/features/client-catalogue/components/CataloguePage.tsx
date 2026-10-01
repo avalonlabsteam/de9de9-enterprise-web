@@ -104,8 +104,8 @@ export function CataloguePage() {
                       onClick={() => openHit(hit)}
                       className="flex w-full items-center gap-3 px-3 py-2.5 text-start hover:bg-secondary"
                     >
-                      <span aria-hidden className="grid size-9 flex-none place-items-center rounded-full bg-secondary text-[16px]">
-                        {hit.icone ?? '🧰'}
+                      <span aria-hidden className="grid size-9 flex-none place-items-center rounded-full bg-secondary">
+                        <CategorieVisual icone={hit.icone} iconClassName="size-7" emojiClassName="text-[16px]" />
                       </span>
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-medium text-de9-ink">{hit.libelle}</p>
@@ -309,6 +309,7 @@ function FeaturedCategorieCard({
           imageUrl={tile.imageUrl}
           icone={tile.icone}
           className="h-[124px] w-auto"
+          iconClassName="size-[116px]"
           emojiClassName="size-[124px] text-[52px]"
         />
       </span>
@@ -347,6 +348,7 @@ function CategorieCard({
           imageUrl={tile.imageUrl}
           icone={tile.icone}
           className="h-[86px] w-auto"
+          iconClassName="mb-3 me-3.5 size-[68px]"
           emojiClassName="mb-3 me-4 size-14 text-[34px]"
         />
       </span>
