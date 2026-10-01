@@ -15,24 +15,19 @@ export function ClientHomeSummary() {
   if (!data) return null;
 
   return (
-    <section
-      aria-label={L('Votre accueil', 'الصفحة الرئيسية')}
-      className="mb-8 grid gap-4 lg:grid-cols-[306px_minmax(0,1fr)]"
-    >
+    // Full-width rows, each only as tall as what it holds: no column waits on a taller neighbour.
+    // A container: beside the sidebar this column can be narrower than a tablet, so what sits
+    // inside follows its width, not the viewport's.
+    <section aria-label={L('Votre accueil', 'الصفحة الرئيسية')} className="@container mb-8 flex flex-col gap-4">
       <CompanyCard entreprise={data.entreprise} compteurs={data.compteurs} />
-
-      {/* A container: beside the company card at lg this column is narrower than
-          a phone, so what sits inside follows its width, not the viewport's. */}
-      <div className="@container flex min-w-0 flex-col gap-4">
-        {data.compteurs.facturesAApprouver > 0 && (
-          <ApprovalCta count={data.compteurs.facturesAApprouver} amountDzd={data.depenses.aApprouverDzd} />
-        )}
-        <div className="grid grid-cols-1 gap-4 @lg:grid-cols-2">
-          <CreditsTile credits={data.credits} />
-          <DepensesTile totalDzd={data.depenses.totalDzd} />
-        </div>
-        <RecentDemandes demandes={data.demandes} />
+      {data.compteurs.facturesAApprouver > 0 && (
+        <ApprovalCta count={data.compteurs.facturesAApprouver} amountDzd={data.depenses.aApprouverDzd} />
+      )}
+      <div className="grid grid-cols-1 gap-4 @lg:grid-cols-2">
+        <CreditsTile credits={data.credits} />
+        <DepensesTile totalDzd={data.depenses.totalDzd} />
       </div>
+      <RecentDemandes demandes={data.demandes} />
     </section>
   );
 }

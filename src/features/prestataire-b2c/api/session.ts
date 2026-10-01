@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { apiClient } from '@/api/apiClient';
 import { useAuthStore } from '@/stores/authStore';
 import { sessionEpoch } from '@/stores/sessionEpoch';
+import { accesRefuse } from '@/features/auth/api/accueil';
 import {
   useB2cSessionStore,
   type B2cRefusal,
@@ -91,7 +92,11 @@ async function exchange(): Promise<B2cSession> {
     parsed = sessionSchema.parse((await apiClient.post('/b2c/session')).data);
   } catch (error) {
     const refusal = error instanceof z.ZodError ? { kind: 'unavailable' as const, status: 200, code: 'invalid_response' } : refusalOf(error);
-    if (sessionEpoch() === epoch) useB2cSessionStore.setState({ session: null, refusal });
+    if (sessionEpoch() === epoch) {
+      useB2cSessionStore.setState({ session: null, refusal });
+      // Never granted, or revoked meanwhile: the home is out of date — the B2C menu goes, then it is read again.
+      if (refusal.code === 'b2c_access_required') accesRefuse('b2c');
+    }
     throw new B2cSessionRefused(refusal);
   }
   // Signed out or switched meanwhile: this token is not for the current session.

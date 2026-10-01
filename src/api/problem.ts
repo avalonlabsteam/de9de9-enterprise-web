@@ -74,3 +74,14 @@ export async function toProblemOfBlob(error: unknown): Promise<ApiProblem> {
   }
   return toProblem(error);
 }
+
+/**
+ * The route itself does not exist: the backend has not deployed it yet. A 404
+ * the API wrote carries a problem `code` (`annonce_not_found`); the router's
+ * own 404 carries none.
+ */
+export function isRouteAbsente(error: unknown): boolean {
+  if (!axios.isAxiosError(error) || error.response?.status !== 404) return false;
+  const body = error.response.data as { code?: unknown } | undefined;
+  return typeof body?.code !== 'string';
+}

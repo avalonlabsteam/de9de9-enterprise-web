@@ -25,6 +25,8 @@ export const compteursSchema = compteurSplitSchema.extend({
 
 /** One « Mes annonces » card: a service on the company's directory profile. */
 export const annonceCardSchema = z.object({
+  /** The stored annonce behind the row (guide 19b §13) — absent while the block is derived from the card. */
+  id: z.string().nullish(),
   service: z.string(),
   sousCategorieCode: z.string().optional(),
   categorieCode: z.string().optional(),
@@ -42,6 +44,19 @@ export type AnnonceCard = z.infer<typeof annonceCardSchema>;
 
 /** `pending` · `verified` · `rejected`. */
 export const kycStatutSchema = z.string();
+
+/**
+ * de9de9's two authorities over the company (guide 21 §12), the same on both
+ * homes. Additive: an older API does not send it, a value this build does not
+ * know must not fail a sign-in.
+ */
+export const accesSchema = z
+  .object({
+    b2b: z.boolean().default(true),
+    b2c: z.object({ accorde: z.boolean().default(false), statut: z.string() }).nullish(),
+  })
+  .nullish()
+  .catch(undefined);
 
 export const accueilSchema = z.object({
   entreprise: z.object({
@@ -74,11 +89,12 @@ export const accueilSchema = z.object({
   }),
   b2c: z
     .object({
-      /** `actif` · `en_attente` · `suspendu`. */
+      /** `actif` · `en_attente` · `suspendu` — the legacy field; new code reads `acces.b2c.statut`. */
       statut: z.string(),
       donneesDisponibles: z.boolean().default(true),
     })
     .optional(),
+  acces: accesSchema,
 });
 export type Accueil = z.infer<typeof accueilSchema>;
 
@@ -160,6 +176,7 @@ export const clientAccueilSchema = z.object({
       aApprouverDzd: z.number().default(0),
     })
     .default({ totalDzd: 0, aApprouverDzd: 0 }),
+  acces: accesSchema,
 });
 export type ClientAccueil = z.infer<typeof clientAccueilSchema>;
 

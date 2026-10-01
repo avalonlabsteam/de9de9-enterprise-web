@@ -33,6 +33,7 @@ import { useKycState } from '@/features/kyc/api/kyc';
 import { toProblem } from '@/api/problem';
 import { useSwitchRole, otherRole } from '@/features/auth/api/session';
 import { useSessionBootstrap } from '@/features/auth/api/bootstrap';
+import { useAccesB2c } from '@/features/auth/api/accueil';
 import { AlertesBell } from '@/features/alertes/components/AlertesBell';
 import { enableAlertes } from '@/features/alertes/hub';
 import { useAlertesStore } from '@/features/alertes/stores/alertesStore';
@@ -99,9 +100,15 @@ const navFor = (role: Role | undefined): NavGroup[] =>
 function NavList({ role, onNavigate }: { role: Role | undefined; onNavigate?: () => void }) {
   const t = useT();
   const L = useL();
+  // The B2C access is granted by de9de9, company by company (guide 21): without it, no B2C menu at all.
+  const b2cFerme = useAccesB2c() === 'non_autorise';
+  const groups = navFor(role).map((group) => ({
+    ...group,
+    items: group.items.filter((item) => !(b2cFerme && item.to === '/prestataire/b2c')),
+  }));
   return (
     <nav className="flex flex-col">
-      {navFor(role).map((group, gi) => (
+      {groups.map((group, gi) => (
         <div key={gi}>
           {group.title && (
             <p className="mb-1 mt-[26px] ps-4 text-[16px] font-bold text-de9-ink">
@@ -310,7 +317,7 @@ export function AppLayout() {
     <div className="min-h-screen">
       {/* ===== Topbar — Deg Deg: full-width white bar, brand at the start ===== */}
       <header className="sticky top-0 z-40 bg-card shadow-soft dark:border-b dark:border-border">
-        <div className="flex h-[78px] items-center gap-2.5 px-4 sm:gap-4 sm:px-[26px] lg:ps-10">
+        <div className="flex h-[78px] items-center gap-1.5 px-4 min-[380px]:gap-2.5 sm:gap-4 sm:px-[26px] lg:ps-10">
           <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
             <SheetTrigger asChild>
               <button type="button" className={cn(iconButtonCls, 'lg:hidden')} aria-label="Menu">
@@ -319,7 +326,7 @@ export function AppLayout() {
             </SheetTrigger>
             <SheetContent
               side={dir === 'rtl' ? 'right' : 'left'}
-              className="w-[260px] gap-0 bg-background p-4 pt-6"
+              className="w-[260px] gap-0 overflow-y-auto bg-background p-4 pt-6"
             >
               <SheetTitle className="sr-only">Navigation</SheetTitle>
               <div className="mb-4 px-2">
@@ -375,7 +382,9 @@ export function AppLayout() {
 
       {/* ===== Body — sidebar floats on the gray bg below the topbar ===== */}
       <div className="mx-auto flex w-full max-w-[1400px] items-start px-4 sm:px-6 lg:px-10">
-        <aside className="sticky top-[78px] hidden max-h-[calc(100vh-78px)] w-[248px] flex-none overflow-y-auto pb-10 pe-7 pt-[42px] lg:block">
+        {/* A scrolling box clips sideways too: the 8px gutter (taken back by the margin) leaves the
+            active item's outline and shadow room on its leading edge. */}
+        <aside className="sticky top-[78px] -ms-2 hidden max-h-[calc(100vh-78px)] w-[256px] flex-none overflow-y-auto ps-2 pb-10 pe-7 pt-[42px] lg:block">
           <NavList role={role} />
           {role && <RoleSwitchButton role={role} className="mt-6 inline-flex w-full justify-center" />}
         </aside>

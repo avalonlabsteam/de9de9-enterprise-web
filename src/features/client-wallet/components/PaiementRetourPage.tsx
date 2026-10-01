@@ -52,7 +52,7 @@ export function PaiementRetourPage() {
     const problem = toProblem(lookup.error);
     const introuvable = problem.status === 404;
     return (
-      <div className="mx-auto max-w-[640px] py-6">
+      <div className="mx-auto max-w-[640px]">
         <EmptyState
           title={
             introuvable

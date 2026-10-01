@@ -10,6 +10,7 @@ import { useScrollToAnchor } from '@/lib/useScrollToAnchor';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/common/EmptyState';
+import { CategorieVisual } from '@/features/client-catalogue/components/CategorieVisual';
 import { suiviQueryKey, useDemandeSuivi } from '../api/suivi';
 import { demandesQueryKey } from '../api/demandes';
 import { portefeuilleKey } from '@/features/client-wallet/api/portefeuille';
@@ -141,7 +142,7 @@ export function SuiviDemandePage() {
 
   if (query.isPending) {
     return (
-      <div className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-6">
+      <div className="mx-auto flex max-w-3xl flex-col gap-4">
         <div className="h-8 w-40 animate-pulse rounded-lg bg-secondary" />
         <div className="h-32 animate-pulse rounded-2xl bg-secondary" />
         <div className="h-24 animate-pulse rounded-2xl bg-secondary" />
@@ -152,7 +153,7 @@ export function SuiviDemandePage() {
   if (query.isError || !query.data) {
     const problem = toProblem(query.error);
     return (
-      <div className="mx-auto max-w-3xl px-4 py-10">
+      <div className="mx-auto max-w-3xl py-6">
         <EmptyState
           title={
             problem.status === 404
@@ -182,7 +183,7 @@ export function SuiviDemandePage() {
   const pa = d.prochaineAction;
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-6 pb-16">
+    <div className="mx-auto flex max-w-3xl flex-col gap-4">
       <header className="flex items-center gap-3">
         <Button variant="outline" size="icon" onClick={() => navigate('/client/tenders')} aria-label={L('Retour', 'رجوع')}>
           <ArrowLeft className="size-4 rtl:rotate-180" />
@@ -195,10 +196,10 @@ export function SuiviDemandePage() {
         <CardContent className="flex items-start gap-3.5 py-5">
           <span
             aria-hidden
-            className="grid size-12 flex-none place-items-center rounded-full bg-secondary text-[22px]"
+            className="grid size-12 flex-none place-items-center rounded-full bg-secondary"
             style={entete.categorie?.couleur ? { backgroundColor: `${entete.categorie.couleur}22` } : undefined}
           >
-            {entete.categorie?.icone ?? '🧰'}
+            <CategorieVisual icone={entete.categorie?.icone} iconClassName="size-9" emojiClassName="text-[22px]" />
           </span>
           <div className="min-w-0 flex-1">
             <p className="flex items-center gap-1.5 text-[17px] font-bold text-de9-ink">

@@ -93,7 +93,7 @@ export function CalendarPage() {
   const dayEvents = selectedDay ? events.filter((e) => e.date === selectedDay) : [];
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-4 py-6 pb-16">
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-4">
       <header>
         <h1 className="text-[22px] font-black text-de9-ink">{L('Calendrier', 'التقويم')}</h1>
       </header>

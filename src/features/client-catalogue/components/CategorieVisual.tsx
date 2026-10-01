@@ -51,7 +51,7 @@ export function CategorieVisual({
   }
   return (
     <span aria-hidden className={cn('grid place-items-center', emojiClassName)}>
-      {icone ?? '🧰'}
+      {icone || '🧰'}
     </span>
   );
 }

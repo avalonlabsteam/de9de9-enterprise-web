@@ -55,6 +55,9 @@ export const nouvelleDemandeSchema = z.object({
       nom: z.string().nullish(),
       verifiee: z.boolean().optional(),
       kycStatut: z.string().nullish(),
+      /** false: de9de9 suspended the company's B2B access — `blocage` takes the grid's place (guide 21 §13). */
+      accesB2b: z.boolean().optional(),
+      blocage: z.string().nullish(),
     })
     .nullish(),
   totalCategories: z.number().nullish(),

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Accueil, AccueilEnvelope } from '@/features/auth/schemas/accueil';
+import type { Accueil, AccueilEnvelope, ClientAccueil } from '@/features/auth/schemas/accueil';
 import { rememberStorage, SESSION_STORE_KEYS } from './rememberStorage';
 
 /**
@@ -58,6 +58,25 @@ export const accueilActions = {
     useAccueilStore.setState((s) =>
       s.accueil?.role === 'prestataire' ? { accueil: { ...s.accueil, prestataire: home } } : s,
     );
+  },
+  /** The same for the client home (`GET /client/accueil`). */
+  setClient: (home: ClientAccueil): void => {
+    useAccueilStore.setState((s) => (s.accueil?.role === 'client' ? { accueil: { ...s.accueil, client: home } } : s));
+  },
+  /** An access de9de9 just closed, folded into the active home until the next read. */
+  patchAcces: (patch: { b2b?: boolean; b2c?: { accorde: boolean; statut: string } }): void => {
+    useAccueilStore.setState((s) => {
+      const accueil = s.accueil;
+      if (accueil?.role === 'prestataire' && accueil.prestataire) {
+        const home = accueil.prestataire;
+        return { accueil: { ...accueil, prestataire: { ...home, acces: { b2b: true, ...home.acces, ...patch } } } };
+      }
+      if (accueil?.role === 'client' && accueil.client) {
+        const home = accueil.client;
+        return { accueil: { ...accueil, client: { ...home, acces: { b2b: true, ...home.acces, ...patch } } } };
+      }
+      return s;
+    });
   },
   clear: (): void => {
     useAccueilStore.setState({ accueil: null });

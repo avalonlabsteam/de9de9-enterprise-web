@@ -2,14 +2,16 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, FileText, X } from 'lucide-react';
+import { ArrowLeft, FileText, Lock, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useT, useL } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { toProblem } from '@/api/problem';
 import { WILAYAS } from '@/lib/catalogue';
+import { queryClient } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,6 +21,8 @@ import { EmptyState } from '@/components/common/EmptyState';
 import { useCategorie, useNouvelleDemande } from '@/features/client-catalogue/api/nouvelleDemande';
 import type { FormOption } from '@/features/client-catalogue/schemas/nouvelleDemande';
 import { catalogueActions, useCatalogueStore } from '@/features/client-catalogue/stores/catalogueStore';
+import { accesRefuse } from '@/features/auth/api/accueil';
+import { offresKey } from '@/features/client-offres/api/offres';
 import { useSendAppelOffres } from '../api/appelsOffres';
 import {
   appelOffresFormSchema,
@@ -83,6 +87,11 @@ function Chip({
  * « Nouvelle demande », screen 3: the « Appel d'offres » form. `POST /appels-offres`
  * with the ticked services, then `POST /appels-offres/{id}/media` for the
  * documents; de9de9's admins are notified as soon as it is sent.
+ *
+ * Opened from an offer (« Demander un devis », guide 19b §11) it is pre-filled:
+ * the offer's services ticked, the wilayas narrowed to those it covers, and a
+ * locked line « Prestataire souhaité ». The offer travels as `annonceId`; the
+ * prestataire is not invited by this call — de9de9 does that.
  */
 export function PublishTenderPage() {
   const t = useT();
@@ -97,6 +106,11 @@ export function PublishTenderPage() {
   // Ticked on screen 2 (or pre-ticked by a search hit); kept in the store so
   // the KYC detour does not lose them.
   const selectedSubs = useCatalogueStore((s) => s.selectedSubs);
+  const offre = useCatalogueStore((s) => s.offre);
+  // The offer rides with the demande only in its own category.
+  const souhaite = offre?.categoryCode === code ? offre : null;
+  /** 422 `annonce_non_disponible`: the offer went offline while the form was filled. */
+  const [indisponible, setIndisponible] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
   const [servicesError, setServicesError] = useState(false);
   const send = useSendAppelOffres();
@@ -125,7 +139,7 @@ export function PublishTenderPage() {
 
   if (categorie.isPending || pickers.isPending) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-6">
+      <div className="mx-auto max-w-2xl">
         <div className="mb-5 h-10 w-48 animate-pulse rounded-lg bg-secondary" />
         <div className="flex flex-col gap-4">
           {[0, 1, 2, 3].map((i) => (
@@ -139,7 +153,7 @@ export function PublishTenderPage() {
   const cat = categorie.data;
   if (!cat) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-10">
+      <div className="mx-auto max-w-2xl py-6">
         <EmptyState
           title={L('Catégorie introuvable', 'الفئة غير موجودة')}
           description={L('Cette catégorie n’existe pas.', 'هذه الفئة غير موجودة.')}
@@ -148,7 +162,7 @@ export function PublishTenderPage() {
     );
   }
 
-  const onSubmit = (form: AppelOffresForm) => {
+  const onSubmit = (form: AppelOffresForm, sansOffre = false) => {
     // The ticks are the demand's services — and its name: there is no title field.
     const subCategoryCodes = cat.services.map((s) => s.code).filter((c) => selectedSubs.includes(c));
     if (subCategoryCodes.length === 0) {
@@ -157,7 +171,10 @@ export function PublishTenderPage() {
     }
     setServicesError(false);
 
-    const payload = buildAppelOffresPayload(form, cat.code, subCategoryCodes, formulaire);
+    const payload = {
+      ...buildAppelOffresPayload(form, cat.code, subCategoryCodes, formulaire),
+      ...(souhaite && !sansOffre ? { annonceId: souhaite.annonceId } : {}),
+    };
 
     send.mutate(
       { payload, files },
@@ -178,6 +195,19 @@ export function PublishTenderPage() {
         },
         onError: (error) => {
           const problem = toProblem(error);
+          // B2B suspended by de9de9 meanwhile: nothing was created. The menus follow, and back to the demandes.
+          if (problem.code === 'b2b_access_disabled') {
+            accesRefuse('b2b');
+            toast.error(problem.detail ?? L("L'accès B2B de votre entreprise est suspendu par l'administration de9de9 : vos contrats en cours se poursuivent, aucune nouvelle demande n'est possible.", 'تم تعليق وصول مؤسستك إلى B2B من طرف إدارة de9de9: عقودك الجارية مستمرة، ولا يمكن إنشاء طلبات جديدة.'), { duration: 10_000 });
+            navigate('/client/tenders');
+            return;
+          }
+          // The offer is no longer published (or no longer this client's to see): nothing was created.
+          if (problem.code === 'annonce_non_disponible') {
+            void queryClient.invalidateQueries({ queryKey: offresKey });
+            setIndisponible(true);
+            return;
+          }
           const field = problem.field ? FIELD_OF[problem.field] : undefined;
           if (problem.status === 400 && field) {
             setError(field, { type: 'server', message: problem.detail ?? required });
@@ -204,7 +234,7 @@ export function PublishTenderPage() {
     error ? (error.type === 'server' && error.message ? error.message : required) : null;
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-6">
+    <div className="mx-auto max-w-2xl">
       <header className="mb-5 flex items-center gap-3">
         <Button variant="outline" size="icon" onClick={() => navigate(-1)} aria-label={L('Retour', 'رجوع')}>
           <ArrowLeft className="size-4 rtl:rotate-180" />
@@ -212,7 +242,7 @@ export function PublishTenderPage() {
         <h1 className="text-xl font-extrabold text-de9-ink">{t('ficheTitle')}</h1>
       </header>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
+      <form onSubmit={handleSubmit((form) => onSubmit(form))} className="flex flex-col gap-4" noValidate>
         {/* Famille & catégorie */}
         <Card>
           <CardContent className="py-4">
@@ -245,6 +275,19 @@ export function PublishTenderPage() {
           </CardContent>
         </Card>
 
+        {/* From an offer: the prestataire wished for — a locked line, de9de9 still routes the demande */}
+        {souhaite && (
+          <div className="flex flex-col gap-1 rounded-xl bg-de9-blue-tint px-3.5 py-3 dark:bg-de9-blue/15">
+            <p className="flex items-center gap-2 text-[13.5px] font-bold text-de9-blue">
+              <Lock className="size-3.5 flex-none" />
+              <span className="min-w-0 break-words">{souhaite.prestataireSouhaite}</span>
+            </p>
+            <p className="text-[12px] text-de9-slate">
+              {souhaite.note ?? L('de9de9 transmet votre demande et vous présente les devis.', 'de9de9 ينقل طلبك ويعرض عليك عروض الأسعار.')}
+            </p>
+          </div>
+        )}
+
         {/* Description */}
         <div>
           <Label htmlFor="description" className="mb-2 block">
@@ -270,7 +313,8 @@ export function PublishTenderPage() {
                   <SelectValue placeholder={L('Choisir une wilaya', 'اختر ولاية')} />
                 </SelectTrigger>
                 <SelectContent>
-                  {WILAYAS.map((w) => (
+                  {/* From an offer: only the wilayas it covers. */}
+                  {(souhaite && souhaite.wilayas.length > 0 ? souhaite.wilayas : WILAYAS).map((w) => (
                     <SelectItem key={w} value={w}>
                       {w}
                     </SelectItem>
@@ -442,6 +486,32 @@ export function PublishTenderPage() {
           {send.isPending ? L('Envoi…', 'جارٍ الإرسال…') : t('submitPublish')}
         </Button>
       </form>
+
+      <Dialog open={indisponible} onOpenChange={setIndisponible}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{L("Cette offre n'est plus disponible.", 'هذا العرض لم يعد متاحًا.')}</DialogTitle>
+            <DialogDescription>
+              {L('Vous pouvez envoyer votre demande sans prestataire souhaité : de9de9 vous trouve un prestataire.', 'يمكنك إرسال طلبك دون مقدّم خدمة مرغوب: de9de9 يجد لك مقدّم خدمة.')}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setIndisponible(false)}>
+              {L('Revenir', 'رجوع')}
+            </Button>
+            <Button
+              onClick={() => {
+                setIndisponible(false);
+                // The demande goes on, without the offer: every wilaya is a choice again.
+                catalogueActions.clearOffre();
+                void handleSubmit((form) => onSubmit(form, true))();
+              }}
+            >
+              {L('Envoyer sans prestataire souhaité', 'إرسال دون مقدّم خدمة مرغوب')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EmptyState } from '@/components/common/EmptyState';
 import { usePrestataireAccueil } from '@/features/prestataire-dashboard/api/dashboard';
+import { refreshAccueil, useAccesB2c, useAccesConnu } from '@/features/auth/api/accueil';
+import { useKycState } from '@/features/kyc/api/kyc';
 import { useTabCounts } from '../api/b2c';
 import { useB2cLive } from '../api/hub';
 import { ensureB2cSession, retryB2cSession } from '../api/session';
@@ -192,12 +194,44 @@ function Workspace() {
 export function B2cPage() {
   const t = useT();
   const L = useL();
-  const statut = usePrestataireAccueil()?.b2c?.statut;
-  // « Vérifier à nouveau »: the home may be out of date — the exchange itself has the last word.
+  const navigate = useNavigate();
+  const kyc = useKycState();
+  usePrestataireAccueil(); // the home, fresh: its access block decides what this page may do
+  const statut = useAccesB2c();
+  const connu = useAccesConnu();
+  // An older API sends no access block: its home may be out of date, and the exchange itself has the last word.
   const [bypass, setBypass] = useState(false);
+  const [checking, setChecking] = useState(false);
+
+  const verifier = async () => {
+    if (!connu) {
+      setBypass(true);
+      return;
+    }
+    setChecking(true);
+    await refreshAccueil();
+    setChecking(false);
+  };
 
   let body: ReactNode;
-  if (statut === 'suspendu' && !bypass) body = <Suspended />;
+  if (statut === 'non_autorise') {
+    // Reached by a saved link only — the menu is hidden. Nothing to retry: de9de9 grants the access.
+    body = (
+      <EmptyState
+        icon={<Lock className="size-6" />}
+        title={L("L'accès B2C n'est pas ouvert pour votre entreprise", 'خدمة B2C غير مفتوحة لمؤسستك')}
+        description={L(
+          "Il est accordé par l'administration de9de9. Contactez de9de9 pour le demander.",
+          'تمنحها إدارة de9de9. اتصل بـ de9de9 لطلبها.',
+        )}
+        action={
+          <Button variant="outline" size="sm" onClick={uiActions.openSupport}>
+            {L('Contacter de9de9', 'اتصل بـ de9de9')}
+          </Button>
+        }
+      />
+    );
+  } else if (statut === 'suspendu' && !bypass) body = <Suspended />;
   else if (statut === 'en_attente' && !bypass) {
     body = (
       <EmptyState
@@ -208,16 +242,23 @@ export function B2cPage() {
           'يُنشأ حسابك على de9de9 بعد توثيق مؤسستك. ستظهر هنا طلبات وحجوزات الأفراد.',
         )}
         action={
-          <Button variant="outline" size="sm" onClick={() => setBypass(true)}>
-            {L('Vérifier à nouveau', 'تحقق مجددًا')}
-          </Button>
+          <div className="flex flex-wrap justify-center gap-2">
+            {!kyc.verified && (
+              <Button size="sm" onClick={() => navigate('/onboarding/kyc')}>
+                {L('Terminer la vérification', 'إكمال التوثيق')}
+              </Button>
+            )}
+            <Button variant="outline" size="sm" disabled={checking} onClick={() => void verifier()}>
+              {L('Vérifier à nouveau', 'تحقق مجددًا')}
+            </Button>
+          </div>
         }
       />
     );
   } else body = <Workspace />;
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 py-6 pb-24">
+    <div className="mx-auto w-full max-w-4xl">
       <header className="mb-5">
         <h1 className="text-[22px] font-black text-de9-ink">{t('b2cTitle')}</h1>
         <p className="mt-1 text-[14px] text-de9-gray">
