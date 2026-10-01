@@ -1,23 +1,30 @@
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { categoryIcon3d } from '@/lib/categoryIcons3d';
 
 /**
- * A category's picture: its `imageUrl` (public, so a bare `<img>`), or its
- * emoji when there is none — or when the image fails to load. Key it on the
- * url at the call site so a new url gets a fresh try.
+ * A category's picture, in this order: its `imageUrl` (public, so a bare
+ * `<img>`) when de9de9 gave it one; else the app's 3D icon for its emoji; else
+ * the emoji itself. A picture that fails to load falls to the next one. Key it
+ * on the url at the call site so a new url gets a fresh try.
  */
 export function CategorieVisual({
   imageUrl,
   icone,
   className,
+  iconClassName,
   emojiClassName,
 }: {
   imageUrl?: string | null;
   icone?: string | null;
+  /** The server's picture. */
   className?: string;
+  /** The 3D icon — a square with its own margin; `className` when not given. */
+  iconClassName?: string;
   emojiClassName?: string;
 }) {
   const [failed, setFailed] = useState(false);
+  const [iconFailed, setIconFailed] = useState(false);
   if (imageUrl && !failed) {
     return (
       <img
@@ -26,6 +33,19 @@ export function CategorieVisual({
         loading="lazy"
         onError={() => setFailed(true)}
         className={cn('object-contain', className)}
+      />
+    );
+  }
+  const icon3d = categoryIcon3d(icone);
+  if (icon3d && !iconFailed) {
+    return (
+      <img
+        src={icon3d}
+        alt=""
+        loading="lazy"
+        draggable={false}
+        onError={() => setIconFailed(true)}
+        className={cn('object-contain drop-shadow-sm', iconClassName ?? className)}
       />
     );
   }

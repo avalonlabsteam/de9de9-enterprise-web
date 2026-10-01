@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { categoryClasses, type CategoryKey } from '@/lib/categoryColors';
+import { baseGlyph } from '@/lib/categoryIcons3d';
 
 /**
  * Catalogue families are seeded with an emoji glyph (see `@/lib/catalogue`).
@@ -27,14 +28,6 @@ import { categoryClasses, type CategoryKey } from '@/lib/categoryColors';
  * Keyed by the base emoji (variation selectors U+FE0E/U+FE0F stripped) so the
  * seed data and the inline emoji chips on the prestataire side stay unchanged.
  */
-const stripVariation = (glyph: string) =>
-  Array.from(glyph)
-    .filter((ch) => {
-      const cp = ch.codePointAt(0);
-      return cp !== 0xfe0e && cp !== 0xfe0f;
-    })
-    .join('');
-
 const ICON_BY_GLYPH: Record<string, LucideIcon> = {
   '\u{2696}': Scale, // ⚖ Services Juridiques & Légaux
   '\u{1F9EE}': Calculator, // 🧮 Comptabilité, Finance & Fiscalité
@@ -65,7 +58,7 @@ export function CategoryIcon({
   className?: string;
 }) {
   const c = categoryClasses(colorKey);
-  const Icon = ICON_BY_GLYPH[stripVariation(icon)];
+  const Icon = ICON_BY_GLYPH[baseGlyph(icon)];
   return (
     <div
       className={cn(

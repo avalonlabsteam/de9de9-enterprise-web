@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/common/EmptyState';
 import { useKycState } from '@/features/kyc/api/kyc';
 import { useCategorie } from '../api/nouvelleDemande';
 import { useCatalogueStore, catalogueActions } from '../stores/catalogueStore';
+import { CategorieVisual } from './CategorieVisual';
 
 /**
  * « Nouvelle demande », screen 2: the services of the tapped category
@@ -82,9 +83,9 @@ export function FamilyDetailPage() {
       <header className="mb-6 flex items-center gap-4">
         <span
           aria-hidden
-          className="grid size-[68px] shrink-0 place-items-center rounded-2xl bg-de9-row text-[32px] dark:ring-1 dark:ring-border"
+          className="grid size-[68px] shrink-0 place-items-center rounded-2xl bg-de9-row dark:ring-1 dark:ring-border"
         >
-          {cat.icone ?? '🧰'}
+          <CategorieVisual icone={cat.icone} iconClassName="size-[54px]" emojiClassName="text-[32px]" />
         </span>
         <div>
           <h1 className="text-xl font-bold text-de9-ink sm:text-2xl">
