@@ -1,28 +1,19 @@
-import { useMemo, useState } from 'react';
-import { toast } from 'sonner';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-  SheetFooter,
-} from '@/components/ui/sheet';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { CATALOGUE, FAMILY_BY_ID } from '@/lib/catalogue';
+import { useState } from 'react';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { OngletBar } from '@/components/common/OngletBar';
 import { useL } from '@/lib/i18n';
-import { useRecruter } from '../api/profil';
+import { useDemandesPros } from '../api/contractuels';
+import { RECRUTER_VIDE, demandeOuverte } from '../schemas/contractuels';
+import { RecruterDemandes } from './RecruterDemandes';
+import { RecruterForm } from './RecruterForm';
 
+type Onglet = 'nouvelle' | 'suivi';
+
+/**
+ * « Recruter des sous-traitants » — the company asks de9de9 for pros of the
+ * de9de9 app, and follows what it asked: a new demande, and the ones already
+ * sent with the pros placed on them.
+ */
 export function RecruterSheet({
   open,
   onOpenChange,
@@ -33,43 +24,11 @@ export function RecruterSheet({
   onSent: () => void;
 }) {
   const L = useL();
-  const recruter = useRecruter();
-
-  const [categorie, setCategorie] = useState('');
-  const [sousCategorie, setSousCategorie] = useState('');
-  const [zone, setZone] = useState('');
-  const [nombre, setNombre] = useState('');
-  const [note, setNote] = useState('');
-
-  const subs = useMemo(
-    () => (categorie ? (FAMILY_BY_ID[categorie]?.subs ?? []) : []),
-    [categorie],
-  );
-
-  function reset() {
-    setCategorie('');
-    setSousCategorie('');
-    setZone('');
-    setNombre('');
-    setNote('');
-  }
-
-  function submit() {
-    if (!categorie || !sousCategorie) {
-      toast(L('Choisissez catégorie et sous-catégorie', 'اختر الفئة والفئة الفرعية'));
-      return;
-    }
-    recruter.mutate(
-      { categorie, sousCategorie, zone, nombre, note },
-      {
-        onSuccess: () => {
-          onOpenChange(false);
-          reset();
-          onSent();
-        },
-      },
-    );
-  }
+  const [onglet, setOnglet] = useState<Onglet>('nouvelle');
+  // Held here, above the sheet's content: a sheet closed by mistake reopens on what was typed.
+  const [valeurs, setValeurs] = useState(RECRUTER_VIDE);
+  // The demandes still waited on, for the tab's count — asked only once the sheet opens.
+  const ouvertes = useDemandesPros(open).data?.filter((s) => demandeOuverte(s.demande)).length;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -81,71 +40,29 @@ export function RecruterSheet({
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex flex-col gap-4 px-4 pb-4">
-          <div className="flex flex-col gap-1.5">
-            <Label className="text-[12.5px] text-de9-gray">{L('Catégorie', 'الفئة')}</Label>
-            <Select
-              value={categorie}
-              onValueChange={(v) => {
-                setCategorie(v);
-                setSousCategorie('');
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={L('Choisir une catégorie', 'اختر فئة')} />
-              </SelectTrigger>
-              <SelectContent>
-                {CATALOGUE.map((f) => (
-                  <SelectItem key={f.id} value={f.id}>
-                    {f.icon} {L(f.name.fr, f.name.ar)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        <OngletBar
+          className="px-4"
+          active={onglet}
+          onSelect={(code) => setOnglet(code === 'suivi' ? 'suivi' : 'nouvelle')}
+          onglets={[
+            { code: 'nouvelle', label: L('Nouvelle demande', 'طلب جديد') },
+            { code: 'suivi', label: L('Mes demandes', 'طلباتي'), count: ouvertes || undefined },
+          ]}
+        />
 
-          <div className="flex flex-col gap-1.5">
-            <Label className="text-[12.5px] text-de9-gray">{L('Sous-catégorie', 'الفئة الفرعية')}</Label>
-            <Select value={sousCategorie} onValueChange={setSousCategorie} disabled={!categorie}>
-              <SelectTrigger>
-                <SelectValue placeholder={L('Choisir un service', 'اختر خدمة')} />
-              </SelectTrigger>
-              <SelectContent>
-                {subs.map((s) => (
-                  <SelectItem key={s.id} value={s.name.fr}>
-                    {L(s.name.fr, s.name.ar)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <Label className="text-[12.5px] text-de9-gray">{L('Zone', 'المنطقة')}</Label>
-            <Input value={zone} onChange={(e) => setZone(e.target.value)} placeholder="Alger" />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <Label className="text-[12.5px] text-de9-gray">{L('Nombre', 'العدد')}</Label>
-            <Input
-              type="number"
-              min={1}
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <Label className="text-[12.5px] text-de9-gray">{L('Note', 'ملاحظة')}</Label>
-            <Textarea value={note} onChange={(e) => setNote(e.target.value)} rows={3} />
-          </div>
-        </div>
-
-        <SheetFooter>
-          <Button className="w-full" onClick={submit} disabled={recruter.isPending}>
-            {L('Envoyer la demande', 'إرسال الطلب')}
-          </Button>
-        </SheetFooter>
+        {onglet === 'nouvelle' ? (
+          <RecruterForm
+            valeurs={valeurs}
+            onChange={setValeurs}
+            onSent={() => {
+              onOpenChange(false);
+              setValeurs(RECRUTER_VIDE);
+              onSent();
+            }}
+          />
+        ) : (
+          <RecruterDemandes />
+        )}
       </SheetContent>
     </Sheet>
   );
