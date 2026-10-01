@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft } from 'lucide-react';
 import { useL } from '@/lib/i18n';
@@ -11,7 +11,7 @@ import { annonceErreur } from '../lib/erreurs';
 import { AnnonceB2bForm } from './AnnonceB2bForm';
 import { AnnonceB2cCreation } from './AnnonceB2cCreation';
 import { AnnonceB2cWizard } from './AnnonceB2cWizard';
-import { detailPath } from './useAnnonceFlow';
+import { detailPath, type EditState } from './useAnnonceFlow';
 
 const LISTE = '/prestataire/annonces';
 
@@ -39,8 +39,15 @@ export function AnnonceEditPage() {
   const { id } = useParams<{ id: string }>();
   const L = useL();
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
   const query = useAnnonce(id);
+  // A refused submission sends its blocks along. Read once, then taken off the history entry: a
+  // form started over, a refresh or a way back must not show them again once they are fixed.
+  const [refusees] = useState(() => (location.state as EditState | null)?.etapes ?? []);
+  useEffect(() => {
+    if ((location.state as EditState | null)?.etapes) navigate(location.pathname, { replace: true, state: null });
+  }, [location.pathname, location.state, navigate]);
   // A stale version: the annonce is read again and the form starts over from it.
   const [lecture, setLecture] = useState(0);
   const [relit, setRelit] = useState(false);
@@ -69,7 +76,9 @@ export function AnnonceEditPage() {
     </div>
   );
 
-  if (!annonce || relit) {
+  // Read again and gone (another seat deleted it): what was held is not shown as if it still existed.
+  const disparue = query.isError && toProblem(query.error).code === 'annonce_not_found';
+  if (!annonce || relit || disparue) {
     if (query.isError && !relit) {
       const introuvable = toProblem(query.error).status === 404;
       return cadre(
@@ -109,8 +118,8 @@ export function AnnonceEditPage() {
   }
 
   return annonce.type === 'b2b' ? (
-    <AnnonceB2bForm key={lecture} annonce={annonce} onStale={relire} />
+    <AnnonceB2bForm key={lecture} annonce={annonce} etapes={lecture === 0 ? refusees : undefined} onStale={relire} />
   ) : (
-    <AnnonceB2cWizard key={lecture} annonce={annonce} onStale={relire} />
+    <AnnonceB2cWizard key={lecture} annonce={annonce} etapes={lecture === 0 ? refusees : undefined} onStale={relire} />
   );
 }

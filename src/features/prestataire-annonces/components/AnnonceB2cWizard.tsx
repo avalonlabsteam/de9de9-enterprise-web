@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Loader2, Lock } from 'lucide-react';
 import { toast } from 'sonner';
@@ -15,6 +15,7 @@ import { refreshAccueil } from '@/features/auth/api/accueil';
 import {
   annonceKey,
   annonceRecue,
+  annoncesKey,
   annoncesListeKey,
   etapesOf,
   isRouteAbsente,
@@ -42,10 +43,10 @@ import {
   type Ligne,
 } from '../lib/b2c';
 import { annonceErreur } from '../lib/erreurs';
-import type { AnnonceB2c, Photo } from '../schemas/annonces';
+import type { Annonce, AnnonceB2c, EtapeRefus, Photo } from '../schemas/annonces';
 import { EtapeDisponibilite, EtapeQuestionnaire, EtapeServices, EtapeTarifs, EtapeTitre, EtapeZones } from './AnnonceB2cEtapes';
 import { PhotosUploader } from './PhotosUploader';
-import { detailPath, useAnnonceFlow, type EditState } from './useAnnonceFlow';
+import { detailPath, useAnnonceFlow } from './useAnnonceFlow';
 
 /** What a press of the footer goes on to do, once the content is saved. */
 type Suite = 'suivant' | 'quitter' | 'enregistrer' | 'publier';
@@ -55,6 +56,8 @@ const memesZones = (a: ZoneInput[], b: ZoneInput[]) => {
   const cles = new Set(a.map(cleZone));
   return a.length === b.length && b.every((z) => cles.has(cleZone(z)));
 };
+
+const AUCUNE: EtapeRefus[] = [];
 
 function Squelette() {
   return <div className="h-48 animate-pulse rounded-xl bg-secondary" />;
@@ -67,10 +70,18 @@ function Squelette() {
  * annonce already online is saved whole, by its own button, and must stay
  * complete — the change applies at once.
  */
-export function AnnonceB2cWizard({ annonce, onStale }: { annonce: AnnonceB2c; onStale: () => void }) {
+export function AnnonceB2cWizard({
+  annonce,
+  etapes: refusees = AUCUNE,
+  onStale,
+}: {
+  annonce: AnnonceB2c;
+  /** A refused submission sent the user here: the steps to complete, with the backend's sentences. */
+  etapes?: EtapeRefus[];
+  onStale: () => void;
+}) {
   const L = useL();
   const navigate = useNavigate();
-  const location = useLocation();
   const queryClient = useQueryClient();
   const referentiel = useReferentielB2c();
   const categorieQuery = useCategorieB2c(annonce.categorie?.legacyCategoryId);
@@ -89,15 +100,18 @@ export function AnnonceB2cWizard({ annonce, onStale }: { annonce: AnnonceB2c; on
   const [zonesLocales, setZonesLocales] = useState<ZoneInput[] | null>(null);
   /** The content moved since the last save: only then is a `PUT` sent. */
   const [modifie, setModifie] = useState(false);
-  const [etape, setEtape] = useState<Etape>(() => {
+  /** Counts the edits: one made while a save is in flight is not in it, and stays to be saved. */
+  const revision = useRef(0);
+  const [etape, setEtape] = useState<Etape>(
     // Sent here by a refused submission: its first step. Else a draft opens on what is left to complete.
-    const refusee = ((location.state as EditState | null)?.etapes ?? []).map((e) => e.code).find(isEtape);
-    return refusee ?? annonce.etapes.filter((e) => !e.complete).map((e) => e.code).find(isEtape) ?? 'services';
-  });
+    () => refusees.map((e) => e.code).find(isEtape) ?? annonce.etapes.filter((e) => !e.complete).map((e) => e.code).find(isEtape) ?? 'services',
+  );
   const [erreurs, setErreurs] = useState<Partial<Record<Etape, string>>>(() =>
-    Object.fromEntries(((location.state as EditState | null)?.etapes ?? []).filter((e) => isEtape(e.code)).map((e) => [e.code, e.message ?? ''])),
+    Object.fromEntries(refusees.filter((e) => isEtape(e.code)).map((e) => [e.code, e.message ?? ''])),
   );
   const [busy, setBusy] = useState<Suite | null>(null);
+  /** A photo call is in flight with the version held: no save, no submission until it answers. */
+  const [photosBusy, setPhotosBusy] = useState(false);
   /** The zones are shared: a save that reaches other annonces is confirmed first, then the press goes on. */
   const [confirmer, setConfirmer] = useState<Suite | null>(null);
 
@@ -188,16 +202,20 @@ export function AnnonceB2cWizard({ annonce, onStale }: { annonce: AnnonceB2c; on
     return nomme ? L(nomme.libelle, nomme.libelleAr ?? nomme.libelle) : ligne.libelle;
   };
 
+  const touche = () => {
+    revision.current += 1;
+    setModifie(true);
+  };
   /** Any edit of the content: it is to be saved. */
   const toucher =
     <T,>(set: (value: T) => void) =>
     (value: T) => {
       set(value);
-      setModifie(true);
+      touche();
     };
   const changerLignes = (next: Ligne[]) => {
     setLignes(next);
-    setModifie(true);
+    touche();
     // A task unticked takes the answers to its own questions with it.
     if (categorie) {
       const admises = new Set(questionsVisibles(categorie, next).flatMap((q) => q.reponses.map((r) => r.id)));
@@ -214,21 +232,28 @@ export function AnnonceB2cWizard({ annonce, onStale }: { annonce: AnnonceB2c; on
   /** A refusal, on the step it is about. */
   const refus = (error: unknown) => {
     const { problem, message } = annonceErreur(error, L);
-    const refusees = etapesOf(error).filter((e) => isEtape(e.code));
-    if (problem.code === 'annonce_incomplete' && refusees.length > 0) {
-      montrer(Object.fromEntries(refusees.map((e) => [e.code, e.message ?? ''])));
+    const incompletes = etapesOf(error).filter((e) => isEtape(e.code));
+    if (problem.code === 'annonce_incomplete' && incompletes.length > 0) {
+      montrer(Object.fromEntries(incompletes.map((e) => [e.code, e.message ?? ''])));
       toast.error(message);
       return;
     }
     if (problem.code === 'reference_inconnue') {
-      // The app's tree moved under the annonce: read again, the lines it no longer knows show up to be removed.
+      // The app's tree moved under the annonce: it is read again. A line it no longer knows shows
+      // up to be removed; an answer it no longer knows leaves the body by itself.
+      const cible = etapeOfField(problem.field) ?? 'services';
+      const phrase =
+        cible === 'questionnaire'
+          ? L(
+              "Une réponse du questionnaire n'existe plus sur l'app de9de9 : elle a été retirée. Vérifiez, puis publiez à nouveau.",
+              'إجابة في الاستبيان لم تعد موجودة على تطبيق de9de9: تمت إزالتها. تحقق ثم انشر من جديد.',
+            )
+          : L("Ce service n'existe plus sur l'app de9de9. Retirez-le pour continuer.", 'هذه الخدمة لم تعد موجودة على تطبيق de9de9. احذفها للمتابعة.');
       void categorieQuery.refetch();
-      montrer({
-        [etapeOfField(problem.field) ?? 'services']: L(
-          "Ce service n'existe plus sur l'app de9de9. Retirez-le pour continuer.",
-          'هذه الخدمة لم تعد موجودة على تطبيق de9de9. احذفها للمتابعة.',
-        ),
-      });
+      // The next press sends the content again — without what the app no longer knows.
+      touche();
+      toast.error(phrase);
+      montrer({ [cible]: phrase });
       return;
     }
     if (problem.code === 'referentiel_indisponible') {
@@ -257,11 +282,12 @@ export function AnnonceB2cWizard({ annonce, onStale }: { annonce: AnnonceB2c; on
 
   const enregistrer = async () => {
     if (!modifie) return saved;
+    const envoyee = revision.current;
     const result = await remplacerB2c(saved.id, saved.version, corpsB2c(contenu, categorie));
     annonceRecue(queryClient, result);
     const ref = { id: result.id, version: result.version };
     setSaved(ref);
-    setModifie(false);
+    if (revision.current === envoyee) setModifie(false);
     return ref;
   };
 
@@ -270,8 +296,10 @@ export function AnnonceB2cWizard({ annonce, onStale }: { annonce: AnnonceB2c; on
     try {
       queryClient.setQueryData(zonesB2cKey, await remplacerZonesB2c(version, zones));
       setZonesLocales(null);
-      // Every B2C annonce of the company moved with them.
+      // Every B2C annonce of the company moved with them: the list, and each annonce held, whose
+      // page prints the zones. Marked stale only — read again when opened, not under the save that may follow.
       void queryClient.invalidateQueries({ queryKey: annoncesListeKey });
+      void queryClient.invalidateQueries({ queryKey: [...annoncesKey, 'une'], refetchType: 'none' });
       return true;
     } catch (error) {
       const { problem, message } = annonceErreur(error, L);
@@ -286,6 +314,7 @@ export function AnnonceB2cWizard({ annonce, onStale }: { annonce: AnnonceB2c; on
   };
 
   const lancer = async (suite: Suite, zonesConfirmees = false) => {
+    if (photosBusy) return;
     const e = verifierB2c(contenu, limites, suite === 'publier' || suite === 'enregistrer', zonesServeur ? zones.length : null, L);
     if (Object.keys(e).length > 0) return montrer(e);
     setErreurs({});
@@ -402,6 +431,8 @@ export function AnnonceB2cWizard({ annonce, onStale }: { annonce: AnnonceB2c; on
 
       <Card>
         <CardContent className="flex flex-col gap-5 py-5">
+         {/* Frozen while a save is in flight: what is typed then would not be in it. */}
+         <fieldset disabled={busy !== null} className="contents">
           <EtapeTitre titre={TITRES[courante][0]} texte={TITRES[courante][1]} />
           {erreurs[courante] !== undefined && (
             <p role="alert" className="rounded-lg bg-de9-red-soft px-3.5 py-2.5 text-[13px] font-semibold text-de9-red dark:bg-de9-red/15">
@@ -475,15 +506,17 @@ export function AnnonceB2cWizard({ annonce, onStale }: { annonce: AnnonceB2c; on
               disabled={busy !== null}
               ensureDraft={() => Promise.resolve(saved)}
               onStale={onStale}
+              onBusyChange={setPhotosBusy}
               onChange={(next) => {
                 setPhotos(next.photos);
-                // A photo change bumps the annonce's version too.
+                // A photo change bumps the annonce's version too — here, and in what the other screens hold.
                 setSaved((s) => ({ ...s, version: next.version }));
-                void queryClient.invalidateQueries({ queryKey: annonceKey(saved.id) });
+                queryClient.setQueryData<Annonce>(annonceKey(next.id), (held) => (held ? { ...held, photos: next.photos, version: next.version } : held));
                 void queryClient.invalidateQueries({ queryKey: annoncesListeKey });
               }}
             />
           )}
+         </fieldset>
         </CardContent>
       </Card>
 
@@ -491,23 +524,23 @@ export function AnnonceB2cWizard({ annonce, onStale }: { annonce: AnnonceB2c; on
         {enLigne ? (
           <>
             {!derniere && (
-              <Button variant="outline" className="flex-1" onClick={() => void lancer('suivant')} disabled={busy !== null}>
+              <Button variant="outline" className="flex-1" onClick={() => void lancer('suivant')} disabled={busy !== null || photosBusy}>
                 {busy === 'suivant' && <Loader2 className="size-4 animate-spin" />}
                 {L('Suivant', 'التالي')}
               </Button>
             )}
-            <Button className="flex-1" onClick={() => void lancer('enregistrer')} disabled={busy !== null}>
+            <Button className="flex-1" onClick={() => void lancer('enregistrer')} disabled={busy !== null || photosBusy}>
               {busy === 'enregistrer' && <Loader2 className="size-4 animate-spin" />}
               {L('Enregistrer les modifications', 'حفظ التعديلات')}
             </Button>
           </>
         ) : (
           <>
-            <Button variant="outline" className="flex-1" onClick={() => void lancer('quitter')} disabled={busy !== null}>
+            <Button variant="outline" className="flex-1" onClick={() => void lancer('quitter')} disabled={busy !== null || photosBusy}>
               {busy === 'quitter' && <Loader2 className="size-4 animate-spin" />}
               {L('Enregistrer et quitter', 'حفظ والخروج')}
             </Button>
-            <Button className="flex-1" onClick={() => void lancer(derniere ? 'publier' : 'suivant')} disabled={busy !== null}>
+            <Button className="flex-1" onClick={() => void lancer(derniere ? 'publier' : 'suivant')} disabled={busy !== null || photosBusy}>
               {(busy === 'suivant' || busy === 'publier') && <Loader2 className="size-4 animate-spin" />}
               {derniere ? publier : L('Suivant', 'التالي')}
             </Button>
