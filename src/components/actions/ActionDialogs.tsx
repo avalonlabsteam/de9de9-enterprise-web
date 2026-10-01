@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Download, Eye, Loader2, Lock, Mail, MessageCircle, Phone, Star } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiClient } from '@/api/apiClient';
-import { openAuthedFile } from '@/lib/authedFile';
+import { fileNameOf, openAuthedFile, saveBlob } from '@/lib/authedFile';
 import { useL } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -418,15 +418,6 @@ export function SupportDialog({ support, onClose }: { support: Support; onClose:
 
 // ------------------------------------------------------------ document viewer
 
-/** The file name the server gave, from `Content-Disposition`, if any. */
-function fileNameOf(disposition: unknown): string | undefined {
-  if (typeof disposition !== 'string') return undefined;
-  const star = /filename\*=UTF-8''([^;]+)/i.exec(disposition);
-  if (star?.[1]) return decodeURIComponent(star[1]);
-  const plain = /filename="?([^";]+)"?/i.exec(disposition);
-  return plain?.[1];
-}
-
 /**
  * `ouvre: "document"`: the viewer's frame (title, facts, status chip) around
  * the file. The file is private — fetched with the bearer token, never a bare
@@ -466,12 +457,7 @@ export function ViewerDialog({
     setLoading('telecharger');
     try {
       const res = await apiClient.get(apiUrl(action.href), { responseType: 'blob' });
-      const url = URL.createObjectURL(res.data as Blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = fileNameOf(res.headers['content-disposition']) ?? title ?? v?.titre ?? 'document';
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      saveBlob(res.data as Blob, fileNameOf(res.headers['content-disposition']) ?? title ?? v?.titre ?? 'document');
     } catch {
       toast.error(L('Téléchargement impossible.', 'تعذّر التنزيل.'));
     } finally {

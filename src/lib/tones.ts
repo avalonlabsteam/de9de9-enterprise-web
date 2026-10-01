@@ -78,5 +78,6 @@ const ICON_CODES = new Set([
   'note',
   'devis',
   'piece_jointe',
+  'carte',
 ]);
 export const hasIcon = (code?: string | null): boolean => ICON_CODES.has(code ?? '');

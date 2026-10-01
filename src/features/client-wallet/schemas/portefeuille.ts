@@ -36,13 +36,42 @@ export const canalSchema = z.object({
   principal: z.boolean().default(false),
 });
 
-/** « Recharger mes crédits » — drawn from the same answer, nothing is sent. */
+/**
+ * « Payer en ligne » (guide 17) — the CIB / Edahabia block of the sheet. Null
+ * while the feature is off, for de9de9 staff, and for a company outside the
+ * pilot list: the app draws the block when it is set, and decides nothing.
+ */
+export const enLigneSchema = z.object({
+  titre: z.string(),
+  texte: text,
+  /** Whole dinars, both included. */
+  minDzd: z.number(),
+  maxDzd: z.number(),
+  creditsParDzd: z.number().default(10),
+  montantsSuggeres: z.array(z.object({ dzd: z.number(), label: z.string(), creditsLabel: text })).default([]),
+  /** « Payé par : Nadia Benali » — the token's member, never an input. */
+  payeurLabel: text,
+  conditionsLabel: text,
+  conditionsUrl: text,
+  /** `cib` · `edahabia` */
+  logos: z.array(z.string()).default([]),
+  mentionNumeroVert: text,
+  mentionInteroperabilite: text,
+  action: z.object({ label: z.string().default('Payer'), icone: text }).default({ label: 'Payer' }),
+});
+export type EnLigne = z.infer<typeof enLigneSchema>;
+
+/** « Recharger mes crédits » — drawn from the same answer; only « Payer en ligne » sends anything. */
 export const feuilleRechargeSchema = z.object({
   titre: z.string(),
   sousTitre: text,
   info: text,
   canaux: z.array(canalSchema).default([]),
   virement: z.object({ icone: text, titre: z.string(), texte: text }).nullish(),
+  // Additive: a block the app cannot read must not take the wallet down — the sheet is then today's sheet.
+  enLigne: enLigneSchema.nullish().catch(undefined),
+  /** The separator above the channels — only with `enLigne`. */
+  autresMoyensTitre: text,
 });
 export type FeuilleRecharge = z.infer<typeof feuilleRechargeSchema>;
 
@@ -94,6 +123,11 @@ export const portefeuilleSchema = z.object({
     titre: z.string().default('Mouvements'),
     vide: text,
   }),
+  /** The amber banner: an online payment still payable (`en_attente`) or under review (`a_verifier`). */
+  paiementEnCours: z
+    .object({ paiementId: z.string(), reference: text, statut: text, texte: z.string() })
+    .nullish()
+    .catch(undefined),
 });
 export type Portefeuille = z.infer<typeof portefeuilleSchema>;
 
