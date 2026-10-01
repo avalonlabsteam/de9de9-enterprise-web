@@ -1,11 +1,13 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/api/apiClient';
+import { useAccesB2b } from '@/features/auth/api/accueil';
 import { categorieDetailSchema, nouvelleDemandeSchema } from '../schemas/nouvelleDemande';
+import { nouvelleDemandeKey } from './keys';
 
 /** The catalogue changes when de9de9 edits it, not while a client browses. */
 const CATALOGUE_STALE_MS = 5 * 60_000;
 
-const nouvelleDemandeKey = ['client', 'nouvelle-demande'] as const;
+export { nouvelleDemandeKey };
 
 /** Screen 1: the grid, « Top catégories du mois », and screen 3's pickers. */
 export function useNouvelleDemande() {
@@ -15,6 +17,17 @@ export function useNouvelleDemande() {
     queryFn: async () =>
       nouvelleDemandeSchema.parse((await apiClient.get('/client/nouvelle-demande')).data),
   });
+}
+
+/**
+ * de9de9 suspended the company's B2B access (guide 21 §13): no new demande,
+ * running contracts go on. Said by the home's flag or by this screen's own
+ * answer, which also words it (`blocage`).
+ */
+export function useBlocageB2b(): { bloque: boolean; message: string | null } {
+  const acces = useAccesB2b();
+  const entreprise = useNouvelleDemande().data?.entreprise;
+  return { bloque: !acces || entreprise?.accesB2b === false, message: entreprise?.blocage ?? null };
 }
 
 /**

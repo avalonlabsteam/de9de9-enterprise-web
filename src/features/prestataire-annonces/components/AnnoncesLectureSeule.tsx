@@ -5,6 +5,7 @@ import { uiActions } from '@/stores/uiStore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/common/EmptyState';
+import { useAccesB2c } from '@/features/auth/api/accueil';
 import type { AnnonceCard } from '@/features/auth/schemas/accueil';
 import { usePrestataireAccueil } from '@/features/prestataire-dashboard/api/dashboard';
 
@@ -49,8 +50,8 @@ export function AnnoncesLectureSeule() {
   const L = useL();
   const accueil = usePrestataireAccueil();
   const annonces = accueil?.annonces ?? [];
-  // « actif » on the de9de9 app, yet no service of the card is mapped to it.
-  const notPublished = accueil?.b2c?.statut === 'actif' && annonces.length > 0 && !annonces.some((a) => a.canaux.includes('B2C'));
+  // « actif » on the de9de9 app (the access block's word, guide 21 §12), yet no service of the card is mapped to it.
+  const notPublished = useAccesB2c() === 'actif' && !!accueil?.b2c && annonces.length > 0 && !annonces.some((a) => a.canaux.includes('B2C'));
 
   return (
     <div className="flex flex-col gap-4">

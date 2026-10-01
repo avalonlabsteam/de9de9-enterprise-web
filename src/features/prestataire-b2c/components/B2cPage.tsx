@@ -47,6 +47,30 @@ function Suspended() {
 }
 
 /**
+ * de9de9 grants the B2C access company by company (guide 21 §14). Nothing to
+ * retry here: the server's sentence when the exchange gave one — never granted
+ * and taken back read differently — and the way to ask de9de9.
+ */
+function AccesRequis({ detail }: { detail?: string }) {
+  const L = useL();
+  return (
+    <EmptyState
+      icon={<Lock className="size-6" />}
+      title={L("L'accès B2C n'est pas ouvert pour votre entreprise", 'خدمة B2C غير مفتوحة لمؤسستك')}
+      description={
+        detail ??
+        L("Il est accordé par l'administration de9de9. Contactez de9de9 pour le demander.", 'تمنحها إدارة de9de9. اتصل بـ de9de9 لطلبها.')
+      }
+      action={
+        <Button variant="outline" size="sm" onClick={uiActions.openSupport}>
+          {L('Contacter de9de9', 'اتصل بـ de9de9')}
+        </Button>
+      }
+    />
+  );
+}
+
+/**
  * The exchange refused (guide 16 §2.2). Each refusal has its own screen; the
  * server's French `detail` is printed when it carries one. Never a generic
  * « Une erreur est survenue » for something the user can understand or fix.
@@ -63,6 +87,8 @@ function Refusal({ refusal }: { refusal: B2cRefusal }) {
   switch (refusal.kind) {
     case 'suspended':
       return <Suspended />;
+    case 'access':
+      return <AccesRequis detail={refusal.detail} />;
     case 'kyc':
       return (
         <EmptyState
@@ -188,8 +214,9 @@ function Workspace() {
 
 /**
  * « B2C · Particuliers » — the company working in the de9de9 app as a normal
- * pro (guide 16). The home's `b2c.statut` says what the exchange would answer,
- * without a call: suspended and pending companies stop here.
+ * pro (guide 16). The home's access block says what the exchange would answer,
+ * without a call: only an `actif` company trades a session; one without the
+ * access, a pending one and a suspended one stop here (guide 21 §12).
  */
 export function B2cPage() {
   const t = useT();
@@ -199,6 +226,8 @@ export function B2cPage() {
   usePrestataireAccueil(); // the home, fresh: its access block decides what this page may do
   const statut = useAccesB2c();
   const connu = useAccesConnu();
+  // The exchange's own refusal, when it is what closed the access: its sentence is the one to print.
+  const refusAcces = useB2cSessionStore((s) => (s.refusal?.kind === 'access' ? s.refusal.detail : undefined));
   // An older API sends no access block: its home may be out of date, and the exchange itself has the last word.
   const [bypass, setBypass] = useState(false);
   const [checking, setChecking] = useState(false);
@@ -215,22 +244,8 @@ export function B2cPage() {
 
   let body: ReactNode;
   if (statut === 'non_autorise') {
-    // Reached by a saved link only — the menu is hidden. Nothing to retry: de9de9 grants the access.
-    body = (
-      <EmptyState
-        icon={<Lock className="size-6" />}
-        title={L("L'accès B2C n'est pas ouvert pour votre entreprise", 'خدمة B2C غير مفتوحة لمؤسستك')}
-        description={L(
-          "Il est accordé par l'administration de9de9. Contactez de9de9 pour le demander.",
-          'تمنحها إدارة de9de9. اتصل بـ de9de9 لطلبها.',
-        )}
-        action={
-          <Button variant="outline" size="sm" onClick={uiActions.openSupport}>
-            {L('Contacter de9de9', 'اتصل بـ de9de9')}
-          </Button>
-        }
-      />
-    );
+    // Reached by a saved link, or closed while the page was open — the menu is hidden.
+    body = <AccesRequis detail={refusAcces} />;
   } else if (statut === 'suspendu' && !bypass) body = <Suspended />;
   else if (statut === 'en_attente' && !bypass) {
     body = (

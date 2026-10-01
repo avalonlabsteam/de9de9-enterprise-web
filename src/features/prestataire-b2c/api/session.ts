@@ -44,7 +44,9 @@ function refusalOf(error: unknown): B2cRefusal {
   const detail = str(body['detail']);
   let kind: B2cRefusalKind = 'other';
   if (status === 401) kind = 'signed_out';
+  // The code before the status: a 403 is one of three different screens.
   else if (code === 'prestataire_side_required') kind = 'side';
+  else if (code === 'b2c_access_required') kind = 'access';
   else if (status === 403) kind = 'forbidden';
   else if (code === 'kyc_required') kind = 'kyc';
   else if (code === 'b2c_suspended' || status === 423) kind = 'suspended';
@@ -95,7 +97,7 @@ async function exchange(): Promise<B2cSession> {
     if (sessionEpoch() === epoch) {
       useB2cSessionStore.setState({ session: null, refusal });
       // Never granted, or revoked meanwhile: the home is out of date — the B2C menu goes, then it is read again.
-      if (refusal.code === 'b2c_access_required') accesRefuse('b2c');
+      if (refusal.kind === 'access') accesRefuse('b2c');
     }
     throw new B2cSessionRefused(refusal);
   }

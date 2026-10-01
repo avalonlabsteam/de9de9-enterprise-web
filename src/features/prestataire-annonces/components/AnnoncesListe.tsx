@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { EmptyState } from '@/components/common/EmptyState';
 import { OngletBar } from '@/components/common/OngletBar';
+import { useAccesB2c } from '@/features/auth/api/accueil';
 import { isRouteAbsente, useAnnonces } from '../api/annonces';
 import type { AnnonceCarte, TypeCreation } from '../schemas/annonces';
 import { AnnoncesLectureSeule } from './AnnoncesLectureSeule';
@@ -124,6 +125,7 @@ export function AnnoncesListe() {
   const statut = params.get('statut');
   const query = useAnnonces({ type, statut });
   const flow = useAnnonceFlow();
+  const b2cFerme = useAccesB2c() === 'non_autorise';
   // `?creer=1`: the home's « Créer une annonce » lands on the picker.
   const [picker, setPicker] = useState(params.get('creer') === '1');
   // Read once: left in the address, the picker would open again at every return to this tab.
@@ -137,7 +139,8 @@ export function AnnoncesListe() {
   const pages = query.data?.pages ?? [];
   const tete = pages[0];
   const annonces = pages.flatMap((page) => page.annonces);
-  const types = tete?.creer?.types ?? [];
+  // Without the B2C access there is no B2C entry point (guide 21 §12): that kind is not offered.
+  const types = (tete?.creer?.types ?? []).filter((t) => !(b2cFerme && t.code === 'b2c'));
 
   const select = (next: { type?: string | null; statut?: string | null }) => {
     const p = new URLSearchParams();
@@ -185,7 +188,7 @@ export function AnnoncesListe() {
             onSelect={(code) => select({ type: code === 'toutes' ? null : code })}
           />
         )}
-        {tete?.creer && (
+        {tete?.creer && types.length > 0 && (
           <Button className="gap-2 shadow-glow" onClick={() => setPicker(true)}>
             <Plus className="size-4" />
             {tete.creer.label}

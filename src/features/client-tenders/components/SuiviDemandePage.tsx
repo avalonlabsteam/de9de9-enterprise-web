@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/common/EmptyState';
 import { CategorieVisual } from '@/features/client-catalogue/components/CategorieVisual';
+import { accesRefuse, useAccesB2b } from '@/features/auth/api/accueil';
 import { suiviQueryKey, useDemandeSuivi } from '../api/suivi';
 import { demandesQueryKey } from '../api/demandes';
 import { portefeuilleKey } from '@/features/client-wallet/api/portefeuille';
@@ -27,6 +28,13 @@ import { DevisBlock } from './suivi/DevisBlock';
 const keyOf = (a: SuiviAction) => `${a.method}:${a.href}`;
 
 /**
+ * The two buttons that start new B2B activity — « Publier » a draft, « Inviter
+ * des prestataires » — by their route: they go while de9de9 suspends the
+ * company's B2B access (guide 21 §13). Everything else of a demande stays.
+ */
+const NOUVELLE_ACTIVITE = /\/appels-offres\/[^/?]+\/(publish|invite)(\?|$)/;
+
+/**
  * « Suivi d'une demande » — `GET /client/demandes/{id}`, from « En attente » to
  * the last invoice of its commande. The app draws what the answer says and
  * handles every button with one algorithm (guide §4), never a per-code rule.
@@ -37,6 +45,7 @@ export function SuiviDemandePage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const query = useDemandeSuivi(id);
+  const accesB2b = useAccesB2b();
   // From an alert: `section=devis|commande` scrolls to that block, `occurrence` to that visit.
   const [params] = useSearchParams();
   const section = params.get('section');
@@ -93,13 +102,21 @@ export function SuiviDemandePage() {
       walletMayHaveChanged();
       return { ok: true };
     } catch (error) {
+      const problem = toProblem(error);
+      // B2B suspended by de9de9 meanwhile (guide 21 §14): nothing was published or sent. The
+      // server's own sentence, the menus follow, and the buttons that start something go.
+      const b2bFerme = problem.code === 'b2b_access_disabled';
+      if (b2bFerme) accesRefuse('b2b');
       if (!quiet) {
-        toast.error(actionErrorMessage(action, error, L("L'action n'a pas pu aboutir. Réessayez.", 'تعذّر تنفيذ الإجراء. أعد المحاولة.')));
+        toast.error(
+          (b2bFerme && problem.detail) || actionErrorMessage(action, error, L("L'action n'a pas pu aboutir. Réessayez.", 'تعذّر تنفيذ الإجراء. أعد المحاولة.')),
+          b2bFerme ? { duration: 10_000 } : undefined,
+        );
       }
       // The screen is out of date: fetch it before the client acts again.
-      if (toProblem(error).status === 409) reload();
+      if (problem.status === 409) reload();
       // Not enough credits to approve: the wallet, with its recharge sheet open.
-      if (toProblem(error).code === 'insufficient_balance') navigate('/client/wallet?recharger=1');
+      if (problem.code === 'insufficient_balance') navigate('/client/wallet?recharger=1');
       return { ok: false, error };
     } finally {
       setBusyKey(null);
@@ -181,6 +198,7 @@ export function SuiviDemandePage() {
   const d = query.data;
   const { entete } = d;
   const pa = d.prochaineAction;
+  const actions = accesB2b ? d.actions : d.actions.filter((a) => !NOUVELLE_ACTIVITE.test(a.href ?? ''));
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-4">
@@ -290,9 +308,9 @@ export function SuiviDemandePage() {
       )}
 
       {/* The buttons at the bottom, in screen order */}
-      {d.actions.length > 0 && (
+      {actions.length > 0 && (
         <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-          {d.actions.map((action) => (
+          {actions.map((action) => (
             <ActionButton
               key={`${action.code}-${action.href ?? ''}`}
               action={action}

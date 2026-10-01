@@ -196,7 +196,9 @@ export function DashboardPage() {
             </p>
           )}
           {/* Without the B2C access there is nothing to say about the de9de9 app. */}
-          {accesB2c !== 'non_autorise' && <B2cNotice b2c={data.b2c} />}
+          {accesB2c !== 'non_autorise' && data.b2c && (
+            <B2cNotice statut={accesB2c} donneesDisponibles={data.b2c.donneesDisponibles} />
+          )}
         </>
       )}
 
@@ -267,12 +269,12 @@ function AnnonceRow({ annonce }: { annonce: AnnonceCard }) {
  * The B2C side is the de9de9 consumer app. It can be off (`en_attente`,
  * `suspendu`) or simply unreadable right now — and then its counters and
  * revenue are null, never 0, so the screen says so instead of showing a zero.
+ * `statut` is the access block's (guide 21 §12), not the home's older field.
  */
-function B2cNotice({ b2c }: { b2c: { statut: string; donneesDisponibles: boolean } | undefined }) {
+function B2cNotice({ statut, donneesDisponibles }: { statut: string; donneesDisponibles: boolean }) {
   const L = useL();
-  if (!b2c) return null;
 
-  if (b2c.statut === 'suspendu') {
+  if (statut === 'suspendu') {
     return (
       <p className="rounded-lg bg-destructive/10 px-4 py-3 text-[13px] font-semibold text-destructive">
         {L(
@@ -282,14 +284,14 @@ function B2cNotice({ b2c }: { b2c: { statut: string; donneesDisponibles: boolean
       </p>
     );
   }
-  if (b2c.statut === 'en_attente') {
+  if (statut === 'en_attente') {
     return (
       <p className="rounded-lg bg-accent px-4 py-3 text-[13px] text-de9-teal-dark">
         {L('Visible sur l’app de9de9 après vérification.', 'ستظهر على تطبيق de9de9 بعد التوثيق.')}
       </p>
     );
   }
-  if (!b2c.donneesDisponibles) {
+  if (!donneesDisponibles) {
     return (
       <p className="text-[12px] text-de9-gray">
         {L(

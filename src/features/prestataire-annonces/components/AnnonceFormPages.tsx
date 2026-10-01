@@ -6,6 +6,7 @@ import { useL } from '@/lib/i18n';
 import { toProblem } from '@/api/problem';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/common/EmptyState';
+import { useAccesB2c } from '@/features/auth/api/accueil';
 import { annonceKey, useAnnonce } from '../api/annonces';
 import { annonceErreur } from '../lib/erreurs';
 import { AnnonceB2bForm } from './AnnonceB2bForm';
@@ -24,7 +25,10 @@ const LISTE = '/prestataire/annonces';
 export function AnnonceCreatePage() {
   const [params] = useSearchParams();
   const type = params.get('type');
+  const b2cFerme = useAccesB2c() === 'non_autorise';
   if (type === 'b2b') return <AnnonceB2bForm annonce={null} onStale={() => undefined} />;
+  // A saved link, without the B2C access de9de9 grants (guide 21 §12): no B2C annonce is started.
+  if (type === 'b2c' && b2cFerme) return <Navigate to={LISTE} replace />;
   if (type === 'b2c') return <AnnonceB2cCreation />;
   // No kind in the address: the list opens its picker.
   return <Navigate to={`${LISTE}?creer=1`} replace />;

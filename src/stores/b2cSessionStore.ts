@@ -22,6 +22,7 @@ export interface B2cSession {
 export type B2cRefusalKind =
   | 'forbidden' // 403 forbidden: not an active seat, or the company is inactive
   | 'side' // 403 prestataire_side_required
+  | 'access' // 403 b2c_access_required: de9de9 has not granted the B2C access, or took it back (guide 21 §14)
   | 'kyc' // 422 kyc_required
   | 'suspended' // 423 b2c_suspended
   | 'not_ready' // 409 legacy_account_not_ready
