@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { AccueilEnvelope } from '@/features/auth/schemas/accueil';
+import type { Accueil, AccueilEnvelope } from '@/features/auth/schemas/accueil';
 import { rememberStorage, SESSION_STORE_KEYS } from './rememberStorage';
 
 /**
@@ -49,6 +49,15 @@ export const accueilActions = {
       }
       return s; // No home to patch: the next sign-in brings one.
     });
+  },
+  /**
+   * A fresh prestataire home (`GET /prestataire/accueil`) takes the place of
+   * the one the sign-in carried — only while the session is on that side.
+   */
+  setPrestataire: (home: Accueil): void => {
+    useAccueilStore.setState((s) =>
+      s.accueil?.role === 'prestataire' ? { accueil: { ...s.accueil, prestataire: home } } : s,
+    );
   },
   clear: (): void => {
     useAccueilStore.setState({ accueil: null });

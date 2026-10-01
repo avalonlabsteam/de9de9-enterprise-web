@@ -1,408 +1,230 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { MapPin, Plus, Search } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Clock, Lock, ServerCrash, ShieldCheck } from 'lucide-react';
 import { useT, useL } from '@/lib/i18n';
+import { uiActions } from '@/stores/uiStore';
+import { useB2cSessionStore, type B2cRefusal } from '@/stores/b2cSessionStore';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { StatusBadge } from '@/components/common/StatusBadge';
 import { EmptyState } from '@/components/common/EmptyState';
-import { WorkerAvatar } from '@/components/common/WorkerAvatar';
-import { AffecterModal } from '@/components/common/AffecterModal';
-import type { BadgeKind } from '@/lib/statusModel';
-import {
-  useAffecterB2c,
-  useB2cWorkers,
-  useOpenOffers,
-  useReservations,
-  useSentOffers,
-} from '../api/b2c';
-import type { OpenOffer, Reservation, SentOffer } from '../schemas/b2c';
-import { useB2cStore } from '../stores/b2cStore';
-import { PostulerSheet } from './PostulerSheet';
+import { usePrestataireAccueil } from '@/features/prestataire-dashboard/api/dashboard';
+import { useTabCounts } from '../api/b2c';
+import { useB2cLive } from '../api/hub';
+import { ensureB2cSession, retryB2cSession } from '../api/session';
+import { HistoriqueTab, RecuesTab } from './BookingsTabs';
+import { ExplorerTab } from './ExplorerTab';
+import { JobFlowProvider } from './JobFlowProvider';
+import { CardSkeletons } from './parts';
 
-const CATEGORIES = ['Nettoyage', 'Plomberie', 'Climatisation', 'Gardiennage'];
-const ZONES = ['Alger', 'Oran', 'Blida'];
+const ONGLETS = ['recues', 'explorer', 'confirmes', 'historique'] as const;
+type Onglet = (typeof ONGLETS)[number];
 
-const SENT_STATUS: Record<SentOffer['status'], { key: 'stAttente' | 'stRetenue' | 'stRefusee'; kind: BadgeKind }> = {
-  enAttente: { key: 'stAttente', kind: 'wait' },
-  retenue: { key: 'stRetenue', kind: 'done' },
-  refusee: { key: 'stRefusee', kind: 'cancelled' },
-};
-
-function Loading({ label }: { label: string }) {
+function Count({ value }: { value: number | null | undefined }) {
+  if (!value) return null;
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
-      {[0, 1, 2, 3].map((i) => (
-        <div key={i} className="h-32 animate-pulse rounded-lg bg-card/60 shadow-soft dark:ring-1 dark:ring-border" />
-      ))}
-      <span className="sr-only">{label}</span>
-    </div>
+    <span className="ms-1.5 min-w-5 rounded-full bg-de9-teal-soft px-1.5 text-center text-[11px] font-bold text-de9-teal-dark tabular-nums">
+      {value > 99 ? '99+' : value}
+    </span>
   );
 }
 
-function ErrorState({ title, description }: { title: string; description: string }) {
-  return <EmptyState title={title} description={description} />;
-}
-
-function priceLine(r: Reservation, L: (fr: string, ar: string) => string): string {
-  return r.priceDzd != null ? `${r.priceDzd.toLocaleString('fr-DZ')} DZD` : L('Prix à convenir', 'السعر عند الاتفاق');
-}
-
-/* ------------------------------- Commandes reçues ------------------------------- */
-
-function RecuesTab() {
-  const t = useT();
+function Suspended() {
   const L = useL();
-  const { data, isPending, isError } = useReservations();
-  const affecter = useAffecterB2c();
-  const [affectId, setAffectId] = useState<string | null>(null);
-
-  if (isPending) return <Loading label={t('loading')} />;
-  if (isError) return <ErrorState title={t('errorTitle')} description={t('retry')} />;
-
-  const items = data.filter((r) => r.status === 'recue');
-  if (items.length === 0) {
-    return <EmptyState title={L('Aucune commande reçue', 'لا توجد طلبات مستلمة')} />;
-  }
-
   return (
-    <>
-      <div className="grid gap-3 sm:grid-cols-2">
-        {items.map((r) => (
-          <Card key={r.id}>
-            <CardHeader className="gap-0.5">
-              <p className="text-xs font-semibold text-de9-teal">{r.serviceName}</p>
-              <CardTitle className="text-base font-bold">{r.clientName}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-de9-gray">
-                <span className="inline-flex items-center gap-1.5">
-                  <MapPin className="size-3.5 text-de9-teal" /> {r.wilaya}
-                </span>
-                <span>{r.dateLabel}</span>
-                <span className="font-bold text-de9-ink">{priceLine(r, L)}</span>
-              </div>
-              <Button variant="outline" className="w-full" onClick={() => setAffectId(r.id)}>
-                {L('Voir les détails', 'عرض التفاصيل')}
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <AffecterModal
-        open={affectId != null}
-        onOpenChange={(o) => !o && setAffectId(null)}
-        onConfirm={(ids) => {
-          if (affectId) affecter.mutate({ id: affectId, workerIds: ids });
-        }}
-      />
-    </>
+    <EmptyState
+      icon={<Lock className="size-6" />}
+      title={L("Votre activité sur l'app de9de9 est suspendue", 'تم تعليق نشاطك على تطبيق de9de9')}
+      description={L('Contactez le support pour en savoir plus.', 'اتصل بالدعم لمعرفة المزيد.')}
+      action={
+        <Button variant="outline" size="sm" onClick={uiActions.openSupport}>
+          {L('Contacter le support', 'اتصل بالدعم')}
+        </Button>
+      }
+    />
   );
 }
 
-/* ------------------------------- Explorer ------------------------------- */
-
-function chipCls(active: boolean): string {
-  return cn(
-    'rounded-full px-3 py-1 text-[12px] font-bold transition-all',
-    active
-      ? 'bg-de9-teal text-white shadow-glow'
-      : 'bg-card text-de9-teal-dark shadow-soft hover:shadow-lift dark:ring-1 dark:ring-border',
-  );
-}
-
-function VoirOffres() {
-  const t = useT();
+/**
+ * The exchange refused (guide 16 §2.2). Each refusal has its own screen; the
+ * server's French `detail` is printed when it carries one. Never a generic
+ * « Une erreur est survenue » for something the user can understand or fix.
+ */
+function Refusal({ refusal }: { refusal: B2cRefusal }) {
   const L = useL();
-  const { data, isPending, isError } = useOpenOffers();
-  const [query, setQuery] = useState('');
-  const [cats, setCats] = useState<string[]>([]);
-  const [zones, setZones] = useState<string[]>([]);
-  const [postuler, setPostuler] = useState<OpenOffer | null>(null);
+  const navigate = useNavigate();
+  const retry = (
+    <Button variant="outline" size="sm" onClick={retryB2cSession}>
+      {L('Réessayer', 'إعادة المحاولة')}
+    </Button>
+  );
 
-  const toggle = (list: string[], set: (v: string[]) => void, v: string) =>
-    set(list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
-
-  const filtered = useMemo(() => {
-    if (!data) return [];
-    const q = query.trim().toLowerCase();
-    return data.filter((o) => {
-      const hay = `${o.title} ${o.description}`.toLowerCase();
-      if (q && !hay.includes(q)) return false;
-      if (cats.length && !cats.some((c) => hay.includes(c.toLowerCase()))) return false;
-      if (zones.length && !zones.includes(o.wilaya)) return false;
-      return true;
-    });
-  }, [data, query, cats, zones]);
-
-  return (
-    <div className="space-y-4">
-      <div className="relative">
-        <Search className="pointer-events-none absolute top-1/2 start-3 size-4 -translate-y-1/2 text-de9-gray" />
-        <Input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={L('Rechercher une offre…', 'ابحث عن عرض…')}
-          className="ps-9"
+  switch (refusal.kind) {
+    case 'suspended':
+      return <Suspended />;
+    case 'kyc':
+      return (
+        <EmptyState
+          icon={<ShieldCheck className="size-6" />}
+          title={L('Vérification de votre entreprise requise', 'يلزم توثيق مؤسستك')}
+          description={
+            refusal.detail ??
+            L('Le B2C s’ouvre une fois le dossier KYC (RC, NIF, NIS) vérifié par de9de9.', 'يُفتح B2C بعد توثيق ملف KYC من طرف de9de9.')
+          }
+          action={
+            <Button size="sm" onClick={() => navigate('/onboarding/kyc')}>
+              {L('Terminer la vérification', 'إكمال التوثيق')}
+            </Button>
+          }
         />
-      </div>
-
-      <div className="space-y-2">
-        <p className="text-sm font-semibold text-de9-gray">{L('Categories :', 'الفئات :')}</p>
-        <div className="flex flex-wrap gap-2">
-          {CATEGORIES.map((c) => (
-            <button key={c} type="button" className={chipCls(cats.includes(c))} onClick={() => toggle(cats, setCats, c)}>
-              {c}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <p className="text-sm font-semibold text-de9-gray">{L('Zones :', 'المناطق :')}</p>
-        <div className="flex flex-wrap gap-2">
-          {ZONES.map((z) => (
-            <button key={z} type="button" className={chipCls(zones.includes(z))} onClick={() => toggle(zones, setZones, z)}>
-              {z}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {isPending ? (
-        <Loading label={t('loading')} />
-      ) : isError ? (
-        <ErrorState title={t('errorTitle')} description={t('retry')} />
-      ) : filtered.length === 0 ? (
-        <EmptyState title={t('emptyGeneric')} />
-      ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
-          {filtered.map((o) => (
-            <Card key={o.id}>
-              <CardHeader className="gap-1">
-                <CardTitle className="text-base font-bold">{o.title}</CardTitle>
-                <p className="text-xs text-de9-gray">{o.description}</p>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-de9-gray">
-                  <span className="inline-flex items-center gap-1.5">
-                    <MapPin className="size-3.5 text-de9-teal" /> {o.wilaya}
-                  </span>
-                  <span>{o.delai}</span>
-                  <span className="font-bold text-de9-ink">{o.priceLabel}</span>
-                </div>
-                <Button className="w-full" onClick={() => setPostuler(o)}>
-                  {t('postuler')}
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-
-      <PostulerSheet open={postuler != null} onOpenChange={(o) => !o && setPostuler(null)} offer={postuler} />
-    </div>
-  );
-}
-
-function OffresEnvoyees() {
-  const t = useT();
-  const L = useL();
-  const { data, isPending, isError } = useSentOffers();
-
-  if (isPending) return <Loading label={t('loading')} />;
-  if (isError) return <ErrorState title={t('errorTitle')} description={t('retry')} />;
-  if (data.length === 0) return <EmptyState title={t('emptyGeneric')} />;
-
-  return (
-    <div className="grid gap-3 sm:grid-cols-2">
-      {data.map((o) => {
-        const s = SENT_STATUS[o.status];
-        return (
-          <Card key={o.id}>
-            <CardHeader className="flex-row items-start justify-between gap-2">
-              <CardTitle className="text-base font-bold">{o.title}</CardTitle>
-              <StatusBadge label={t(s.key)} kind={s.kind} />
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-de9-gray">
-                <span className="font-bold text-de9-ink">{o.prixDzd.toLocaleString('fr-DZ')} DZD</span>
-                <span>{o.delai}</span>
-              </div>
-              {o.message && <p className="text-xs text-de9-gray">{L('« ', '« ')}{o.message}{L(' »', ' »')}</p>}
-            </CardContent>
-          </Card>
-        );
-      })}
-    </div>
-  );
-}
-
-function ExplorerTab() {
-  const t = useT();
-  const explorerPill = useB2cStore((s) => s.explorerPill);
-  const setExplorerPill = useB2cStore((s) => s.setExplorerPill);
-  return (
-    <div className="space-y-4">
-      <div className="inline-flex rounded-full bg-card p-1 shadow-soft dark:ring-1 dark:ring-border">
-        <button
-          type="button"
-          onClick={() => setExplorerPill('voirOffres')}
-          className={cn(
-            'rounded-full px-4 py-1.5 text-[13px] font-bold transition-colors',
-            explorerPill === 'voirOffres' ? 'bg-de9-teal text-white' : 'text-de9-teal-dark',
-          )}
-        >
-          {t('voirOffres')}
-        </button>
-        <button
-          type="button"
-          onClick={() => setExplorerPill('offresEnvoyees')}
-          className={cn(
-            'rounded-full px-4 py-1.5 text-[13px] font-bold transition-colors',
-            explorerPill === 'offresEnvoyees' ? 'bg-de9-teal text-white' : 'text-de9-teal-dark',
-          )}
-        >
-          {t('offresEnvoyees')}
-        </button>
-      </div>
-
-      {explorerPill === 'voirOffres' ? <VoirOffres /> : <OffresEnvoyees />}
-    </div>
-  );
-}
-
-/* ------------------------------- Services confirmés ------------------------------- */
-
-function ConfirmesTab() {
-  const t = useT();
-  const L = useL();
-  const navigate = useNavigate();
-  const { data, isPending, isError } = useReservations();
-  const { data: workers } = useB2cWorkers();
-  const affecter = useAffecterB2c();
-  const [affect, setAffect] = useState<Reservation | null>(null);
-
-  if (isPending) return <Loading label={t('loading')} />;
-  if (isError) return <ErrorState title={t('errorTitle')} description={t('retry')} />;
-
-  const items = data.filter((r) => r.status === 'confirmee');
-  if (items.length === 0) {
-    return <EmptyState title={L('Aucun service confirmé', 'لا توجد خدمات مؤكدة')} />;
+      );
+    case 'not_ready':
+      return (
+        <EmptyState
+          icon={<Clock className="size-6" />}
+          title={L('Compte de9de9 en préparation', 'حساب de9de9 قيد التحضير')}
+          description={
+            refusal.detail ??
+            L("Le compte de9de9 de l'entreprise n'est pas encore prêt : réessayez dans quelques minutes.", 'حساب de9de9 للمؤسسة غير جاهز بعد: أعد المحاولة بعد دقائق.')
+          }
+          action={retry}
+        />
+      );
+    case 'unavailable':
+      return (
+        <EmptyState
+          icon={<ServerCrash className="size-6" />}
+          title={L('Service indisponible', 'الخدمة غير متاحة')}
+          description={
+            refusal.detail ??
+            L("L'application de9de9 est momentanément indisponible : réessayez plus tard.", 'تطبيق de9de9 غير متاح مؤقتًا: أعد المحاولة لاحقًا.')
+          }
+          action={retry}
+        />
+      );
+    case 'forbidden':
+    case 'side':
+      // Not an active seat, an inactive company, or no prestataire side: nothing to retry.
+      return (
+        <EmptyState
+          icon={<Lock className="size-6" />}
+          title={L('B2C indisponible pour ce compte', 'B2C غير متاح لهذا الحساب')}
+          description={refusal.detail}
+        />
+      );
+    default:
+      return (
+        <EmptyState
+          title={L('Impossible d’ouvrir la session de9de9', 'تعذّر فتح جلسة de9de9')}
+          description={refusal.detail ?? L('Réessayez dans un instant.', 'أعد المحاولة بعد لحظة.')}
+          action={retry}
+        />
+      );
   }
-
-  return (
-    <>
-      <div className="grid gap-3 sm:grid-cols-2">
-        {items.map((r) => {
-          const w = workers?.find((x) => x.id === r.assignedWorkerId);
-          return (
-            <Card key={r.id}>
-              <CardHeader className="gap-0.5">
-                <p className="text-xs font-semibold text-de9-teal">{r.serviceName}</p>
-                <CardTitle className="text-base font-bold">{r.clientName}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-de9-gray">
-                  <span className="inline-flex items-center gap-1.5">
-                    <MapPin className="size-3.5 text-de9-teal" /> {r.wilaya}
-                  </span>
-                  <span>{r.dateLabel}</span>
-                  <span className="font-bold text-de9-ink">{priceLine(r, L)}</span>
-                </div>
-
-                <div className="space-y-1.5">
-                  <p className="text-xs font-semibold text-de9-gray">{L('Affecté à', 'مُسند إلى')}</p>
-                  {r.assignedWorkerId ? (
-                    <button
-                      type="button"
-                      onClick={() => navigate('/prestataire/worker/' + r.assignedWorkerId)}
-                      className="inline-flex items-center gap-2 rounded-full bg-card py-1 ps-1 pe-3 text-[13px] font-bold text-de9-ink shadow-soft transition-shadow hover:shadow-lift dark:ring-1 dark:ring-border"
-                    >
-                      <WorkerAvatar worker={{ name: w?.name ?? '—', colorHex: w?.colorHex }} size={24} />
-                      <span>{w?.name ?? r.assignedWorkerId}</span>
-                    </button>
-                  ) : (
-                    <p className="text-[13px] text-de9-gray">—</p>
-                  )}
-                </div>
-
-                <Button variant="outline" className="w-full" onClick={() => setAffect(r)}>
-                  {L("Modifier l'affectation", 'تعديل الإسناد')}
-                </Button>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-
-      <AffecterModal
-        open={affect != null}
-        onOpenChange={(o) => !o && setAffect(null)}
-        assignedIds={affect?.assignedWorkerId ? [affect.assignedWorkerId] : []}
-        onConfirm={(ids) => {
-          if (affect) affecter.mutate({ id: affect.id, workerIds: ids });
-        }}
-      />
-    </>
-  );
 }
 
-/* ------------------------------- Page ------------------------------- */
-
-export function B2cPage() {
+/**
+ * The tabs, once the de9de9 session is open: one exchange on entry, shared by
+ * everything below. A refusal — at entry or later, when a de9de9 401 forces a
+ * new exchange — takes the tabs' place.
+ */
+function Workspace() {
   const t = useT();
   const L = useL();
-  const navigate = useNavigate();
-  const tab = useB2cStore((s) => s.tab);
-  const setTab = useB2cStore((s) => s.setTab);
+  const session = useB2cSessionStore((s) => s.session);
+  const refusal = useB2cSessionStore((s) => s.refusal);
+  const [params, setParams] = useSearchParams();
+  const param = params.get('onglet');
+  const onglet: Onglet = ONGLETS.find((o) => o === param) ?? 'recues';
+  const setOnglet = (next: string) => setParams(next === 'recues' ? {} : { onglet: next }, { replace: true });
 
-  // From an alert: `onglet=recues|confirmes` opens that tab.
-  const [params] = useSearchParams();
-  const onglet = params.get('onglet');
+  // Opened once: a token dropped later is traded again by the next call, the tabs stay.
+  const [opened, setOpened] = useState(false);
+  if (session && !opened) setOpened(true);
   useEffect(() => {
-    if (onglet === 'recues' || onglet === 'explorer' || onglet === 'confirmes') setTab(onglet);
-  }, [onglet, setTab]);
+    if (!session && !refusal) ensureB2cSession().catch(() => undefined);
+  }, [session, refusal]);
+
+  const ready = opened && !refusal;
+  const counts = useTabCounts(ready).data;
+  useB2cLive();
+
+  if (refusal) return <Refusal refusal={refusal} />;
+  if (!opened) return <CardSkeletons />;
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 py-6 pb-24">
-      <header className="mb-5">
-        <h1 className="text-[22px] font-black text-de9-ink">{t('b2cTitle')}</h1>
-        <p className="mt-1 text-[14px] text-de9-gray">
-          {L('Clients particuliers — le de9de9 normal', 'العملاء الأفراد — de9de9 العادي')}
-        </p>
-      </header>
-
-      <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)}>
-        <TabsList className="mb-4">
-          <TabsTrigger value="recues">{t('recues')}</TabsTrigger>
+    <JobFlowProvider onGoConfirmes={() => setOnglet('confirmes')}>
+      <Tabs value={onglet} onValueChange={setOnglet}>
+        <TabsList className="mb-4 h-auto flex-wrap">
+          <TabsTrigger value="recues">
+            {t('recues')}
+            <Count value={counts?.recues} />
+          </TabsTrigger>
           <TabsTrigger value="explorer">{t('explorer')}</TabsTrigger>
-          <TabsTrigger value="confirmes">{t('confirmes')}</TabsTrigger>
+          <TabsTrigger value="confirmes">
+            {t('confirmes')}
+            <Count value={counts?.confirmes} />
+          </TabsTrigger>
+          <TabsTrigger value="historique">{L('Historique', 'السجل')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="recues">
           <RecuesTab />
         </TabsContent>
         <TabsContent value="explorer">
-          <ExplorerTab />
+          <ExplorerTab pending={counts?.offres ?? null} />
         </TabsContent>
         <TabsContent value="confirmes">
-          <ConfirmesTab />
+          <HistoriqueTab view="confirmes" />
+        </TabsContent>
+        <TabsContent value="historique">
+          <HistoriqueTab view="historique" />
         </TabsContent>
       </Tabs>
+    </JobFlowProvider>
+  );
+}
 
-      <button
-        type="button"
-        aria-label={L('Créer une annonce B2C', 'إنشاء إعلان B2C')}
-        onClick={() => navigate('/prestataire/annonces?create=1')}
-        className="fixed bottom-24 end-6 z-30 inline-flex size-14 items-center justify-center rounded-full bg-de9-teal text-white shadow-glow transition-transform hover:scale-105 active:scale-95"
-      >
-        <Plus className="size-6" />
-      </button>
+/**
+ * « B2C · Particuliers » — the company working in the de9de9 app as a normal
+ * pro (guide 16). The home's `b2c.statut` says what the exchange would answer,
+ * without a call: suspended and pending companies stop here.
+ */
+export function B2cPage() {
+  const t = useT();
+  const L = useL();
+  const statut = usePrestataireAccueil()?.b2c?.statut;
+  // « Vérifier à nouveau »: the home may be out of date — the exchange itself has the last word.
+  const [bypass, setBypass] = useState(false);
+
+  let body: ReactNode;
+  if (statut === 'suspendu' && !bypass) body = <Suspended />;
+  else if (statut === 'en_attente' && !bypass) {
+    body = (
+      <EmptyState
+        icon={<Clock className="size-6" />}
+        title={L('Visible sur l’app de9de9 après vérification', 'ستظهر على تطبيق de9de9 بعد التوثيق')}
+        description={L(
+          "Votre compte de9de9 est créé une fois votre entreprise vérifiée. Les commandes et les demandes des particuliers s'afficheront ici.",
+          'يُنشأ حسابك على de9de9 بعد توثيق مؤسستك. ستظهر هنا طلبات وحجوزات الأفراد.',
+        )}
+        action={
+          <Button variant="outline" size="sm" onClick={() => setBypass(true)}>
+            {L('Vérifier à nouveau', 'تحقق مجددًا')}
+          </Button>
+        }
+      />
+    );
+  } else body = <Workspace />;
+
+  return (
+    <div className="mx-auto w-full max-w-4xl px-4 py-6 pb-24">
+      <header className="mb-5">
+        <h1 className="text-[22px] font-black text-de9-ink">{t('b2cTitle')}</h1>
+        <p className="mt-1 text-[14px] text-de9-gray">
+          {L('Clients particuliers — votre activité sur l’app de9de9', 'العملاء الأفراد — نشاطك على تطبيق de9de9')}
+        </p>
+      </header>
+      {body}
     </div>
   );
 }

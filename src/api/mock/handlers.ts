@@ -672,32 +672,6 @@ register('GET', '/client/calendar', () => {
 // the company app renders the `accueil` that came with its sign-in instead.
 register('GET', '/prestataire/accueil', () => ok(db.accueil));
 register('GET', '/prestataire/stats', () => ok(db.stats));
-register('GET', '/prestataire/calendar', () => ok(db.calendarEvents));
-
-// ===================== b2c =====================
-register('GET', '/b2c/reservations', () => ok(db.reservations));
-register('GET', '/b2c/open-offers', () => ok(db.openOffers));
-register('GET', '/b2c/sent-offers', () => ok(db.sentOffers));
-register('POST', '/b2c/bids', (req) => {
-  const offer = {
-    id: nextId('S'),
-    title: field<string>(req.body, 'title') ?? 'Offre',
-    prixDzd: field<number>(req.body, 'prixDzd') ?? 0,
-    delai: field<string>(req.body, 'delai') ?? '',
-    message: field<string>(req.body, 'message') ?? '',
-    status: 'enAttente' as const,
-  };
-  db.sentOffers.unshift(offer);
-  return ok(offer);
-});
-register('POST', '/b2c/reservations/:id/affect', (req) => {
-  const r = db.reservations.find((x) => x.id === req.pathParams['id']);
-  if (!r) return notFound('Réservation introuvable');
-  const workerIds = field<string[]>(req.body, 'workerIds') ?? [];
-  r.assignedWorkerId = workerIds[0];
-  r.status = 'confirmee';
-  return ok(r);
-});
 
 // ===================== b2b =====================
 register('GET', '/b2b', () => ok(db.b2bJobs));
@@ -733,25 +707,7 @@ register('POST', '/b2b/:id/actions', (req) => {
   return ok(j);
 });
 
-// ===================== annonces =====================
-register('GET', '/annonces', () => ok(db.annonces));
-register('GET', '/annonces/pros', () =>
-  ok(db.workers.filter((w) => w.status === 'active').map((w) => ({ id: w.id, name: w.name, role: w.role }))),
-);
-register('POST', '/annonces', (req) => {
-  const a = {
-    id: nextId('A'),
-    title: field<string>(req.body, 'title') ?? 'Annonce',
-    serviceName: field<string>(req.body, 'serviceName') ?? '',
-    type: (field<string>(req.body, 'type') === 'b2b' ? 'b2b' : 'b2c') as 'b2c' | 'b2b',
-    active: true,
-  };
-  db.annonces.unshift(a);
-  return ok(a);
-});
-
 // ===================== workers / effectif =====================
-register('GET', '/workers', () => ok(db.workers));
 register('GET', '/workers/:id', (req) => {
   const w = workerById(req.pathParams['id'] ?? '');
   return w ? ok(w) : notFound('Professionnel introuvable');

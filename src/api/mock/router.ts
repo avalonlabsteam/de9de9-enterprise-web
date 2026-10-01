@@ -67,8 +67,8 @@ function buildResponse(config: InternalAxiosRequestConfig, status: number, data:
 }
 
 /**
- * Custom Axios adapter serving the in-memory mock backend.
- * Swap to the real network by setting VITE_API_MOCK=false (see apiClient).
+ * Custom Axios adapter serving the in-memory mock backend. Not wired in: the
+ * app always calls the real API (see apiClient).
  */
 export const mockAdapter: AxiosAdapter = async (config) => {
   await new Promise((resolve) => setTimeout(resolve, LATENCY_MS));

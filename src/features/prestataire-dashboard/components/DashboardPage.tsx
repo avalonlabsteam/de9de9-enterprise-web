@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   BadgeCheck,
@@ -7,7 +6,6 @@ import {
   CalendarClock,
   Loader,
   CheckCheck,
-  Plus,
   ChevronRight,
   Megaphone,
 } from 'lucide-react';
@@ -18,9 +16,9 @@ import { useT, useL } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { useAuthedImage } from '@/lib/useAuthedImage';
 import { useAccueilStore } from '@/stores/accueilStore';
+import { uiActions } from '@/stores/uiStore';
 import { useKycState } from '@/features/kyc/api/kyc';
 import type { AnnonceCard } from '@/features/auth/schemas/accueil';
-import { CreatePickSheet } from './CreatePickSheet';
 
 const formatDa = (n: number) => n.toLocaleString('fr-FR');
 
@@ -37,7 +35,6 @@ export function DashboardPage() {
   const t = useT();
   const L = useL();
   const navigate = useNavigate();
-  const [pickOpen, setPickOpen] = useState(false);
   // The home is built by the backend and delivered with the sign-in / switch
   // answer; the store holds it. There is no home route to retry.
   // Same source as the header pill, so the card and the pill never disagree.
@@ -161,9 +158,9 @@ export function DashboardPage() {
                           'لا توجد خدمات منشورة حاليًا.',
                         )}
                       </p>
-                      <Button className="h-10 gap-2 text-[14px] shadow-glow" onClick={() => setPickOpen(true)}>
-                        <Plus className="size-4" />
-                        {t('createAnnonce')}
+                      {/* The directory card is filled by de9de9: there is no company route to write it. */}
+                      <Button variant="outline" className="h-10 text-[14px]" onClick={uiActions.openSupport}>
+                        {L('Demander à de9de9 de compléter ma fiche', 'اطلب من de9de9 إكمال بطاقتي')}
                       </Button>
                     </div>
                   ) : (
@@ -182,7 +179,6 @@ export function DashboardPage() {
         </>
       )}
 
-      <CreatePickSheet open={pickOpen} onOpenChange={setPickOpen} />
     </div>
   );
 }

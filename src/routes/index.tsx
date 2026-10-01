@@ -87,8 +87,8 @@ export const router = createBrowserRouter([
       { path: 'demandes-devis/:id', lazy: page(() => import('@/features/prestataire-devis/components/DemandeDevisPage'), 'DemandeDevisPage') },
       { path: 'calendar', lazy: page(() => import('@/features/prestataire-calendar/components/CalendarPage'), 'CalendarPage') },
       { path: 'annonces', lazy: page(() => import('@/features/prestataire-annonces/components/AnnoncesPage'), 'AnnoncesPage') },
-      { path: 'annonce/create', lazy: page(() => import('@/features/prestataire-annonces/components/CreateAnnoncePage'), 'CreateAnnoncePage') },
-      { path: 'annonce/assign', lazy: page(() => import('@/features/prestataire-annonces/components/AssignAnnoncePage'), 'AssignAnnoncePage') },
+      // « Mes annonces » is read-only: the directory card is written by de9de9 (guide 16b §11).
+      { path: 'annonce/*', element: <Navigate to="/prestataire/annonces" replace /> },
       { path: 'effectif', lazy: page(() => import('@/features/prestataire-equipe/components/EffectifPage'), 'EffectifPage') },
       { path: 'effectif/:id', lazy: page(() => import('@/features/prestataire-equipe/components/ProDetailPage'), 'ProDetailPage') },
       // The member's profile is « Gestion du professionnel »; « Agrandir » has no prestataire-side route (guide 15).
