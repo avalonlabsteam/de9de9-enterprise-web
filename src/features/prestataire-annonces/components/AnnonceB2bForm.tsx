@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Loader2, Lock, X } from 'lucide-react';
 import { toast } from 'sonner';
@@ -26,13 +26,17 @@ import {
   type ZoneInput,
 } from '../api/annonces';
 import { annonceErreur } from '../lib/erreurs';
-import type { AnnonceB2b, Photo } from '../schemas/annonces';
+import type { Annonce, AnnonceB2b, EtapeRefus, Photo } from '../schemas/annonces';
 import { PhotosUploader } from './PhotosUploader';
-import { detailPath, editPath, useAnnonceFlow, type EditState } from './useAnnonceFlow';
+import { detailPath, editPath, useAnnonceFlow } from './useAnnonceFlow';
 import { ZonesPicker } from './ZonesPicker';
 
 /** The blocks of the form — also the codes a refusal names (`etapes[].code`). */
 type Bloc = 'titre' | 'categorie' | 'services' | 'zones' | 'tarif' | 'delai' | 'capacite' | 'certifications' | 'references' | 'description';
+
+/** The blocks from top to bottom: the first one at fault is the one scrolled to. */
+const ORDRE: Bloc[] = ['titre', 'categorie', 'services', 'zones', 'tarif', 'delai', 'capacite', 'certifications', 'references', 'description'];
+const AUCUNE: EtapeRefus[] = [];
 
 /** A `field` of a 400 → the block that shows its sentence. */
 const BLOC_OF: Record<string, Bloc> = {
@@ -75,10 +79,18 @@ function Section({ id, titre, erreur, children }: { id: Bloc | 'photos'; titre: 
  * content; « Soumettre à de9de9 » sends it to the review. An annonce already
  * published has one button: an edit applies at once, and must stay complete.
  */
-export function AnnonceB2bForm({ annonce, onStale }: { annonce: AnnonceB2b | null; onStale: () => void }) {
+export function AnnonceB2bForm({
+  annonce,
+  etapes = AUCUNE,
+  onStale,
+}: {
+  annonce: AnnonceB2b | null;
+  /** A refused submission sent the user here: the blocks to complete, with the backend's sentences. */
+  etapes?: EtapeRefus[];
+  onStale: () => void;
+}) {
   const L = useL();
   const navigate = useNavigate();
-  const location = useLocation();
   const queryClient = useQueryClient();
   const referentiel = useReferentielB2b();
   const flow = useAnnonceFlow();
@@ -102,11 +114,20 @@ export function AnnonceB2bForm({ annonce, onStale }: { annonce: AnnonceB2b | nul
   const [description, setDescription] = useState(annonce?.description ?? '');
   const [photos, setPhotos] = useState<Photo[]>(annonce?.photos ?? []);
   const [famille, setFamille] = useState<string | null>(null);
-  const [erreurs, setErreurs] = useState<Partial<Record<Bloc, string>>>(() =>
-    // Sent here by a refused submission: the blocks to complete, with the backend's sentences.
-    Object.fromEntries(((location.state as EditState | null)?.etapes ?? []).map((e) => [e.code, e.message ?? ''])),
-  );
+  const [erreurs, setErreurs] = useState<Partial<Record<Bloc, string>>>(() => Object.fromEntries(etapes.map((e) => [e.code, e.message ?? ''])));
   const [busy, setBusy] = useState<'brouillon' | 'soumettre' | null>(null);
+  /** A photo call is in flight with the version held: no save, no submission until it answers. */
+  const [photosBusy, setPhotosBusy] = useState(false);
+
+  // Opened on a refused submission: its first block comes into view once the form is drawn —
+  // a frame later, after the route's own scroll to the top.
+  const pret = referentiel.isSuccess;
+  useEffect(() => {
+    const premier = ORDRE.find((bloc) => etapes.some((e) => e.code === bloc));
+    if (!pret || !premier) return;
+    const frame = requestAnimationFrame(() => document.getElementById(`bloc-${premier}`)?.scrollIntoView({ block: 'start' }));
+    return () => cancelAnimationFrame(frame);
+  }, [pret, etapes]);
 
   const titrePage = annonce ? L("Modifier l'annonce B2B", 'تعديل إعلان B2B') : L('Créer une annonce B2B', 'إنشاء إعلان B2B');
   const header = (
@@ -161,12 +182,16 @@ export function AnnonceB2bForm({ annonce, onStale }: { annonce: AnnonceB2b | nul
     { code: 'fourchette', label: L('Fourchette indicative', 'نطاق تقريبي') },
   ];
   const unites = tarif.unites.length > 0 ? tarif.unites : [{ code: 'jour', label: 'jour' }];
+  // A service de9de9 retired since has no chip to untick: it is neither counted nor sent again.
+  const offerts = new Set(categorie?.services.map((s) => s.code));
+  const retenus = services.filter((code) => offerts.has(code));
+  const retires = services.length - retenus.length;
 
   const nombre = (raw: string): number | null => (raw.trim() === '' ? null : Number(raw.replace(',', '.')));
   const corps = (): CorpsB2b => ({
     titre: titre.trim(),
     categoryCode,
-    sousCategories: services,
+    sousCategories: retenus,
     zones,
     tarif:
       mode === 'fourchette'
@@ -194,7 +219,7 @@ export function AnnonceB2bForm({ annonce, onStale }: { annonce: AnnonceB2b | nul
     const jours = nombre(delai);
     if (jours !== null && (!Number.isInteger(jours) || jours < 0)) e.delai = L('Un nombre entier de jours.', 'عدد صحيح من الأيام.');
     if (complet) {
-      if (services.length === 0) e.services = L('Choisissez au moins un service.', 'اختر خدمة واحدة على الأقل.');
+      if (retenus.length === 0) e.services = L('Choisissez au moins un service.', 'اختر خدمة واحدة على الأقل.');
       if (zones.length === 0) e.zones = L('Ajoutez au moins une zone de couverture.', 'أضف منطقة تغطية واحدة على الأقل.');
       if (description.trim().length < limites.descriptionMin) {
         e.description = L(`Décrivez votre offre en ${limites.descriptionMin} caractères au moins.`, `صف عرضك في ${limites.descriptionMin} حرفًا على الأقل.`);
@@ -205,8 +230,16 @@ export function AnnonceB2bForm({ annonce, onStale }: { annonce: AnnonceB2b | nul
 
   const montrer = (e: Partial<Record<Bloc, string>>) => {
     setErreurs(e);
-    const premier = Object.entries(e).find(([, message]) => message !== undefined)?.[0];
+    const premier = ORDRE.find((bloc) => e[bloc] !== undefined);
     if (premier) document.getElementById(`bloc-${premier}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  /** The version held is stale. The create page has no annonce to read again: the draft's own page does. */
+  const stale = () => {
+    if (annonce) return onStale();
+    if (!saved) return;
+    queryClient.removeQueries({ queryKey: annonceKey(saved.id) });
+    navigate(editPath(saved.id), { replace: true });
   };
 
   /** A refusal, on the block it is about. */
@@ -220,7 +253,14 @@ export function AnnonceB2bForm({ annonce, onStale }: { annonce: AnnonceB2b | nul
     }
     const bloc =
       blocOf(problem.field) ??
-      (problem.code === 'sous_categorie_deja_annoncee' ? 'services' : problem.code === 'categorie_non_disponible' ? 'categorie' : undefined);
+      (problem.code === 'sous_categorie_deja_annoncee'
+        ? 'services'
+        : problem.code === 'categorie_non_disponible'
+          ? // The category is still in the catalogue: it is one of its services that left it.
+            categorie
+            ? 'services'
+            : 'categorie'
+          : undefined);
     if (bloc) {
       montrer({ [bloc]: message });
       // The catalogue moved under the form: its tiles and chips are read again.
@@ -229,7 +269,7 @@ export function AnnonceB2bForm({ annonce, onStale }: { annonce: AnnonceB2b | nul
     }
     if (problem.code === 'concurrency_conflict') {
       toast.error(message);
-      onStale();
+      stale();
       return;
     }
     if (problem.code === 'annonce_etat_invalide' && saved) {
@@ -249,18 +289,19 @@ export function AnnonceB2bForm({ annonce, onStale }: { annonce: AnnonceB2b | nul
   };
 
   const sauver = async () => {
+    if (photosBusy) return;
     const e = verifier(enLigne);
     if (Object.keys(e).length > 0) return montrer(e);
     setErreurs({});
     setBusy('brouillon');
     try {
-      const creation = saved === null;
       const ref = await enregistrer();
       toast.success(enLigne ? L('Modifications enregistrées', 'تم حفظ التعديلات') : L('Brouillon enregistré', 'تم حفظ المسودة'));
       // An edit of an annonce online applies at once: the home's block shows it.
       if (enLigne) void refreshAccueil();
-      // A new draft now has an address of its own: a refresh opens it again.
-      if (creation && ref) navigate(editPath(ref.id), { replace: true });
+      // A new draft now has an address of its own: a refresh opens it again. (The draft may have
+      // been born earlier, silently, by a photo: the page moves at the first save all the same.)
+      if (!annonce && ref) navigate(editPath(ref.id), { replace: true });
     } catch (error) {
       refus(error);
     } finally {
@@ -269,6 +310,7 @@ export function AnnonceB2bForm({ annonce, onStale }: { annonce: AnnonceB2b | nul
   };
 
   const envoyer = async () => {
+    if (photosBusy) return;
     const e = verifier(true);
     if (Object.keys(e).length > 0) return montrer(e);
     setErreurs({});
@@ -318,6 +360,8 @@ export function AnnonceB2bForm({ annonce, onStale }: { annonce: AnnonceB2b | nul
 
       <Card>
         <CardContent className="flex flex-col gap-6 py-5">
+         {/* Frozen while a save is in flight: what is typed then would not be in it. */}
+         <fieldset disabled={busy !== null} className="contents">
           <p className="rounded-lg bg-de9-blue-tint px-3.5 py-2.5 text-[13px] font-semibold text-de9-blue">
             {L(
               'Annonce destinée aux clients entreprises (B2B) routés par de9de9.',
@@ -412,6 +456,14 @@ export function AnnonceB2bForm({ annonce, onStale }: { annonce: AnnonceB2b | nul
                   );
                 })}
               </div>
+              {retires > 0 && (
+                <p className="text-[12px] text-de9-orange-deep">
+                  {L(
+                    retires > 1 ? `${retires} services ne sont plus au catalogue : ils ont été retirés de l'annonce.` : "Un service n'est plus au catalogue : il a été retiré de l'annonce.",
+                    retires > 1 ? `${retires} خدمات لم تعد في الكتالوج: تمت إزالتها من الإعلان.` : 'خدمة لم تعد في الكتالوج: تمت إزالتها من الإعلان.',
+                  )}
+                </p>
+              )}
               {categorie.services.some((s) => s.dejaAnnoncee && !services.includes(s.code)) && (
                 <p className="text-[12px] text-de9-gray">
                   {L('Un service grisé est déjà proposé dans une autre de vos annonces en ligne.', 'الخدمة المعطّلة معروضة في إعلان آخر لك.')}
@@ -514,21 +566,23 @@ export function AnnonceB2bForm({ annonce, onStale }: { annonce: AnnonceB2b | nul
               maxOctets={limites.photoMaxOctets}
               disabled={busy !== null}
               ensureDraft={ensureDraft}
-              onStale={onStale}
+              onStale={stale}
+              onBusyChange={setPhotosBusy}
               onChange={(next) => {
                 setPhotos(next.photos);
-                // A photo change bumps the annonce's version too.
+                // A photo change bumps the annonce's version too — here, and in what the other screens hold.
                 setSaved((s) => (s ? { ...s, version: next.version } : s));
-                if (saved) void queryClient.invalidateQueries({ queryKey: annonceKey(saved.id) });
+                queryClient.setQueryData<Annonce>(annonceKey(next.id), (held) => (held ? { ...held, photos: next.photos, version: next.version } : held));
                 void queryClient.invalidateQueries({ queryKey: annoncesListeKey });
               }}
             />
           </Section>
+         </fieldset>
         </CardContent>
       </Card>
 
       <div className="sticky bottom-0 z-20 -mx-1 flex flex-col gap-2 rounded-t-xl border-t border-de9-line bg-background/95 px-1 py-3 backdrop-blur sm:flex-row">
-        <Button variant={enLigne ? 'default' : 'outline'} className="flex-1" onClick={() => void sauver()} disabled={busy !== null}>
+        <Button variant={enLigne ? 'default' : 'outline'} className="flex-1" onClick={() => void sauver()} disabled={busy !== null || photosBusy}>
           {busy === 'brouillon' && <Loader2 className="size-4 animate-spin" />}
           {enLigne ? L('Enregistrer les modifications', 'حفظ التعديلات') : L('Enregistrer le brouillon', 'حفظ المسودة')}
         </Button>
@@ -536,7 +590,7 @@ export function AnnonceB2bForm({ annonce, onStale }: { annonce: AnnonceB2b | nul
           <Button
             className="flex-1"
             onClick={() => void envoyer()}
-            disabled={busy !== null || !kyc.verifie}
+            disabled={busy !== null || photosBusy || !kyc.verifie}
             title={kyc.verifie ? undefined : L('Disponible après vérification de votre entreprise', 'متاح بعد توثيق مؤسستك')}
           >
             {busy === 'soumettre' && <Loader2 className="size-4 animate-spin" />}
