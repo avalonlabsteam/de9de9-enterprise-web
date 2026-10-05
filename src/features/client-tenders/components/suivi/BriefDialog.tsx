@@ -4,14 +4,13 @@ import { toast } from 'sonner';
 import { useL } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { toProblem } from '@/api/problem';
-import { WILAYAS } from '@/lib/catalogue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { PieceSlot } from '@/components/common/PieceSlot';
+import { WilayaSelect } from '@/features/geo/components/WilayaSelect';
 import type { Brief, SuiviAction } from '../../schemas/suivi';
 import { ConfirmDialog } from '@/components/actions/ActionDialogs';
 
@@ -68,7 +67,6 @@ export function BriefDialog({
   // The récurrent option's number, read from the answer (2 today).
   const recurrentValeur = brief.typeBesoin?.options.find((o) => o.code === 'recurrent')?.valeur ?? 2;
   const isRecurrent = cadence === recurrentValeur;
-  const wilayas = wilaya && !WILAYAS.includes(wilaya as (typeof WILAYAS)[number]) ? [wilaya, ...WILAYAS] : WILAYAS;
 
   const bodyOf = (): Record<string, unknown> | null => {
     if (budget && !/^\d+$/.test(budget)) {
@@ -184,18 +182,7 @@ export function BriefDialog({
 
             <div>
               <Label className="mb-2 block">{L("Wilaya / lieu d'exécution", 'الولاية / مكان التنفيذ')}</Label>
-              <Select value={wilaya} onValueChange={setWilaya}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={L('Choisir une wilaya', 'اختر ولاية')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {wilayas.map((w) => (
-                    <SelectItem key={w} value={w}>
-                      {w}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <WilayaSelect value={wilaya} onChange={setWilaya} />
             </div>
 
             {brief.delai && (

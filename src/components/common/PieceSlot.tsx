@@ -25,6 +25,7 @@ export function PieceSlot({
   accept,
   onReject,
   maxBytes,
+  locked,
   className,
 }: {
   label: string;
@@ -37,6 +38,8 @@ export function PieceSlot({
   /** Called instead of `onChange` when the picked file is over `maxBytes`. */
   onReject?: (file: File) => void;
   maxBytes?: number;
+  /** The file stays: no ✕ to take it off (e.g. a piece already validated). */
+  locked?: boolean;
   className?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -55,14 +58,16 @@ export function PieceSlot({
           <p className="truncate text-[13px] font-bold text-white">{label}</p>
           <p className="truncate text-[12px] text-white/85">{value.name}</p>
         </div>
-        <button
-          type="button"
-          onClick={() => onChange(null)}
-          className="flex size-7 flex-none items-center justify-center rounded-full text-white/80 hover:bg-white/15"
-          aria-label="Retirer"
-        >
-          <X className="size-4" />
-        </button>
+        {!locked && (
+          <button
+            type="button"
+            onClick={() => onChange(null)}
+            className="flex size-7 flex-none items-center justify-center rounded-full text-white/80 hover:bg-white/15"
+            aria-label="Retirer"
+          >
+            <X className="size-4" />
+          </button>
+        )}
       </div>
     );
   }

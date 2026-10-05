@@ -4,7 +4,8 @@ import { cn } from '@/lib/utils';
 import { useL } from '@/lib/i18n';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { useCommunes, useWilayas, type Wilaya, type ZoneInput } from '../api/annonces';
+import { useCommunes, useWilayas, type Wilaya } from '@/features/geo/api/geo';
+import type { ZoneInput } from '../api/annonces';
 
 const chip = (active: boolean) =>
   cn(

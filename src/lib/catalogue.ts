@@ -261,21 +261,5 @@ export const FAMILY_BY_ID: Record<string, ServiceFamily> = Object.fromEntries(
   CATALOGUE.map((f) => [f.id, f]),
 );
 
-/** Shared form option lists (BUILD-SPEC §8.3). */
-export const WILAYAS = [
-  'Alger',
-  'Oran',
-  'Constantine',
-  'Annaba',
-  'Blida',
-  'Sétif',
-  'Béjaïa',
-  'Tizi Ouzou',
-  'Tlemcen',
-  'Batna',
-  'Ouargla',
-  'Ghardaïa',
-] as const;
-
-// Délais and fréquences are not listed here: they come from the API
-// (`formulaire` in GET /client/nouvelle-demande), with their codes and numbers.
+// The form option lists are not here: wilayas come from `GET /geo/wilayas`,
+// délais and fréquences from `formulaire` in GET /client/nouvelle-demande.
