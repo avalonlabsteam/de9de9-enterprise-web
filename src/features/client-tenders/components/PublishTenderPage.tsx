@@ -7,7 +7,6 @@ import { toast } from 'sonner';
 import { useT, useL } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { toProblem } from '@/api/problem';
-import { WILAYAS } from '@/lib/catalogue';
 import { queryClient } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -15,7 +14,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PieceSlot } from '@/components/common/PieceSlot';
 import { EmptyState } from '@/components/common/EmptyState';
 import { nouvelleDemandeKey, useBlocageB2b, useCategorie, useNouvelleDemande } from '@/features/client-catalogue/api/nouvelleDemande';
@@ -24,6 +22,7 @@ import type { FormOption } from '@/features/client-catalogue/schemas/nouvelleDem
 import { catalogueActions, useCatalogueStore } from '@/features/client-catalogue/stores/catalogueStore';
 import { accesRefuse } from '@/features/auth/api/accueil';
 import { offresKey } from '@/features/client-offres/api/offres';
+import { WilayaSelect } from '@/features/geo/components/WilayaSelect';
 import { useSendAppelOffres } from '../api/appelsOffres';
 import {
   appelOffresFormSchema,
@@ -323,19 +322,8 @@ export function PublishTenderPage() {
             control={control}
             name="wilaya"
             render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={L('Choisir une wilaya', 'اختر ولاية')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {/* From an offer: only the wilayas it covers. */}
-                  {(souhaite && souhaite.wilayas.length > 0 ? souhaite.wilayas : WILAYAS).map((w) => (
-                    <SelectItem key={w} value={w}>
-                      {w}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              // From an offer: only the wilayas it covers.
+              <WilayaSelect value={field.value} onChange={field.onChange} seulement={souhaite?.wilayas} />
             )}
           />
           {errors.wilaya && <p className="mt-1 text-[12px] text-de9-red">{messageOf(errors.wilaya)}</p>}
