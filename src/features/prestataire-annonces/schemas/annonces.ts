@@ -59,7 +59,10 @@ export const annonceCarteSchema = z.object({
   icone: text,
   hex: text,
   statut: tagSchema,
-  /** B2C only: the technical badge (« En attente de publication »…). Null on a B2B annonce. */
+  /**
+   * B2C only, once « Publiée »: where the annonce stands on the de9de9 app — `en_attente` ·
+   * `echec` · `en_ligne`, drawn from `label` + `ton`. Null on anything else.
+   */
   publication: tagSchema.nullish(),
   version: z.number().default(1),
   actions: z.array(annonceActionSchema).default([]),
@@ -157,6 +160,7 @@ export const annonceB2cSchema = z.object({
   ...communs,
   type: z.literal('b2c'),
   sousTitre: text,
+  /** The same badge as on the card. `raison`: why a send failed — the strip (`bandeau`) words it too. */
   publication: tagSchema.extend({ raison: text }).nullish(),
   categorie: z
     .object({ legacyCategoryId: z.number(), libelle: z.string(), libelleAr: text, groupe: text, photoUrl: text })
