@@ -1,12 +1,12 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/api/apiClient';
+import { toProblem } from '@/api/problem';
 import { queryClient } from '@/lib/queryClient';
 import { onboardingActions, useOnboardingStore } from '@/stores/onboardingStore';
 import { accueilActions, useAccueilStore } from '@/stores/accueilStore';
 import { sessionEpoch } from '@/stores/sessionEpoch';
 import type { AccueilEnvelope } from '@/features/auth/schemas/accueil';
 import {
-  kycDocumentsSchema,
   kycDossierSchema,
   kycStatutSchema,
   type KycDossier,
@@ -19,21 +19,43 @@ export const dossierQueryKey = ['kyc', 'dossier'] as const;
 /** Up to 20 MB in one request: the client's 15 s would cut an ordinary uplink off mid-file. */
 const UPLOAD_TIMEOUT_MS = 5 * 60_000;
 
+const fetchDossier = async () => kycDossierSchema.parse((await apiClient.get('/kyc/dossier')).data);
+
 /** The dossier behind « Vérifier mon entreprise »: status, reason, file links. */
 export function useKycDossier() {
-  return useQuery({
-    queryKey: dossierQueryKey,
-    queryFn: async () => kycDossierSchema.parse((await apiClient.get('/kyc/dossier')).data),
-  });
+  return useQuery({ queryKey: dossierQueryKey, queryFn: fetchDossier });
+}
+
+/** The dossier read afresh: past a read begun earlier, and past the cached copy. */
+async function relireDossier() {
+  await queryClient.cancelQueries({ queryKey: dossierQueryKey });
+  return queryClient.fetchQuery({ queryKey: dossierQueryKey, queryFn: fetchDossier, staleTime: 0 });
+}
+
+/** Whether the file sent for `kind` is on the dossier now: its row is no longer the one held before. */
+function arrivee(avant: KycDossier, apres: KycDossier, kind: KycKind): boolean {
+  const idOf = (d: KycDossier) => d.documents.find((row) => row.kind === kind && row.present)?.documentId;
+  const id = idOf(apres);
+  return !!id && id !== idOf(avant);
 }
 
 /**
- * Upload one or several pieces. Each file is paired **by position** with its
- * kind, so the two arrays are appended in step. Re-uploading a kind replaces
- * what is on screen; the previous file stays in the company's history.
+ * File the pieces just picked. The upload is the whole filing — there is no
+ * submit step: a filed piece waits for de9de9 at once, and the dossier is in
+ * review from the first one.
+ *
+ * Each file is paired **by position** with its kind, so the two arrays are
+ * appended in step. A new file of a kind is a new version; the previous one
+ * stays in de9de9's history.
+ *
+ * The dossier is then read back and folded into the session: the onboarding
+ * step and the home's company badge are what the pills, gates and home card
+ * read.
  */
-export function useUploadKycDocuments() {
+export function useSubmitKyc() {
   return useMutation({
+    // The session this filing belongs to: its answer must not land in a newer one.
+    onMutate: () => sessionEpoch(),
     mutationFn: async ({
       files,
       onProgress,
@@ -42,56 +64,50 @@ export function useUploadKycDocuments() {
       /** 0–100, as the bytes leave the browser. */
       onProgress?: (percent: number) => void;
     }) => {
+      const avant = queryClient.getQueryData<KycDossier>(dossierQueryKey);
       const form = new FormData();
       for (const { kind, file } of files) {
         form.append('files', file);
         form.append('kinds', kind);
       }
-      const res = await apiClient.post('/kyc/documents', form, {
-        timeout: UPLOAD_TIMEOUT_MS,
-        onUploadProgress: (e) => {
-          const ratio = e.progress ?? (e.total ? e.loaded / e.total : undefined);
-          if (ratio !== undefined) onProgress?.(Math.min(100, Math.round(ratio * 100)));
-        },
+      try {
+        await apiClient.post('/kyc/documents', form, {
+          timeout: UPLOAD_TIMEOUT_MS,
+          onUploadProgress: (e) => {
+            const ratio = e.progress ?? (e.total ? e.loaded / e.total : undefined);
+            if (ratio !== undefined) onProgress?.(Math.min(100, Math.round(ratio * 100)));
+          },
+        });
+      } catch (error) {
+        // No answer (network, timeout) is not a refusal: the files may be
+        // stored all the same, and sending them again would then be refused
+        // (409 `kyc_under_review`). The dossier says which it is.
+        if (toProblem(error).code !== 'network' || !avant) throw error;
+        const apres = await relireDossier().catch(() => undefined);
+        if (!apres || !files.every(({ kind }) => arrivee(avant, apres, kind))) throw error;
+        return apres;
+      }
+      // Filed. A failed read must not undo that: the screen catches up later.
+      return relireDossier().catch(() => {
+        void queryClient.invalidateQueries({ queryKey: dossierQueryKey });
+        return undefined;
       });
-      return kycDocumentsSchema.parse(res.data);
     },
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: dossierQueryKey });
-    },
-  });
-}
-
-/**
- * Submit the dossier for review. No body. Answers with the dossier at
- * `pending`, which also moves the session's onboarding to « en revue » and the
- * home's company badge along — the two stores are what the pills, gates and
- * home card read.
- */
-export function useSubmitKyc() {
-  return useMutation({
-    // The session this submit belongs to: its answer must not land in a newer one.
-    onMutate: () => sessionEpoch(),
-    mutationFn: async () => kycDossierSchema.parse((await apiClient.post('/kyc/soumettre')).data),
-    onSuccess: async (dossier, _variables, epoch) => {
+    onSuccess: (dossier, _variables, epoch) => {
       if (sessionEpoch() !== epoch) return;
+      // Without the dossier (its read failed), what an upload always does: the dossier is in review.
+      const statut = dossier?.statut ?? 'pending';
       const patch = {
         nextStep: 'kyc_en_revue' as const,
-        kycStatut: dossier.statut,
-        kycStatutLabel: dossier.statutLabel,
-        kycMotif: dossier.motif ?? null,
-        kycSoumisLe: dossier.soumisLe ?? null,
+        kycStatut: statut,
+        kycMotif: dossier?.motif ?? null,
+        ...(dossier ? { kycStatutLabel: dossier.statutLabel, kycSoumisLe: dossier.soumisLe ?? null } : {}),
       };
       // A sign-in answer without an onboarding block left nothing to patch.
       if (useOnboardingStore.getState().onboarding) onboardingActions.patchKyc(patch);
       else onboardingActions.set({ ...patch, pieces: [] });
       // The home still carries the previous verdict (e.g. « refusée »).
-      accueilActions.patchEntreprise({ kycStatut: dossier.statut, verifie: dossier.statut === 'verified' });
-      // The upload's refetch may still be in flight with the pre-submit
-      // dossier: stop it, or it lands after this and overwrites it.
-      await queryClient.cancelQueries({ queryKey: dossierQueryKey });
-      if (sessionEpoch() !== epoch) return;
-      queryClient.setQueryData(dossierQueryKey, dossier);
+      accueilActions.patchEntreprise({ kycStatut: statut, verifie: statut === 'verified' });
     },
   });
 }
@@ -100,9 +116,9 @@ export function useSubmitKyc() {
 export interface KycState {
   statut: KycStatut;
   verified: boolean;
-  /** Filed and waiting for de9de9's verdict. */
+  /** Pieces are waiting for de9de9's verdict. */
   inReview: boolean;
-  /** Rejected: the company must fix the piece named in `motif` and submit again. */
+  /** Rejected: the company must replace the refused pieces (`motif` says why). */
   rejected: boolean;
   motif?: string | null;
 }
@@ -139,7 +155,7 @@ function asStatut(value: string | undefined): KycStatut | undefined {
  * the home's company badge. A verdict on the home — verified or rejected —
  * wins: a switch or the app-start check renews the home without always
  * renewing onboarding, whose `pending` may predate that verdict. Otherwise
- * onboarding is preferred (a submit patches both). The KYC screen reads the
+ * onboarding is preferred (a filing patches both). The KYC screen reads the
  * dossier.
  */
 export function useKycState(): KycState {
@@ -163,5 +179,9 @@ export function useKycState(): KycState {
 
 /** The same state, derived from a dossier the KYC screen already loaded. */
 export function kycStateOfDossier(dossier: KycDossier | undefined): KycState {
-  return kycStateOf(dossier?.statut, { submitted: !!dossier?.soumisLe, motif: dossier?.motif });
+  return kycStateOf(dossier?.statut, {
+    // `soumisLe` for an API that does not say `enRevue` yet.
+    submitted: dossier?.enRevue ?? !!dossier?.soumisLe,
+    motif: dossier?.motif,
+  });
 }
