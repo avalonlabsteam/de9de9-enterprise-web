@@ -291,7 +291,7 @@ export function ExplorerTab({ pending }: { pending: number | null }) {
             <span
               className={cn(
                 'min-w-5 rounded-full px-1.5 text-center text-[11px] tabular-nums',
-                explorerPill === 'offresEnvoyees' ? 'bg-white/25 text-white' : 'bg-de9-teal-soft text-de9-teal-dark',
+                explorerPill === 'offresEnvoyees' ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-de9-teal-soft text-de9-teal-dark',
               )}
             >
               {pending}
