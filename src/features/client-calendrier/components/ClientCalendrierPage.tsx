@@ -169,7 +169,7 @@ export function ClientCalendrierPage() {
                       <span
                         className={cn(
                           'text-[10px] font-bold leading-none',
-                          isSelected ? 'text-white/90' : 'text-de9-teal-dark',
+                          isSelected ? 'text-primary-foreground/90' : 'text-de9-teal-dark',
                         )}
                       >
                         {count}

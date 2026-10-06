@@ -44,7 +44,7 @@ export function OngletBar({
               <span
                 className={cn(
                   'min-w-5 rounded-full px-1.5 text-[11px] tabular-nums',
-                  selected ? 'bg-white/25 text-white' : 'bg-de9-teal-soft text-de9-teal-dark',
+                  selected ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-de9-teal-soft text-de9-teal-dark',
                 )}
               >
                 {o.count}

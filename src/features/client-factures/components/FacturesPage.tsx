@@ -129,7 +129,7 @@ export function FacturesPage() {
             <span
               className={cn(
                 'inline-flex min-w-5 justify-center rounded-full px-1.5 text-[11px] tabular-nums',
-                filter === p.key ? 'bg-white/20 text-white' : 'bg-de9-teal-tint text-de9-teal-dark',
+                filter === p.key ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-de9-teal-tint text-de9-teal-dark',
               )}
             >
               {p.count}
