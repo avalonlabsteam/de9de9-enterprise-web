@@ -169,7 +169,7 @@ function ChampInput({
                   onClick={() => onValue(option.valeur)}
                   className={cn(
                     'rounded-full px-3.5 py-1.5 text-[13px] font-bold',
-                    selected ? 'bg-de9-teal text-white' : 'bg-secondary text-de9-teal-dark',
+                    selected ? 'bg-de9-teal text-primary-foreground' : 'bg-secondary text-de9-teal-dark',
                   )}
                 >
                   {option.label}
@@ -401,7 +401,7 @@ export function SupportDialog({ support, onClose }: { support: Support; onClose:
                 className={cn(
                   'flex h-11 items-center justify-center gap-2 rounded-full px-4 text-[14px] font-bold',
                   canal.principal
-                    ? 'bg-de9-teal text-white shadow-glow hover:bg-de9-teal-dark'
+                    ? 'bg-de9-teal text-primary-foreground shadow-glow hover:brightness-95'
                     : 'bg-secondary text-de9-ink hover:bg-secondary/80',
                 )}
               >

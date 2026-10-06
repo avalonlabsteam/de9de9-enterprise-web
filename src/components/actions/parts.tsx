@@ -87,7 +87,7 @@ export function EtapesBar({ etapes, grisees, className }: { etapes: Etape[]; gri
                 className={cn(
                   'grid size-6 flex-none place-items-center rounded-full border-2 text-[11px] font-bold',
                   done
-                    ? 'border-de9-teal bg-de9-teal text-white'
+                    ? 'border-de9-teal bg-de9-teal text-primary-foreground'
                     : alert
                       ? 'border-de9-red bg-de9-red-soft text-de9-red ring-4 ring-de9-red/15'
                       : current

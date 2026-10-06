@@ -40,7 +40,7 @@ export function Stepper({ status, className }: { status: VisiteCode; className?:
               <div
                 className={cn(
                   'flex size-7 items-center justify-center rounded-full text-[11px] font-extrabold',
-                  done && 'bg-de9-teal text-white',
+                  done && 'bg-de9-teal text-primary-foreground',
                   current && 'bg-accent text-de9-teal-dark',
                   !done && !current && 'bg-card text-de9-gray shadow-soft dark:ring-1 dark:ring-border',
                 )}

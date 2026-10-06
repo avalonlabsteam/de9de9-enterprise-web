@@ -71,7 +71,7 @@ export function DocViewer({
               <Separator className="my-4" />
               <div className="flex flex-col gap-2">
                 <Button
-                  className="bg-de9-teal text-white shadow-glow hover:bg-de9-teal-dark"
+                  className="bg-de9-teal text-primary-foreground shadow-glow hover:brightness-95"
                   onClick={() => {
                     onApprove?.();
                     onOpenChange(false);

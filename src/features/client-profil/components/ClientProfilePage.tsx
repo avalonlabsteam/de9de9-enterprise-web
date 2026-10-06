@@ -117,16 +117,16 @@ export function ClientProfilePage() {
       <button
         type="button"
         onClick={() => uiActions.openSupport()}
-        className="flex items-center gap-4 rounded-lg bg-de9-teal px-5 py-4 text-start text-white shadow-glow transition-opacity hover:opacity-95"
+        className="flex items-center gap-4 rounded-lg bg-de9-teal px-5 py-4 text-start text-primary-foreground shadow-glow transition-opacity hover:opacity-95"
       >
         <div className="flex size-11 flex-none items-center justify-center rounded-full bg-white/25">
           <Phone className="size-5" />
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-[15px] font-bold">{L('Support & contact', 'الدعم والتواصل')}</p>
-          <p className="text-[13px] text-white/80">0560 00 00 00 · 7j/7</p>
+          <p className="text-[13px] text-primary-foreground/80">0560 00 00 00 · 7j/7</p>
         </div>
-        <ChevronRight className="size-5 flex-none text-white/80 rtl:rotate-180" />
+        <ChevronRight className="size-5 flex-none text-primary-foreground/80 rtl:rotate-180" />
       </button>
 
       {/* Rows */}

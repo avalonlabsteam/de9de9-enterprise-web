@@ -31,13 +31,13 @@ export function StatsPage() {
       {data && (
         <>
           {/* CA card */}
-          <div className="rounded-lg bg-de9-teal p-5 text-white shadow-glow">
-            <p className="text-sm font-semibold text-white/85">{t('chiffreAffaire')}</p>
+          <div className="rounded-lg bg-de9-teal p-5 text-primary-foreground shadow-glow">
+            <p className="text-sm font-semibold text-primary-foreground/85">{t('chiffreAffaire')}</p>
             <div className="mt-1 flex flex-wrap items-baseline gap-x-2">
               <span className="text-[28px] font-extrabold leading-tight">
                 {formatDa(data.chiffreAffaireDa)} DA
               </span>
-              <span className="text-[13px] font-bold text-white/90">
+              <span className="text-[13px] font-bold text-primary-foreground/90">
                 ▲ +{data.trendPct}% {L('ce mois', 'هذا الشهر')}
               </span>
             </div>

@@ -42,7 +42,7 @@ export const toneText = (ton?: string | null) => TONE_TEXT[ton ?? ''] ?? TONE_TE
 
 /** Button `style` → the classes of the app's button. */
 const BUTTON_STYLE: Record<string, string> = {
-  primaire: 'bg-de9-teal text-white shadow-glow hover:bg-de9-teal-dark',
+  primaire: 'bg-de9-teal text-primary-foreground shadow-glow hover:brightness-95',
   succes: 'bg-emerald-600 text-white hover:bg-emerald-700',
   contour: 'border border-de9-teal bg-transparent text-de9-teal-dark hover:bg-de9-teal-soft',
   neutre: 'bg-secondary text-de9-ink hover:bg-secondary/80',

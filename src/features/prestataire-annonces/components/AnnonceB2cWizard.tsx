@@ -411,7 +411,7 @@ export function AnnonceB2cWizard({
             onClick={() => aller(e)}
             className={cn(
               'rounded-full px-3 py-1 text-[12px] font-bold transition-colors',
-              e === courante ? 'bg-de9-teal text-white' : 'bg-card text-de9-slate shadow-soft hover:text-de9-ink dark:ring-1 dark:ring-border',
+              e === courante ? 'bg-de9-teal text-primary-foreground' : 'bg-card text-de9-slate shadow-soft hover:text-de9-ink dark:ring-1 dark:ring-border',
               erreurs[e] !== undefined && e !== courante && 'text-de9-red ring-1 ring-de9-red/50',
             )}
           >

@@ -165,7 +165,7 @@ function CandidatRow({ c, checked, onToggle }: { c: Candidat; checked: boolean; 
           aria-hidden
           className={cn(
             'mt-1 grid size-5 flex-none place-items-center rounded-md border-2',
-            checked ? 'border-de9-teal bg-de9-teal text-white' : 'border-de9-gray/60 bg-card',
+            checked ? 'border-de9-teal bg-de9-teal text-primary-foreground' : 'border-de9-gray/60 bg-card',
           )}
         >
           {checked && <Check className="size-3.5" />}

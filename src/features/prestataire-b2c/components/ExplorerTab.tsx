@@ -20,7 +20,7 @@ function chipCls(active: boolean): string {
   return cn(
     'cursor-pointer rounded-full px-3 py-1 text-[12px] font-bold transition-all',
     active
-      ? 'bg-de9-teal text-white shadow-glow'
+      ? 'bg-de9-teal text-primary-foreground shadow-glow'
       : 'bg-card text-de9-teal-dark shadow-soft hover:shadow-lift dark:ring-1 dark:ring-border',
   );
 }
@@ -277,7 +277,7 @@ export function ExplorerTab({ pending }: { pending: number | null }) {
   const pillCls = (active: boolean) =>
     cn(
       'inline-flex cursor-pointer items-center gap-1.5 rounded-full px-4 py-1.5 text-[13px] font-bold transition-colors',
-      active ? 'bg-de9-teal text-white' : 'text-de9-teal-dark',
+      active ? 'bg-de9-teal text-primary-foreground' : 'text-de9-teal-dark',
     );
   return (
     <div className="space-y-4">

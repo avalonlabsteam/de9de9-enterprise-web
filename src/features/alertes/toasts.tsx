@@ -4,6 +4,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { AlerteToast, ResumeToast } from './components/AlerteToast';
 import { isOnScreen } from './lib/chemin';
 import { toastDuration } from './lib/libelles';
+import { playAlerteSon } from './lib/son';
 import { openAlerte } from './open';
 import type { Alerte } from './schemas/alerte';
 import { alertesActions, useAlertesStore } from './stores/alertesStore';
@@ -37,6 +38,7 @@ function showResume(count: number): void {
  * screen's data is fetched again instead. Otherwise every cached screen is
  * marked stale (the alert says something changed), and the toast follows the
  * rules: an `info` stays quiet while the drawer is open, a burst folds into one.
+ * A toast comes with the alert sound; what stays quiet stays silent.
  */
 export function notifyLive(a: Alerte): void {
   const side = useAuthStore.getState().user?.role;
@@ -46,6 +48,7 @@ export function notifyLive(a: Alerte): void {
   }
   void queryClient.invalidateQueries({ refetchType: 'none' });
   if (a.ton === 'info' && useAlertesStore.getState().drawerOpen) return;
+  playAlerteSon();
 
   const now = Date.now();
   recent = recent.filter((r) => now - r.at < BURST_WINDOW_MS);

@@ -63,7 +63,7 @@ export function AlerteToast({ alerte, onOpen, onClose }: { alerte: Alerte; onOpe
               e.stopPropagation();
               onOpen();
             }}
-            className="mt-2 inline-flex h-8 cursor-pointer items-center rounded-full bg-de9-teal px-3.5 text-[12px] font-bold text-white shadow-glow hover:bg-de9-teal-dark"
+            className="mt-2 inline-flex h-8 cursor-pointer items-center rounded-full bg-de9-teal px-3.5 text-[12px] font-bold text-primary-foreground shadow-glow hover:brightness-95"
           >
             {L('Ouvrir', 'فتح')}
           </button>

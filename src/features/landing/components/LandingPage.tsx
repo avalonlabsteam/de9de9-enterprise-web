@@ -164,7 +164,7 @@ function VisibiliteSection() {
           </p>
           <Link
             to="/contact"
-            className="mt-10 inline-flex h-[52px] items-center justify-center rounded-[10px] bg-de9-teal px-8 text-[15px] font-semibold text-white transition-[filter] hover:brightness-95"
+            className="mt-10 inline-flex h-[52px] items-center justify-center rounded-[10px] bg-de9-teal px-8 text-[15px] font-semibold text-primary-foreground transition-[filter] hover:brightness-95"
           >
             {L('Demander un devis', 'اطلب عرض سعر')}
           </Link>

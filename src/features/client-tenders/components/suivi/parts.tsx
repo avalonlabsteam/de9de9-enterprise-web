@@ -7,7 +7,7 @@ export function PrestataireIdentity({ p, className }: { p: PrestataireCarte; cla
   return (
     <div className={cn('flex min-w-0 items-center gap-3', className)}>
       <span
-        className="grid size-11 flex-none place-items-center rounded-full bg-de9-teal text-[14px] font-extrabold text-white"
+        className="grid size-11 flex-none place-items-center rounded-full bg-de9-teal text-[14px] font-extrabold text-primary-foreground"
         style={p.couleur ? { backgroundColor: p.couleur } : undefined}
         aria-hidden
       >

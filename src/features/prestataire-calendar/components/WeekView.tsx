@@ -56,7 +56,7 @@ export function WeekView({
                 <span
                   className={cn(
                     'mt-0.5 grid size-7 place-items-center rounded-full text-[13px] font-bold tabular-nums',
-                    day === today ? 'bg-de9-teal text-white' : 'text-de9-ink',
+                    day === today ? 'bg-de9-teal text-primary-foreground' : 'text-de9-ink',
                   )}
                 >
                   {partsOf(day).day}

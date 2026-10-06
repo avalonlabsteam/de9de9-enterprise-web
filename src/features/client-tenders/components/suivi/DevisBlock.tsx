@@ -124,7 +124,7 @@ export function DevisBlock({
         <button
           type="button"
           disabled
-          className="h-11 w-full rounded-full bg-de9-teal/40 text-[13px] font-bold text-white"
+          className="h-11 w-full rounded-full bg-de9-teal/40 text-[13px] font-bold text-primary-foreground"
           title={L('Sélectionnez une offre valable', 'اختر عرضًا ساريًا')}
         >
           {devis.bouton.label}

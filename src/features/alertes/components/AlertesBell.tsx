@@ -68,7 +68,7 @@ function Chip({
         'inline-flex flex-none cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-[12px] font-bold transition-all',
         // No glow on the selected chip: this row scrolls sideways, and a scrolling box cuts a glow into a rectangle.
         selected
-          ? 'bg-de9-teal text-white'
+          ? 'bg-de9-teal text-primary-foreground'
           : 'bg-card text-de9-teal-dark shadow-soft dark:ring-1 dark:ring-border',
         !selected && count === 0 && 'opacity-55',
       )}

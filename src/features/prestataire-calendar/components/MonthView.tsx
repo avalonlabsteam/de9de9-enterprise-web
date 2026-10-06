@@ -87,7 +87,7 @@ export function MonthView({
                 className={cn(
                   'grid size-7 place-items-center self-center rounded-full text-[12.5px] font-semibold tabular-nums md:self-start',
                   day === today
-                    ? 'bg-de9-teal text-white'
+                    ? 'bg-de9-teal text-primary-foreground'
                     : m !== month
                       ? 'text-de9-gray'
                       : 'text-de9-ink',

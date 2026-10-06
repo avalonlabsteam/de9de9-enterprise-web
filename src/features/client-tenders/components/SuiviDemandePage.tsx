@@ -21,6 +21,7 @@ import { actionReponseSchema, messageOnlySchema, type SuiviAction } from '../sch
 import { ActionButton, EtapesBar, TonePill } from '@/components/actions/parts';
 import { PrestataireIdentity } from './suivi/parts';
 import { BriefDialog } from './suivi/BriefDialog';
+import { BriefResume } from './suivi/BriefResume';
 import { CommandeSection } from './suivi/CommandeSection';
 import { ConfirmDialog, SupportDialog, ViewerDialog } from '@/components/actions/ActionDialogs';
 import { DevisBlock } from './suivi/DevisBlock';
@@ -306,6 +307,9 @@ export function SuiviDemandePage() {
           />
         </div>
       )}
+
+      {/* What was asked — under what moves (devis, visits), above the buttons that change it */}
+      {d.brief && <BriefResume brief={d.brief} />}
 
       {/* The buttons at the bottom, in screen order */}
       {actions.length > 0 && (

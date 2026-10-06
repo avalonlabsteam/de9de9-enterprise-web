@@ -47,7 +47,7 @@ export function PieceSlot({
     return (
       <div
         className={cn(
-          'flex items-center gap-3 rounded-lg bg-de9-teal px-3.5 py-3 text-white',
+          'flex items-center gap-3 rounded-lg bg-de9-teal px-3.5 py-3 text-primary-foreground',
           className,
         )}
       >
@@ -55,14 +55,14 @@ export function PieceSlot({
           <FileCheck2 className="size-4" />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[13px] font-bold text-white">{label}</p>
-          <p className="truncate text-[12px] text-white/85">{value.name}</p>
+          <p className="truncate text-[13px] font-bold">{label}</p>
+          <p className="truncate text-[12px] text-primary-foreground/85">{value.name}</p>
         </div>
         {!locked && (
           <button
             type="button"
             onClick={() => onChange(null)}
-            className="flex size-7 flex-none items-center justify-center rounded-full text-white/80 hover:bg-white/15"
+            className="flex size-7 flex-none items-center justify-center rounded-full text-primary-foreground/80 hover:bg-primary-foreground/15"
             aria-label="Retirer"
           >
             <X className="size-4" />

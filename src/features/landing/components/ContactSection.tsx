@@ -134,7 +134,7 @@ export function ContactSection() {
           <button
             type="submit"
             disabled={send.isPending}
-            className="mt-5 h-14 w-full rounded-[10px] bg-de9-teal text-[15px] font-semibold text-white transition-[filter] hover:brightness-95 disabled:opacity-70"
+            className="mt-5 h-14 w-full rounded-[10px] bg-de9-teal text-[15px] font-semibold text-primary-foreground transition-[filter] hover:brightness-95 disabled:opacity-70"
           >
             {send.isPending ? L('Envoi…', 'جارٍ الإرسال…') : L('Envoyer', 'إرسال')}
           </button>

@@ -263,7 +263,7 @@ function PayerEnLigne({ enLigne, busy, setBusy, onGone }: {
         type="button"
         onClick={() => void payer()}
         disabled={busy || !valide}
-        className="flex h-12 cursor-pointer items-center justify-center gap-2 rounded-full bg-de9-teal text-[15px] font-bold text-white shadow-glow transition-colors hover:bg-de9-teal-dark disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
+        className="flex h-12 cursor-pointer items-center justify-center gap-2 rounded-full bg-de9-teal text-[15px] font-bold text-primary-foreground shadow-glow transition-colors hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
       >
         {busy ? <Loader2 className="size-5 animate-spin" /> : <ApiIcon code={enLigne.action.icone ?? 'carte'} className="size-5" />}
         {busy ? (
@@ -342,7 +342,7 @@ export function RechargeSheet({
               className={cn(
                 'flex h-11 items-center justify-center gap-2 rounded-full px-4 text-[14px] font-bold',
                 canal.principal
-                  ? 'bg-de9-teal text-white shadow-glow hover:bg-de9-teal-dark'
+                  ? 'bg-de9-teal text-primary-foreground shadow-glow hover:brightness-95'
                   : 'bg-secondary text-de9-ink hover:bg-secondary/80',
               )}
             >

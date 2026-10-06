@@ -74,7 +74,7 @@ function Chip({
       className={cn(
         'rounded-full px-3.5 py-1.5 text-[13px] font-bold transition-shadow',
         active
-          ? 'bg-de9-teal text-white shadow-glow'
+          ? 'bg-de9-teal text-primary-foreground shadow-glow'
           : 'bg-card text-de9-teal-dark shadow-soft hover:shadow-lift dark:ring-1 dark:ring-border',
       )}
     >
@@ -484,7 +484,7 @@ export function PublishTenderPage() {
         <Button
           type="submit"
           disabled={send.isPending}
-          className="mt-1 h-11 bg-de9-teal text-white shadow-glow hover:bg-de9-teal-dark"
+          className="mt-1 h-11 bg-de9-teal text-primary-foreground shadow-glow hover:brightness-95"
         >
           {send.isPending ? L('Envoi…', 'جارٍ الإرسال…') : t('submitPublish')}
         </Button>
