@@ -131,7 +131,7 @@ export function FamilyDetailPage() {
                   <span
                     className={cn(
                       'grid size-[22px] flex-none place-items-center rounded-full border-2 transition-colors',
-                      checked ? 'border-de9-teal bg-de9-teal text-white' : 'border-de9-line bg-card',
+                      checked ? 'border-de9-teal bg-de9-teal text-primary-foreground' : 'border-de9-line bg-card',
                     )}
                   >
                     {checked && <Check className="size-3.5" />}

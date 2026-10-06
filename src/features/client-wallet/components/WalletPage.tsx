@@ -170,7 +170,7 @@ export function WalletPage() {
             <button
               type="button"
               onClick={() => setParams({ recharger: '1' })}
-              className="flex h-12 items-center justify-center gap-2 rounded-full bg-de9-teal text-[15px] font-bold text-white shadow-glow hover:bg-de9-teal-dark"
+              className="flex h-12 items-center justify-center gap-2 rounded-full bg-de9-teal text-[15px] font-bold text-primary-foreground shadow-glow hover:brightness-95"
             >
               {screen.recharger.icone === 'plus' ? <Plus className="size-5" /> : <ApiIcon code={screen.recharger.icone} className="size-5" />}
               {screen.recharger.label}

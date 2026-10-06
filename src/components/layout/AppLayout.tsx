@@ -139,7 +139,7 @@ function NavList({ role, onNavigate }: { role: Role | undefined; onNavigate?: ()
                           className={cn(
                             'flex size-[30px] flex-none items-center justify-center rounded-[12px] transition-colors',
                             isActive
-                              ? 'bg-de9-teal text-white'
+                              ? 'bg-de9-teal text-primary-foreground'
                               : 'bg-card text-de9-teal shadow-soft dark:ring-1 dark:ring-border',
                           )}
                         >
@@ -217,7 +217,7 @@ function VerifyPill({ role }: { role: Role }) {
             ? 'border-de9-orange-deep bg-card text-de9-orange-deep'
             : kyc.rejected
               ? 'border-destructive bg-card text-destructive'
-              : 'border-de9-teal bg-de9-teal text-white shadow-glow hover:brightness-95',
+              : 'border-de9-teal bg-de9-teal text-primary-foreground shadow-glow hover:brightness-95',
       )}
     >
       {label}

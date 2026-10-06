@@ -25,13 +25,13 @@ export function TenderConfirmPage() {
             label={statusLabel ? L(statusLabel, statusLabel === 'En attente' ? 'قيد الانتظار' : statusLabel) : L('En attente', 'قيد الانتظار')}
             kind="setup"
           />
-          <div className="flex size-[66px] items-center justify-center rounded-full bg-de9-teal text-white">
+          <div className="flex size-[66px] items-center justify-center rounded-full bg-de9-teal text-primary-foreground">
             <CheckCircle2 className="size-9" />
           </div>
           <h1 className="text-xl font-extrabold text-de9-teal-dark">{t('confirmTitle')}</h1>
           <p className="max-w-sm text-xs font-semibold text-de9-slate">{t('confirmBody')}</p>
           <Button
-            className="mt-2 w-full bg-de9-teal text-white shadow-glow hover:bg-de9-teal-dark"
+            className="mt-2 w-full bg-de9-teal text-primary-foreground shadow-glow hover:brightness-95"
             onClick={() => navigate('/client/tenders')}
           >
             {t('seeSuivi')}

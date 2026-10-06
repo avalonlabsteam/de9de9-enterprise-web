@@ -155,7 +155,7 @@ export function CalendarPage() {
                 className={cn(
                   'inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12.5px] font-bold transition-all',
                   source === s.code
-                    ? 'bg-de9-teal text-white shadow-glow'
+                    ? 'bg-de9-teal text-primary-foreground shadow-glow'
                     : 'bg-card text-de9-teal-dark shadow-soft hover:shadow-lift dark:ring-1 dark:ring-border',
                 )}
               >
@@ -179,7 +179,7 @@ export function CalendarPage() {
                       className={cn(
                         'inline-flex items-center gap-2 rounded-full py-1 ps-1 pe-3 text-[12.5px] font-semibold transition-all',
                         active
-                          ? 'bg-de9-teal text-white shadow-glow'
+                          ? 'bg-de9-teal text-primary-foreground shadow-glow'
                           : 'bg-card text-de9-ink shadow-soft hover:shadow-lift dark:ring-1 dark:ring-border',
                       )}
                     >

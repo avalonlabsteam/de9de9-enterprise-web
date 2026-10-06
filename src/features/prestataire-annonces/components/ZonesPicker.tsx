@@ -11,7 +11,7 @@ const chip = (active: boolean) =>
   cn(
     'rounded-full px-3 py-1 text-[12px] font-bold transition-all',
     active
-      ? 'bg-de9-teal text-white'
+      ? 'bg-de9-teal text-primary-foreground'
       : 'bg-card text-de9-teal-dark shadow-soft hover:shadow-lift dark:ring-1 dark:ring-border',
   );
 

@@ -35,7 +35,7 @@ export function OngletBar({
             className={cn(
               'inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12.5px] font-bold transition-all',
               selected
-                ? 'bg-de9-teal text-white shadow-glow'
+                ? 'bg-de9-teal text-primary-foreground shadow-glow'
                 : 'bg-card text-de9-teal-dark shadow-soft hover:shadow-lift dark:ring-1 dark:ring-border',
             )}
           >

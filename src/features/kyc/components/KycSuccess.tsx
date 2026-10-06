@@ -33,7 +33,7 @@ export function KycSuccess({
               className={
                 pending
                   ? 'flex size-[66px] items-center justify-center rounded-full bg-de9-orange-deep text-white'
-                  : 'flex size-[66px] items-center justify-center rounded-full bg-de9-teal text-white'
+                  : 'flex size-[66px] items-center justify-center rounded-full bg-de9-teal text-primary-foreground'
               }
             >
               {pending ? <Clock className="size-8" /> : <CheckCircle2 className="size-8" />}

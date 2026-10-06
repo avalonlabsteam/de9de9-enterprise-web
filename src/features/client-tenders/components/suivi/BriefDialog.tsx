@@ -22,7 +22,7 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
       onClick={onClick}
       className={cn(
         'rounded-full px-3.5 py-1.5 text-[13px] font-bold',
-        active ? 'bg-de9-teal text-white' : 'bg-secondary text-de9-teal-dark',
+        active ? 'bg-de9-teal text-primary-foreground' : 'bg-secondary text-de9-teal-dark',
       )}
     >
       {children}
@@ -161,7 +161,7 @@ export function BriefDialog({
                         }
                         className={cn(
                           'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12.5px] font-semibold disabled:opacity-60',
-                          on ? 'bg-de9-teal text-white' : 'bg-secondary text-de9-ink',
+                          on ? 'bg-de9-teal text-primary-foreground' : 'bg-secondary text-de9-ink',
                         )}
                       >
                         {on && <Check className="size-3.5" />}

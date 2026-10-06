@@ -157,7 +157,7 @@ export function ClientCalendrierPage() {
                     className={cn(
                       'flex h-10 flex-col items-center justify-center rounded-lg text-[13px] font-semibold transition-colors',
                       isSelected
-                        ? 'bg-de9-teal text-white'
+                        ? 'bg-de9-teal text-primary-foreground'
                         : count > 0
                           ? 'bg-de9-teal-soft text-de9-teal-dark hover:bg-de9-teal-soft/70'
                           : 'text-de9-ink hover:bg-secondary',

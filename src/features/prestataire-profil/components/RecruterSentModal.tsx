@@ -22,7 +22,7 @@ export function RecruterSentModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <span className="mx-auto mb-1 grid size-[66px] place-items-center rounded-full bg-de9-teal text-white shadow-glow">
+          <span className="mx-auto mb-1 grid size-[66px] place-items-center rounded-full bg-de9-teal text-primary-foreground shadow-glow">
             <CheckCircle2 className="size-7" />
           </span>
           <DialogTitle className="text-center text-de9-teal">{L('Demande envoyée', 'تم إرسال الطلب')}</DialogTitle>

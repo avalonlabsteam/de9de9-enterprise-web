@@ -61,7 +61,7 @@ export function FamilleBadge({ label, hex }: { label?: string | null; hex?: stri
   if (!label) return null;
   return (
     <span
-      className="rounded-full bg-de9-teal px-2 py-0.5 text-[10px] font-extrabold tracking-wider text-white"
+      className="rounded-full bg-de9-teal px-2 py-0.5 text-[10px] font-extrabold tracking-wider text-primary-foreground"
       style={hex ? { backgroundColor: hex } : undefined}
     >
       {label}

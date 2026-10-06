@@ -52,17 +52,19 @@
    Light values come straight from the reference tokens; dark mode is a
    derived counterpart so the existing theme toggle keeps working. */
 :root {
-    /* Light values: the reference hues, deepened where they carry text or an
-       edge — the Figma mint (#4FD1C5) and greys (#A0AEC0) read at ~2:1 on
-       white, so text, buttons and borders use darker shades of the same hues. */
+    /* Light values: the reference hues. The primary is the Figma mint
+       (#4FD1C5), which reads at ~2:1 against white: what sits ON it is dark
+       (`--primary-foreground`), and the focus ring and the text shade
+       (`--de9-teal-dark`) stay deep. The greys (#A0AEC0) are deepened for the
+       same reason. */
     --background: #F5F7FA;
     --foreground: #2D3748;
     --card: #ffffff;
     --card-foreground: #2D3748;
     --popover: #ffffff;
     --popover-foreground: #2D3748;
-    --primary: #0F9488;
-    --primary-foreground: #ffffff;
+    --primary: #4FD1C5;
+    --primary-foreground: #0B2521;
     --secondary: #EEF1F5;
     --secondary-foreground: #2D3748;
     --muted: #EEF1F5;
@@ -73,7 +75,7 @@
     --border: #E2E8F0;
     --input: #D0D7E1;
     --ring: #0F9488;
-    --chart-1: #0F9488;
+    --chart-1: #4FD1C5;
     --chart-2: #0F766E;
     --chart-3: #2D3748;
     --chart-4: #D12F38;
@@ -81,8 +83,8 @@
     --radius: 0.9375rem; /* 15px card radius */
     --sidebar: #ffffff;
     --sidebar-foreground: #2D3748;
-    --sidebar-primary: #0F9488;
-    --sidebar-primary-foreground: #ffffff;
+    --sidebar-primary: #4FD1C5;
+    --sidebar-primary-foreground: #0B2521;
     --sidebar-accent: #E6F6F4;
     --sidebar-accent-foreground: #0F766E;
     --sidebar-border: #E2E8F0;
@@ -96,8 +98,8 @@
     --card-foreground: #E9EDF2;
     --popover: #1F2630;
     --popover-foreground: #E9EDF2;
-    --primary: #4FD1C5;
-    --primary-foreground: #0B2521;
+    --primary: #0F9488;
+    --primary-foreground: #ffffff;
     --secondary: #2A323E;
     --secondary-foreground: #E9EDF2;
     --muted: #2A323E;
@@ -108,15 +110,15 @@
     --border: #2C3542;
     --input: #2C3542;
     --ring: #4FD1C5;
-    --chart-1: #4FD1C5;
+    --chart-1: #0F9488;
     --chart-2: #64CCC5;
     --chart-3: #E9EDF2;
     --chart-4: #F2646B;
     --chart-5: #93A0B4;
     --sidebar: #1F2630;
     --sidebar-foreground: #E9EDF2;
-    --sidebar-primary: #4FD1C5;
-    --sidebar-primary-foreground: #0B2521;
+    --sidebar-primary: #0F9488;
+    --sidebar-primary-foreground: #ffffff;
     --sidebar-accent: #16332F;
     --sidebar-accent-foreground: #4FD1C5;
     --sidebar-border: #2C3542;
@@ -150,7 +152,7 @@
 :root {
     color-scheme: light;
     --de9-red: #D12F38;
-    --de9-teal: #0F9488;
+    --de9-teal: #4FD1C5;
     --de9-teal-dark: #0F766E;
     --de9-ink: #2D3748;
     --de9-slate: #525F6F;
@@ -173,7 +175,7 @@
 .dark {
     color-scheme: dark;
     --de9-red: #F2646B;
-    --de9-teal: #4FD1C5;
+    --de9-teal: #0F9488;
     --de9-teal-dark: #64CCC5;
     --de9-ink: #E9EDF2;
     --de9-slate: #A7B1BF;
@@ -242,13 +244,13 @@
 :root {
     --de9-shadow-soft: 0 0 0 1px rgba(15, 23, 42, 0.07), 0 1px 3px rgba(15, 23, 42, 0.06);
     --de9-shadow-lift: 0 0 0 1px rgba(15, 23, 42, 0.08), 0 6px 16px rgba(15, 23, 42, 0.1);
-    --de9-shadow-glow: 0 6px 20px rgba(15, 148, 136, 0.28);
+    --de9-shadow-glow: 0 6px 20px rgba(79, 209, 197, 0.28);
 }
 
 .dark {
     --de9-shadow-soft: 0 3.5px 5.5px rgba(0, 0, 0, 0.02);
     --de9-shadow-lift: 0 3.5px 5.5px rgba(0, 0, 0, 0.09);
-    --de9-shadow-glow: 0 9px 41.6px rgba(79, 209, 197, 0.25);
+    --de9-shadow-glow: 0 9px 41.6px rgba(15, 148, 136, 0.25);
 }
 
 @theme {
