@@ -31,7 +31,7 @@ export function TypeChip({ type, label, className }: { type: string; label: stri
 /** A banner of the list or the status strip of an annonce: one backend sentence, in its tone. */
 export function Bandeau({ ton, texte, children }: { ton?: string | null; texte: string; children?: React.ReactNode }) {
   return (
-    <div className={cn('flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border-s-4 px-4 py-3 text-[13px] font-medium', toneBox(ton), toneText(ton))}>
+    <div className={cn('flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl px-4 py-3 text-[13px] font-medium', toneBox(ton), toneText(ton))}>
       <span className="min-w-0 flex-1">{texte}</span>
       {children}
     </div>

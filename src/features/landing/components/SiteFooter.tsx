@@ -36,7 +36,7 @@ export function SiteFooter() {
             className="-ms-3 -mt-3 size-[104px]"
           />
           <p className="mt-3 text-[13px] font-semibold text-de9-ink">
-            {L("Télécharge l'application", 'حمّل التطبيق')}
+            {L("Téléchargez l'application", 'حمّل التطبيق')}
           </p>
           <div className="mt-3 flex flex-wrap gap-3">
             <a
@@ -103,12 +103,12 @@ export function SiteFooter() {
       </div>
 
       <p className="mx-auto mt-12 max-w-[1216px] text-center text-[11px] text-de9-gray">
-        Copyright © {COPYRIGHT_YEAR} Eurl Avalon Labs .{' '}
-        {L('Tous droits réservés.', 'جميع الحقوق محفوظة.')}{' '}
+        Copyright © {COPYRIGHT_YEAR} Eurl Avalon Labs ·{' '}
+        {L('Tous droits réservés', 'جميع الحقوق محفوظة')} ·{' '}
         <a href="#privacy" className="hover:underline">
-          Privacy Policy
+          {L('Politique de confidentialité', 'سياسة الخصوصية')}
         </a>{' '}
-        .{' '}
+        ·{' '}
         <a href="#terms" className="hover:underline">
           {L('Termes et conditions', 'الشروط والأحكام')}
         </a>

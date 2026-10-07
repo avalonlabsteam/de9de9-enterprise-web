@@ -275,7 +275,7 @@ export function B2cPage() {
   return (
     <div className="mx-auto w-full max-w-4xl">
       <header className="mb-5">
-        <h1 className="text-[22px] font-black text-de9-ink">{t('b2cTitle')}</h1>
+        <h1 className="text-[22px] font-extrabold text-de9-ink">{t('b2cTitle')}</h1>
         <p className="mt-1 text-[14px] text-de9-gray">
           {L('Clients particuliers — votre activité sur l’app de9de9', 'العملاء الأفراد — نشاطك على تطبيق de9de9')}
         </p>

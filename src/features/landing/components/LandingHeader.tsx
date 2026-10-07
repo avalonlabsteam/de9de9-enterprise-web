@@ -37,7 +37,7 @@ export function LandingHeader() {
           {L('Se connecter', 'تسجيل الدخول')}
         </Link>
         <Link
-          to="/login"
+          to="/role"
           className="flex h-11 items-center justify-center rounded-full border border-white px-6 text-[13px] font-semibold text-white transition-colors hover:bg-white/15"
         >
           {L('Créer un compte', 'إنشاء حساب')}

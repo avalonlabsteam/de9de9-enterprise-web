@@ -123,7 +123,7 @@ export function MouvementDetailPage() {
             {m.badge.label}
           </span>
         )}
-        <p className={cn('mt-3 text-[28px] font-black tabular-nums', DARK_TONE[m.montant.ton ?? ''] ?? 'text-white')} dir="ltr">
+        <p className={cn('mt-3 text-[28px] font-extrabold tabular-nums', DARK_TONE[m.montant.ton ?? ''] ?? 'text-white')} dir="ltr">
           {m.montant.label}
         </p>
         {m.montant.dzdLabel && <p className="text-[12.5px] text-white/65">{m.montant.dzdLabel}</p>}

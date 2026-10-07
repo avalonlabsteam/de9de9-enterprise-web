@@ -177,7 +177,7 @@ function CompanyPill({ role }: { role: Role | undefined }) {
   return (
     <Link
       to={role === 'prestataire' ? '/prestataire/profile' : '/client/profile'}
-      className="hidden h-10 items-center gap-2.5 rounded-full border border-de9-teal bg-card py-1 pe-3.5 ps-1.5 sm:flex"
+      className="hidden h-10 items-center gap-2.5 rounded-full border border-de9-teal bg-card py-1 pe-3.5 ps-1.5 transition-[filter] hover:brightness-97 sm:flex"
     >
       <span className="flex size-[30px] flex-none items-center justify-center rounded-full bg-de9-blue text-[10px] font-bold text-white shadow-soft">
         {initials}
@@ -213,11 +213,11 @@ function VerifyPill({ role }: { role: Role }) {
       className={cn(
         'hidden h-10 cursor-pointer items-center justify-center whitespace-nowrap rounded-full border px-4 text-xs font-semibold transition-[filter] md:flex',
         kyc.verified
-          ? 'border-de9-teal bg-card text-de9-teal'
+          ? 'border-de9-teal bg-card text-de9-teal-dark hover:brightness-97'
           : kyc.inReview
-            ? 'border-de9-orange-deep bg-card text-de9-orange-deep'
+            ? 'border-de9-orange-deep bg-card text-de9-orange-deep hover:brightness-97'
             : kyc.rejected
-              ? 'border-destructive bg-card text-destructive'
+              ? 'border-destructive bg-card text-destructive hover:brightness-97'
               : 'border-de9-teal bg-de9-teal text-primary-foreground shadow-glow hover:brightness-95',
       )}
     >
@@ -280,7 +280,7 @@ function RoleSwitchButton({ role, className }: { role: Role; className?: string 
         })
       }
       className={cn(
-        'relative h-10 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-full border border-de9-teal bg-card px-4 text-xs font-semibold text-de9-teal transition-[filter] hover:brightness-97 disabled:opacity-60',
+        'relative h-10 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-full border border-de9-teal bg-card px-4 text-xs font-semibold text-de9-teal-dark transition-[filter] hover:brightness-97 disabled:opacity-60',
         className,
       )}
       title={title}
@@ -300,6 +300,7 @@ export function AppLayout() {
   const mode = useThemeStore((s) => s.mode);
   const role = useAuthStore((s) => s.user?.role);
   const dir = dirOf(lang);
+  const L = useL();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   // Confirm the stored token and refresh the home / onboarding it carried.
@@ -313,15 +314,30 @@ export function AppLayout() {
   // (src/lib/domSync.ts) so public routes get them too — no effects here.
 
   const ThemeIcon = THEME_ICONS[mode];
+  const themeLabel =
+    mode === 'dark'
+      ? L('Passer au thème clair', 'التبديل إلى الوضع الفاتح')
+      : L('Passer au thème sombre', 'التبديل إلى الوضع الداكن');
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-dvh">
+      {/* First stop of the keyboard: past the topbar and the sidebar, to the page. */}
+      <a
+        href="#contenu"
+        onClick={(e) => {
+          e.preventDefault();
+          document.getElementById('contenu')?.focus();
+        }}
+        className="fixed start-4 top-4 z-50 -translate-y-[200%] rounded-lg bg-card px-4 py-2.5 text-[13px] font-semibold text-de9-ink shadow-lift transition-transform focus-visible:translate-y-0"
+      >
+        {L('Aller au contenu', 'انتقل إلى المحتوى')}
+      </a>
       {/* ===== Topbar — Deg Deg: full-width white bar, brand at the start ===== */}
       <header className="sticky top-0 z-40 bg-card shadow-soft dark:border-b dark:border-border">
         <div className="flex h-[78px] items-center gap-1.5 px-4 min-[380px]:gap-2.5 sm:gap-4 sm:px-[26px] lg:ps-10">
           <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
             <SheetTrigger asChild>
-              <button type="button" className={cn(iconButtonCls, 'lg:hidden')} aria-label="Menu">
+              <button type="button" className={cn(iconButtonCls, 'lg:hidden')} aria-label={L('Menu', 'القائمة')}>
                 <Menu className="size-[18px]" />
               </button>
             </SheetTrigger>
@@ -329,7 +345,7 @@ export function AppLayout() {
               side={dir === 'rtl' ? 'right' : 'left'}
               className="w-[260px] gap-0 overflow-y-auto bg-background p-4 pt-6"
             >
-              <SheetTitle className="sr-only">Navigation</SheetTitle>
+              <SheetTitle className="sr-only">{L('Navigation', 'التنقل')}</SheetTitle>
               <div className="mb-4 px-2">
                 <Logo />
               </div>
@@ -357,7 +373,7 @@ export function AppLayout() {
             type="button"
             onClick={uiActions.openSupport}
             className={iconButtonCls}
-            aria-label="Support"
+            aria-label={L('Support', 'الدعم')}
           >
             <Headset className="size-[18px]" />
           </button>
@@ -365,16 +381,18 @@ export function AppLayout() {
             type="button"
             onClick={themeActions.toggle}
             className={iconButtonCls}
-            aria-label={`Switch to ${mode === 'dark' ? 'light' : 'dark'} theme`}
-            title={`Switch to ${mode === 'dark' ? 'light' : 'dark'} theme`}
+            aria-label={themeLabel}
+            title={themeLabel}
           >
             <ThemeIcon className="size-[18px]" />
           </button>
           <button
             type="button"
             onClick={langActions.toggle}
-            className={cn(iconButtonCls, 'text-[13px] font-bold')}
-            aria-label="Toggle language"
+            className={cn(iconButtonCls, 'text-[13px] font-bold text-de9-teal-dark')}
+            // Named in the language it switches to.
+            aria-label={lang === 'fr' ? 'العربية' : 'Français'}
+            lang={lang === 'fr' ? 'ar' : 'fr'}
           >
             {lang === 'fr' ? 'ع' : 'FR'}
           </button>
@@ -385,12 +403,12 @@ export function AppLayout() {
       <div className="mx-auto flex w-full max-w-[1400px] items-start px-4 sm:px-6 lg:px-10">
         {/* A scrolling box clips sideways too: the 8px gutter (taken back by the margin) leaves the
             active item's outline and shadow room on its leading edge. */}
-        <aside className="sticky top-[78px] -ms-2 hidden max-h-[calc(100vh-78px)] w-[256px] flex-none overflow-y-auto ps-2 pb-10 pe-7 pt-[42px] lg:block">
+        <aside className="sticky top-[78px] -ms-2 hidden max-h-[calc(100dvh-78px)] w-[256px] flex-none overflow-y-auto ps-2 pb-10 pe-7 pt-[42px] lg:block">
           <NavList role={role} />
           {role && <RoleSwitchButton role={role} className="mt-6 inline-flex w-full justify-center" />}
         </aside>
 
-        <main className="min-w-0 flex-1 pb-[70px] pt-6 lg:ps-7 lg:pt-[42px]">
+        <main id="contenu" tabIndex={-1} className="min-w-0 flex-1 pb-[70px] pt-6 outline-none lg:ps-7 lg:pt-[42px]">
           <Outlet />
         </main>
       </div>

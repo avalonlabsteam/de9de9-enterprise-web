@@ -14,15 +14,18 @@ const TONE_PILL: Record<string, string> = {
   neutre: 'bg-secondary text-de9-gray',
 };
 
-/** The « PROCHAINE ACTION » box: a tinted panel with a coloured edge. */
+/**
+ * The « PROCHAINE ACTION » box, a banner: a tinted panel with a hairline in its
+ * tone, all the way round — never a thick edge on one side.
+ */
 const TONE_BOX: Record<string, string> = {
-  attention: 'border-de9-orange-deep/40 bg-de9-orange/10',
-  info: 'border-de9-blue/40 bg-de9-blue-tint/60',
-  action: 'border-violet-400/50 bg-violet-50 dark:bg-violet-500/10',
-  succes: 'border-de9-teal/50 bg-de9-teal-soft/60',
-  valide: 'border-emerald-400/50 bg-emerald-50 dark:bg-emerald-500/10',
-  danger: 'border-de9-red/40 bg-de9-red-soft/60',
-  neutre: 'border-border bg-secondary/60',
+  attention: 'border border-de9-orange-deep/40 bg-de9-orange/10',
+  info: 'border border-de9-blue/40 bg-de9-blue-tint/60',
+  action: 'border border-violet-400/50 bg-violet-50 dark:bg-violet-500/10',
+  succes: 'border border-de9-teal/50 bg-de9-teal-soft/60',
+  valide: 'border border-emerald-400/50 bg-emerald-50 dark:bg-emerald-500/10',
+  danger: 'border border-de9-red/40 bg-de9-red-soft/60',
+  neutre: 'border border-border bg-secondary/60',
 };
 
 /** Text only — info lines, credit lines. */

@@ -115,9 +115,9 @@ export function OffrePage() {
 
           {offre.photos.length > 0 && (
             <div className="flex snap-x gap-2 overflow-x-auto">
-              {offre.photos.map((photo) => (
+              {offre.photos.map((photo, i) => (
                 <a key={photo.url} href={photo.url} target="_blank" rel="noreferrer" className="flex-none snap-start">
-                  <img src={photo.url} alt="" className="h-44 w-64 rounded-xl object-cover" />
+                  <img src={photo.url} alt={L(`Photo ${i + 1}`, `صورة ${i + 1}`)} className="h-44 w-64 rounded-xl object-cover" />
                 </a>
               ))}
             </div>

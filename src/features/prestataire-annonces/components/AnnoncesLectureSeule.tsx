@@ -18,7 +18,7 @@ function AnnonceTile({ annonce }: { annonce: AnnonceCard }) {
           {annonce.icone ?? '🧰'}
         </span>
         <div className="min-w-0 flex-1">
-          {annonce.categorie && <p className="truncate text-xs font-semibold text-de9-teal">{annonce.categorie}</p>}
+          {annonce.categorie && <p className="truncate text-xs font-semibold text-de9-teal-dark">{annonce.categorie}</p>}
           <p className="text-[15px] font-bold break-words text-de9-ink">{annonce.service}</p>
           <p className="mt-0.5 text-[13px] text-de9-slate">{annonce.prixLabel ?? L('Sur devis', 'حسب عرض السعر')}</p>
           <div className="mt-2 flex flex-wrap gap-1.5">

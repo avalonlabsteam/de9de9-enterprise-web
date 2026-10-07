@@ -83,7 +83,7 @@ function FactureCard({ facture: f, onOpen }: { facture: Facture; onOpen: () => v
                 {f.occurrence.label}
               </span>
             )}
-            <span className="ms-auto text-[14px] font-black text-de9-ink tabular-nums">
+            <span className="ms-auto text-[14px] font-extrabold text-de9-ink tabular-nums">
               <bdi>{f.montantLabel}</bdi>
             </span>
           </div>
@@ -158,7 +158,7 @@ export function FacturesPage() {
   return (
     <div className="mx-auto flex max-w-[880px] flex-col gap-5">
       <header>
-        <h1 className="text-[22px] font-black text-de9-ink">{L('Factures', 'الفواتير')}</h1>
+        <h1 className="text-[22px] font-extrabold text-de9-ink">{L('Factures', 'الفواتير')}</h1>
         <p className="mt-0.5 text-[13px] text-de9-gray">
           {L('Confirmez les factures de vos prestations.', 'أكّد فواتير خدماتك.')}
         </p>

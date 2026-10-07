@@ -100,7 +100,7 @@ export function ClientCalendrierPage() {
   return (
     <div className="mx-auto flex max-w-[880px] flex-col gap-5">
       <header>
-        <h1 className="text-[22px] font-black text-de9-ink">{L('Calendrier', 'التقويم')}</h1>
+        <h1 className="text-[22px] font-extrabold text-de9-ink">{L('Calendrier', 'التقويم')}</h1>
         <p className="mt-0.5 text-[13px] text-de9-gray">{L('Vos interventions planifiées', 'تدخلاتك المبرمجة')}</p>
       </header>
 

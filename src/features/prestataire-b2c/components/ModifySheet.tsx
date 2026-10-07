@@ -218,7 +218,7 @@ function OrderForm({ job, busy, onCancel, onSubmit }: FormProps) {
 
         <div className="flex items-center justify-between rounded-lg bg-de9-row px-3 py-2.5">
           <span className="text-[13px] font-semibold text-de9-slate">{L('Nouveau total', 'المجموع الجديد')}</span>
-          <span className="text-[16px] font-black text-de9-ink tabular-nums">{dzd(total)}</span>
+          <span className="text-[16px] font-extrabold text-de9-ink tabular-nums">{dzd(total)}</span>
         </div>
         {touched && (!linesOk || total <= 0) && (
           <p className="text-[12px] text-de9-red">

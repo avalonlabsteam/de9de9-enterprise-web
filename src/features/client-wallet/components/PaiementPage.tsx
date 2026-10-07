@@ -58,7 +58,7 @@ function Ligne({ label, value, mono, big }: { label: string; value?: string | nu
         dir="ltr"
         className={cn(
           'min-w-0 text-end font-semibold break-all text-de9-ink',
-          big ? 'text-[19px] font-black tabular-nums' : 'text-[13px]',
+          big ? 'text-[19px] font-extrabold tabular-nums' : 'text-[13px]',
           mono && 'font-mono text-[12.5px]',
         )}
       >
@@ -140,7 +140,7 @@ function Succes({ p }: { p: Paiement }) {
     <>
       <Hero look="succes" icon={<Check className="size-8" strokeWidth={3} />} titre={p.statutLabel ?? L('Payé', 'تم الدفع')} message={p.message}>
         {p.creditsLabel && (
-          <p className="text-[17px] font-black text-de9-teal" dir="ltr">
+          <p className="text-[17px] font-extrabold text-de9-teal-dark" dir="ltr">
             +{p.creditsLabel}
           </p>
         )}

@@ -217,7 +217,7 @@ export function MissionDetailPage() {
               />
               <div className="min-w-0 flex-1">
                 {entete.client && (
-                  <p className="flex items-center gap-1.5 text-[12.5px] font-semibold text-de9-teal">
+                  <p className="flex items-center gap-1.5 text-[12.5px] font-semibold text-de9-teal-dark">
                     <Building2 className="size-3.5 flex-none" />
                     <span className="truncate">{entete.client}</span>
                   </p>
@@ -275,7 +275,7 @@ export function MissionDetailPage() {
 
         {/* « PROCHAINE ACTION » */}
         {pa && (
-          <div className={cn('flex flex-col gap-2 rounded-2xl border-s-4 px-4 py-4', toneBox(pa.balle?.ton))}>
+          <div className={cn('flex flex-col gap-2 rounded-2xl px-4 py-4', toneBox(pa.balle?.ton))}>
             <div className="flex items-center justify-between gap-2">
               <p className="text-[11px] font-extrabold tracking-[0.12em] text-de9-slate">
                 {L('PROCHAINE ACTION', 'الإجراء التالي')}

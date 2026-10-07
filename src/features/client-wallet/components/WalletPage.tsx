@@ -92,7 +92,7 @@ export function WalletPage() {
   return (
     <div className="mx-auto flex max-w-[720px] flex-col gap-5">
       <header>
-        <h1 className="text-[22px] font-black text-de9-ink">{L('Portefeuille', 'المحفظة')}</h1>
+        <h1 className="text-[22px] font-extrabold text-de9-ink">{L('Portefeuille', 'المحفظة')}</h1>
       </header>
 
       {query.isPending && (
@@ -128,7 +128,7 @@ export function WalletPage() {
           {/* The dark « Crédits disponibles » card */}
           <div className="rounded-2xl bg-gradient-to-br from-[#223042] to-[#0f172a] p-5 text-white shadow-lift">
             <p className="text-[13px] font-semibold text-white/70">{screen.carte.titre}</p>
-            <p className={cn('mt-1 text-[32px] font-black tabular-nums', darkTone(screen.carte.disponiblesTon))}>
+            <p className={cn('mt-1 text-[32px] font-extrabold tabular-nums', darkTone(screen.carte.disponiblesTon))}>
               {screen.carte.disponiblesLabel}
             </p>
             <div className="mt-4 grid grid-cols-2 gap-3">
@@ -140,7 +140,7 @@ export function WalletPage() {
 
           {/* The red banner — only when the wallet cannot cover the next approval */}
           {screen.alerte && (
-            <p className={cn('flex items-start gap-2 rounded-xl border-s-4 px-4 py-3 text-[13px] font-medium', toneBox(screen.alerte.ton), toneText(screen.alerte.ton))}>
+            <p className={cn('flex items-start gap-2 rounded-xl px-4 py-3 text-[13px] font-medium', toneBox(screen.alerte.ton), toneText(screen.alerte.ton))}>
               <ApiIcon code={screen.alerte.icone ?? 'alerte'} className="mt-0.5 size-4 flex-none" />
               {screen.alerte.texte}
             </p>
@@ -152,7 +152,7 @@ export function WalletPage() {
               type="button"
               onClick={() => navigate(`/client/wallet/paiements/${encodeURIComponent(screen.paiementEnCours?.paiementId ?? '')}`)}
               className={cn(
-                'flex cursor-pointer items-start gap-2 rounded-xl border-s-4 px-4 py-3 text-start text-[13px] font-medium',
+                'flex cursor-pointer items-start gap-2 rounded-xl px-4 py-3 text-start text-[13px] font-medium',
                 toneBox('attention'),
                 toneText('attention'),
               )}

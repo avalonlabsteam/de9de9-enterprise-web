@@ -274,7 +274,7 @@ export function SuiviDemandePage() {
 
       {/* « PROCHAINE ACTION » */}
       {pa && (
-        <div className={cn('flex flex-col gap-3 rounded-2xl border-s-4 px-4 py-4', toneBox(pa.ton))}>
+        <div className={cn('flex flex-col gap-3 rounded-2xl px-4 py-4', toneBox(pa.ton))}>
           <div className="flex items-center justify-between gap-2">
             <p className="text-[11px] font-extrabold tracking-[0.12em] text-de9-slate">
               {L('PROCHAINE ACTION', 'الإجراء التالي')}

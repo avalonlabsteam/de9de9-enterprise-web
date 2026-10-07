@@ -54,14 +54,14 @@ export function LandingPage() {
   return (
     <div>
       {/* ===== Hero — fills the first viewport ===== */}
-      <div className="flex min-h-screen flex-col overflow-hidden bg-de9-teal px-6 pt-6 sm:px-10 xl:px-[80px]">
+      <div className="flex min-h-dvh flex-col overflow-hidden bg-de9-teal px-6 pt-6 [--ring:var(--primary-foreground)] sm:px-10 xl:px-[80px]">
       <section className="relative mx-auto flex w-full max-w-[1216px] flex-1 flex-col">
         <LandingHeader />
 
         {/* ===== copy + art ===== */}
         <div className="flex flex-1 items-stretch justify-between gap-10">
           <div className="flex max-w-[560px] flex-col justify-center py-12 lg:max-w-[420px] xl:max-w-[560px]">
-            <h1 className="text-4xl font-bold leading-tight text-white sm:text-5xl">
+            <h1 className="text-4xl font-bold leading-tight text-white ltr:tracking-tight sm:text-5xl">
               {L("Gérez votre équipe", "أدر فريقك")}
             </h1>
             <p className="mt-7 text-base font-medium leading-relaxed text-white sm:text-[17px]">
@@ -106,18 +106,11 @@ export function LandingPage() {
       <RetoursSection />
 
       {/* ===== Download band + footer (share the teal backdrop) ===== */}
-      <div className="bg-de9-teal">
+      <div className="bg-de9-teal [--ring:var(--primary-foreground)]">
         <WaveDivider />
         <DownloadSection />
         <SiteFooter />
       </div>
-
-      {/* <footer className="mx-auto flex w-full max-w-[1216px] flex-wrap items-center justify-between gap-2 px-2 py-6 text-xs text-de9-gray">
-        <span>De9 De9 Entreprise — {L('Alger, Algérie', 'الجزائر العاصمة، الجزائر')}</span>
-        <a href={`mailto:${CONTACT_EMAIL}`} className="hover:underline">
-          {CONTACT_EMAIL}
-        </a>
-      </footer> */}
     </div>
   );
 }
@@ -147,7 +140,7 @@ function VisibiliteSection() {
 
         {/* copy */}
         <div className="max-w-[560px]">
-          <h2 className="text-3xl font-bold leading-tight text-de9-teal sm:text-[40px]">
+          <h2 className="text-3xl font-bold leading-tight text-de9-teal ltr:tracking-tight sm:text-[40px]">
             {L('Maximisez votre visibilité', 'عزّز ظهورك')}
           </h2>
           <p className="mt-7 text-base leading-relaxed text-de9-ink sm:text-[17px]">
@@ -178,14 +171,14 @@ function VisibiliteSection() {
 function RetoursSection() {
   const L = useL();
   const cards = [
-    { icon: BarChart3, label: L('Suivez vos\nStatistiques', 'تابع إحصائياتك') },
-    { icon: TrendingUp, label: L('Evaluez vos\nPerformances', 'قيّم أداءك') },
-    { icon: Zap, label: L('Améliorez vos\nRésultats', 'حسّن نتائجك') },
+    { icon: BarChart3, label: L('Suivez vos\nstatistiques', 'تابع إحصائياتك') },
+    { icon: TrendingUp, label: L('Évaluez vos\nperformances', 'قيّم أداءك') },
+    { icon: Zap, label: L('Améliorez vos\nrésultats', 'حسّن نتائجك') },
   ];
 
   return (
     <section className="bg-background px-6 pb-24 pt-20 sm:px-10 xl:px-[80px]">
-      <h2 className="text-center text-3xl font-bold text-de9-teal sm:text-[40px]">
+      <h2 className="text-center text-3xl font-bold text-de9-teal ltr:tracking-tight sm:text-[40px]">
         {L('Analysez vos retours', 'حلّل نتائجك')}
       </h2>
       <div className="mx-auto mt-16 flex max-w-[1000px] flex-wrap justify-center gap-14">
@@ -231,7 +224,7 @@ function DownloadSection() {
     <section className="px-6 pb-14 pt-6 sm:px-10 xl:px-[80px]">
       <div className="mx-auto flex max-w-[1216px] flex-col items-center gap-10 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-[520px] py-10 lg:py-20">
-          <h2 className="text-3xl font-bold leading-tight text-white sm:text-[40px]">
+          <h2 className="text-3xl font-bold leading-tight text-white ltr:tracking-tight sm:text-[40px]">
             {L("Téléchargez l'application", 'حمّل التطبيق')}
           </h2>
           <p className="mt-7 text-base font-semibold leading-relaxed text-white sm:text-[17px]">
@@ -263,7 +256,7 @@ function DownloadSection() {
 
         <img
           src={APP_PHONE_IMG}
-          alt=""
+          alt={L("Le tableau de bord de De9De9 Entreprise sur un téléphone", 'لوحة تحكم De9De9 Entreprise على الهاتف')}
           className="w-[300px] max-w-full flex-none lg:w-[380px]"
         />
       </div>

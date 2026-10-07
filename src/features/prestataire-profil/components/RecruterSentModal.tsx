@@ -25,7 +25,7 @@ export function RecruterSentModal({
           <span className="mx-auto mb-1 grid size-[66px] place-items-center rounded-full bg-de9-teal text-primary-foreground shadow-glow">
             <CheckCircle2 className="size-7" />
           </span>
-          <DialogTitle className="text-center text-de9-teal">{L('Demande envoyée', 'تم إرسال الطلب')}</DialogTitle>
+          <DialogTitle className="text-center text-de9-teal-dark">{L('Demande envoyée', 'تم إرسال الطلب')}</DialogTitle>
           <DialogDescription className="text-center text-xs font-semibold">
             {L(
               'Nous recherchons les sous-traitants correspondants et revenons vers vous.',

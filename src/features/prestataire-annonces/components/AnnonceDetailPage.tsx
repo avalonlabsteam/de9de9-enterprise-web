@@ -159,7 +159,7 @@ function Detail({ a }: { a: Annonce }) {
       </div>
 
       {corriger && a.motif ? (
-        <div className="flex flex-col gap-3 rounded-xl border-s-4 border-de9-red/40 bg-de9-red-soft/60 px-4 py-3.5">
+        <div className="flex flex-col gap-3 rounded-xl border border-de9-red/40 bg-de9-red-soft/60 px-4 py-3.5">
           <p className="text-[11px] font-extrabold tracking-[0.1em] text-de9-red uppercase">{L('Motif de de9de9', 'سبب de9de9')}</p>
           <p className="text-[13.5px] whitespace-pre-line text-de9-ink">{a.motif}</p>
           <Button size="sm" className="self-start" onClick={() => navigate(editPath(a.id))}>
@@ -190,9 +190,9 @@ function Detail({ a }: { a: Annonce }) {
 
       {a.photos.length > 0 && (
         <div className="flex snap-x gap-2 overflow-x-auto">
-          {a.photos.map((photo) => (
+          {a.photos.map((photo, i) => (
             <a key={photo.id} href={photo.url} target="_blank" rel="noreferrer" className="flex-none snap-start">
-              <img src={photo.url} alt="" className="h-44 w-64 rounded-xl object-cover" />
+              <img src={photo.url} alt={L(`Photo ${i + 1}`, `صورة ${i + 1}`)} className="h-44 w-64 rounded-xl object-cover" />
             </a>
           ))}
         </div>
