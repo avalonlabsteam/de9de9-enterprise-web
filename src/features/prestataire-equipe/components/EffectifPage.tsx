@@ -32,7 +32,7 @@ export function EffectifPage() {
   return (
     <div className="mx-auto flex max-w-[880px] flex-col gap-5">
       <header>
-        <h1 className="text-[20px] font-extrabold text-de9-ink">{t('effectifTitle')}</h1>
+        <h1 className="text-[22px] font-extrabold text-de9-ink">{t('effectifTitle')}</h1>
         {data && (
           <p className="mt-0.5 text-[13px] text-de9-gray">
             {L(`${data.length} membre(s) actif(s)`, `${data.length} عضو نشط`)}

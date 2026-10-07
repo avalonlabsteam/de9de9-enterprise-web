@@ -144,7 +144,7 @@ export function MyTendersPage() {
   return (
     <div className="mx-auto max-w-3xl">
       <header className="mb-5">
-        <h1 className="text-xl font-extrabold text-de9-ink">{t('suiviTitle')}</h1>
+        <h1 className="text-[22px] font-extrabold text-de9-ink">{t('suiviTitle')}</h1>
         <p className="mt-0.5 text-[13px] text-de9-slate">{t('suiviHint')}</p>
       </header>
 

@@ -179,7 +179,7 @@ export function AnnoncesPage() {
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-5">
       <header>
-        <h1 className="text-[22px] font-black text-de9-ink">{L('Annonces', 'الإعلانات')}</h1>
+        <h1 className="text-[22px] font-extrabold text-de9-ink">{L('Annonces', 'الإعلانات')}</h1>
       </header>
 
       <Tabs value={tab} onValueChange={setTab}>

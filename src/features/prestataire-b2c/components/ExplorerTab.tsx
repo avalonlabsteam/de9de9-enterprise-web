@@ -69,7 +69,7 @@ function PostCard({ post, onOpen }: { post: ExploreTask; onOpen: () => void }) {
           <ClientAvatar name={post.fullNameClient ?? ''} photo={post.photoUrl} />
           <div className="min-w-0 flex-1">
             {/* A post has no title: its service names it. */}
-            <p className="truncate text-xs font-semibold text-de9-teal">{post.category}</p>
+            <p className="truncate text-xs font-semibold text-de9-teal-dark">{post.category}</p>
             <p className="truncate text-[15px] font-bold text-de9-ink">{post.service ?? post.category ?? L('Demande', 'طلب')}</p>
             <p className="truncate text-xs text-de9-gray">{post.fullNameClient}</p>
           </div>
@@ -218,7 +218,7 @@ function OfferCard({ offer }: { offer: MyOffer }) {
       <div className="flex items-start gap-3">
         <ClientAvatar name={offer.clientFullName ?? ''} photo={offer.clientPhoto} />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-xs font-semibold text-de9-teal">{offer.category}</p>
+          <p className="truncate text-xs font-semibold text-de9-teal-dark">{offer.category}</p>
           <p className="truncate text-[15px] font-bold text-de9-ink">
             {offer.categoryService ?? offer.category ?? L('Offre', 'عرض')}
           </p>

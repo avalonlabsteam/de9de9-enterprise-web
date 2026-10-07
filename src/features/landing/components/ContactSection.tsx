@@ -45,13 +45,13 @@ export function ContactSection() {
 
   return (
     <section id="contact" className="bg-background px-6 pb-24 pt-20 sm:px-10 xl:px-[80px]">
-      <h2 className="text-center text-3xl font-bold text-de9-teal sm:text-[40px]">
+      <h2 className="text-center text-3xl font-bold text-de9-teal ltr:tracking-tight sm:text-[40px]">
         {L('Nous contacter', 'اتصل بنا')}
       </h2>
 
       <div className="mx-auto mt-12 flex max-w-[1000px] flex-col gap-5 lg:grid lg:grid-cols-[380px_minmax(0,1fr)] lg:gap-0 lg:overflow-hidden lg:rounded-[20px] lg:shadow-float">
         {/* coordinates — below the form on mobile, beside it from lg */}
-        <div className="relative order-2 overflow-hidden rounded-[20px] bg-de9-teal px-8 pb-40 pt-9 lg:order-1 lg:rounded-none">
+        <div className="relative order-2 overflow-hidden rounded-[20px] bg-de9-teal px-8 pb-40 pt-9 [--ring:var(--primary-foreground)] lg:order-1 lg:rounded-none">
           <img src={LOGO_WHITE_IMG} alt="De9 De9 Entreprise" className="mx-auto h-[58px] w-auto" />
           <h3 className="mt-7 text-center text-[19px] font-bold text-white">
             {L('Nos coordonnées', 'إحداثياتنا')}
@@ -116,7 +116,7 @@ export function ContactSection() {
           <Textarea
             {...register('message')}
             rows={5}
-            placeholder={L('Écris ton message ici', 'اكتب رسالتك هنا')}
+            placeholder={L('Écrivez votre message ici', 'اكتب رسالتك هنا')}
             aria-invalid={Boolean(errors.message)}
             aria-label={L('Message', 'الرسالة')}
             className="mt-4 min-h-[150px] rounded-[10px] border-transparent bg-de9-row px-5 py-4 text-[15px] placeholder:text-de9-teal-dark"

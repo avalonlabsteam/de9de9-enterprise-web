@@ -30,8 +30,9 @@ const LOGO_LABEL: Record<string, string> = { cib: 'CIB', edahabia: 'Edahabia' };
  * every notice come from the wallet's answer; the one thing computed here is
  * « = N crédits » under the input.
  *
- * Read top to bottom: what the block is, the amount (the one thing typed), who
- * pays and the terms, « Payer » — then the bank's notices, quiet under it.
+ * Two sides, read across: what the block is and the amount (the one thing
+ * typed), then who pays, the terms and « Payer », the bank's notices quiet
+ * under it. On a phone's narrow sheet the second side goes under the first.
  */
 function PayerEnLigne({ enLigne, busy, setBusy, onGone }: {
   enLigne: EnLigne;
@@ -153,187 +154,201 @@ function PayerEnLigne({ enLigne, busy, setBusy, onGone }: {
   const conditionsRouges = (touched && !accepte) || refus?.champ === 'conditions';
 
   return (
-    <section className="flex flex-col gap-4 rounded-2xl border border-border p-4">
-      {/* What this block is — and the cards it takes, beside its name */}
-      <div className="flex items-start gap-3">
-        <span className="grid size-10 flex-none place-items-center rounded-xl bg-de9-teal text-primary-foreground">
-          <CreditCard className="size-5" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <h3 className="text-[15px] font-bold text-de9-ink">{enLigne.titre}</h3>
-            {enLigne.logos.map((logo) => (
-              <span
-                key={logo}
-                className="rounded-md border border-border px-1.5 py-0.5 text-[10px] font-extrabold tracking-wide text-de9-slate uppercase"
-              >
-                {LOGO_LABEL[logo] ?? logo}
-              </span>
-            ))}
+    <section className="grid min-w-0 grid-cols-1 overflow-hidden rounded-2xl border border-border md:grid-cols-2">
+      <div className="@container flex min-w-0 flex-col gap-4 p-4 lg:p-5">
+        {/* What this block is — and the cards it takes, beside its name */}
+        <div className="flex items-start gap-3">
+          <span className="grid size-10 flex-none place-items-center rounded-xl bg-de9-teal text-primary-foreground">
+            <CreditCard className="size-5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <h3 className="text-[15px] font-bold text-de9-ink">{enLigne.titre}</h3>
+              {enLigne.logos.map((logo) => (
+                <span
+                  key={logo}
+                  className="rounded-md border border-border px-1.5 py-0.5 text-[10px] font-extrabold tracking-wide text-de9-slate uppercase"
+                >
+                  {LOGO_LABEL[logo] ?? logo}
+                </span>
+              ))}
+            </div>
+            {enLigne.texte && <p className="mt-0.5 text-[12.5px] text-de9-slate">{enLigne.texte}</p>}
           </div>
-          {enLigne.texte && <p className="mt-0.5 text-[12.5px] text-de9-slate">{enLigne.texte}</p>}
         </div>
-      </div>
 
-      {/* The amount: the usual ones are one tap away, any other is typed */}
-      <div className="flex flex-col gap-2">
-        <label htmlFor="recharge-montant" className="text-[12px] font-semibold text-de9-gray">
-          {L('Montant', 'المبلغ')}
-        </label>
-        {enLigne.montantsSuggeres.length > 0 && (
-          // Four across once the sheet has its full width; a cell is then just wider than « 500 000 DA ».
-          <div className="grid grid-cols-2 gap-2 min-[480px]:grid-cols-4">
-            {enLigne.montantsSuggeres.map((m) => (
-              <button
-                key={m.dzd}
-                type="button"
-                disabled={busy}
-                title={m.creditsLabel ?? undefined}
-                aria-pressed={m.dzd === dzd}
-                onClick={() => setMontant(String(m.dzd))}
-                className={cn(
-                  'h-9 cursor-pointer rounded-full border px-1 text-[13px] font-bold whitespace-nowrap transition-colors',
-                  m.dzd === dzd
-                    ? 'border-de9-teal bg-de9-teal-soft text-de9-teal-dark'
-                    : 'border-border bg-card text-de9-ink hover:border-de9-teal',
-                )}
-              >
-                {m.label}
-              </button>
-            ))}
-          </div>
-        )}
-        <div
-          className={cn(
-            'flex h-14 items-center gap-2.5 rounded-xl border bg-card px-4 focus-within:border-de9-teal focus-within:ring-2 focus-within:ring-de9-teal/25',
-            erreurMontant ? 'border-destructive' : 'border-input',
+        {/* The amount: the usual ones are one tap away, any other is typed */}
+        <div className="flex flex-col gap-2">
+          <label htmlFor="recharge-montant" className="text-[12px] font-semibold text-de9-gray">
+            {L('Montant', 'المبلغ')}
+          </label>
+          {enLigne.montantsSuggeres.length > 0 && (
+            // Four across once this side is wide enough for it — a cell is then just wider than « 500 000 DA » —
+            // by the side's own width, not the window's: beside the other side it is half the sheet.
+            <div className="grid grid-cols-2 gap-2 @[23rem]:grid-cols-4">
+              {enLigne.montantsSuggeres.map((m) => (
+                <button
+                  key={m.dzd}
+                  type="button"
+                  disabled={busy}
+                  title={m.creditsLabel ?? undefined}
+                  aria-pressed={m.dzd === dzd}
+                  onClick={() => setMontant(String(m.dzd))}
+                  className={cn(
+                    'h-9 cursor-pointer rounded-full border px-1 text-[13px] font-bold whitespace-nowrap transition-colors',
+                    m.dzd === dzd
+                      ? 'border-de9-teal bg-de9-teal-soft text-de9-teal-dark'
+                      : 'border-border bg-card text-de9-ink hover:border-de9-teal',
+                  )}
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
           )}
-        >
-          <Banknote className="size-5 flex-none text-de9-gray" />
-          <input
-            id="recharge-montant"
-            inputMode="numeric"
-            autoComplete="off"
-            dir="ltr"
-            disabled={busy}
-            value={saisie}
-            onChange={(e) => setMontant(e.target.value)}
-            placeholder={nf.format(enLigne.minDzd)}
-            aria-invalid={!!erreurMontant}
-            className="min-w-0 flex-1 bg-transparent text-[22px] font-bold text-de9-ink tabular-nums outline-none placeholder:font-medium placeholder:text-de9-gray/60"
-          />
-          <span className="flex-none rounded-md bg-secondary px-2 py-1 text-[12px] font-bold text-de9-slate">DA</span>
-        </div>
-        {erreurMontant ? (
-          <p className="flex items-center gap-1.5 text-[12px] text-destructive">
-            <TriangleAlert className="size-3.5 flex-none" />
-            {erreurMontant}
-          </p>
-        ) : (
-          dzd > 0 && (
-            <p className="flex items-center gap-1.5 text-[13px] font-semibold text-de9-teal-dark">
-              <Coins className="size-4 flex-none" />
-              <span dir="ltr">= {chip?.creditsLabel ?? `${nf.format(dzd * enLigne.creditsParDzd)} ${L('crédits', 'رصيد')}`}</span>
-            </p>
-          )
-        )}
-      </div>
-
-      {/* Who pays, and the terms: the server refuses a payment without them, and records the version accepted. */}
-      <div className="flex flex-col gap-2 rounded-xl bg-secondary/60 px-3.5 py-2.5">
-        {enLigne.payeurLabel && (
-          <p className="flex items-center gap-2 text-[12.5px] font-semibold text-de9-ink">
-            <UserRound className="size-4 flex-none text-de9-gray" />
-            {enLigne.payeurLabel}
-          </p>
-        )}
-        <label className="flex cursor-pointer items-start gap-2.5 text-[12.5px] text-de9-slate">
-          <Checkbox
-            className="mt-0.5 bg-card"
-            checked={accepte}
-            disabled={busy}
-            aria-invalid={conditionsRouges}
-            onCheckedChange={(checked) => {
-              setAccepte(checked === true);
-              setRefus(null);
-            }}
-          />
-          <span>
-            {enLigne.conditionsLabel ?? L("J'accepte les conditions générales de paiement en ligne.", 'أوافق على الشروط العامة للدفع الإلكتروني.')}{' '}
-            {enLigne.conditionsUrl && (
-              <a
-                href={enLigne.conditionsUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="font-semibold text-de9-teal-dark underline underline-offset-2"
-              >
-                {L('Lire les conditions', 'قراءة الشروط')}
-              </a>
+          <div
+            className={cn(
+              'flex h-14 items-center gap-2.5 rounded-xl border bg-card px-4 focus-within:border-de9-teal focus-within:ring-2 focus-within:ring-de9-teal/25',
+              erreurMontant ? 'border-destructive' : 'border-input',
             )}
-          </span>
-        </label>
-        {refus?.champ === 'conditions' && refus.message && <p className="text-[12px] text-destructive">{refus.message}</p>}
+          >
+            <Banknote className="size-5 flex-none text-de9-gray" />
+            <input
+              id="recharge-montant"
+              inputMode="numeric"
+              autoComplete="off"
+              dir="ltr"
+              disabled={busy}
+              value={saisie}
+              onChange={(e) => setMontant(e.target.value)}
+              placeholder={nf.format(enLigne.minDzd)}
+              aria-invalid={!!erreurMontant}
+              className="min-w-0 flex-1 bg-transparent text-[22px] font-bold text-de9-ink tabular-nums outline-none placeholder:font-medium placeholder:text-de9-gray/60"
+            />
+            <span className="flex-none rounded-md bg-secondary px-2 py-1 text-[12px] font-bold text-de9-slate">DA</span>
+          </div>
+          {/* Its line is kept on the wide sheet, so that typing an amount moves nothing. */}
+          <div className="empty:hidden md:min-h-5 md:empty:block">
+            {erreurMontant ? (
+              <p className="flex items-center gap-1.5 text-[12px] text-destructive">
+                <TriangleAlert className="size-3.5 flex-none" />
+                {erreurMontant}
+              </p>
+            ) : (
+              dzd > 0 && (
+                <p className="flex items-center gap-1.5 text-[13px] font-semibold text-de9-teal-dark">
+                  <Coins className="size-4 flex-none" />
+                  <span dir="ltr">= {chip?.creditsLabel ?? `${nf.format(dzd * enLigne.creditsParDzd)} ${L('crédits', 'رصيد')}`}</span>
+                </p>
+              )
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* CAPTCHA (SATIM checkout checklist): the provider is not chosen yet — its widget mounts here. */}
-      <div id="paiement-captcha" className="empty:hidden" />
-
-      <button
-        type="button"
-        onClick={() => void payer()}
-        disabled={busy || !valide}
-        className="flex h-12 cursor-pointer items-center justify-center gap-2 rounded-full bg-de9-teal text-[15px] font-bold text-primary-foreground shadow-glow transition-colors hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
-      >
-        {busy ? <Loader2 className="size-5 animate-spin" /> : <ApiIcon code={enLigne.action.icone ?? 'carte'} className="size-5" />}
-        {busy ? (
-          L('Connexion à la banque…', 'جارٍ الاتصال بالبنك…')
-        ) : (
-          <span dir="ltr">
-            {enLigne.action.label}
-            {dansLimites && ` ${chip?.label ?? `${nf.format(dzd)} DA`}`}
-          </span>
-        )}
-      </button>
-
-      {/* The bank's notices: they must be on the screen, not in the way. */}
-      {(enLigne.mentionInteroperabilite || enLigne.mentionNumeroVert) && (
-        <ul className="flex flex-col gap-1.5 text-[11px] leading-snug text-de9-gray">
-          {enLigne.mentionInteroperabilite && (
-            <li className="flex items-start gap-1.5">
-              <ShieldCheck className="mt-px size-3.5 flex-none" />
-              {enLigne.mentionInteroperabilite}
-            </li>
+      {/* The other side, tinted: it is where the payment is agreed to and sent. */}
+      <div className="flex min-w-0 flex-col gap-4 border-t border-border bg-secondary/50 p-4 md:border-s md:border-t-0 lg:p-5">
+        {/* Who pays, and the terms: the server refuses a payment without them, and records the version accepted. */}
+        <div className="flex flex-col gap-2">
+          {enLigne.payeurLabel && (
+            <p className="flex items-center gap-2 text-[12.5px] font-semibold text-de9-ink">
+              <UserRound className="size-4 flex-none text-de9-gray" />
+              {enLigne.payeurLabel}
+            </p>
           )}
-          {enLigne.mentionNumeroVert && (
-            <li className="flex items-start gap-1.5">
-              <PhoneCall className="mt-px size-3.5 flex-none" />
-              {enLigne.mentionNumeroVert}
-            </li>
+          <label className="flex cursor-pointer items-start gap-2.5 text-[12.5px] text-de9-slate">
+            <Checkbox
+              className="mt-0.5 bg-card"
+              checked={accepte}
+              disabled={busy}
+              aria-invalid={conditionsRouges}
+              onCheckedChange={(checked) => {
+                setAccepte(checked === true);
+                setRefus(null);
+              }}
+            />
+            <span>
+              {enLigne.conditionsLabel ?? L("J'accepte les conditions générales de paiement en ligne.", 'أوافق على الشروط العامة للدفع الإلكتروني.')}{' '}
+              {enLigne.conditionsUrl && (
+                <a
+                  href={enLigne.conditionsUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-semibold text-de9-teal-dark underline underline-offset-2"
+                >
+                  {L('Lire les conditions', 'قراءة الشروط')}
+                </a>
+              )}
+            </span>
+          </label>
+          {refus?.champ === 'conditions' && refus.message && <p className="text-[12px] text-destructive">{refus.message}</p>}
+        </div>
+
+        {/* CAPTCHA (SATIM checkout checklist): the provider is not chosen yet — its widget mounts here. */}
+        <div id="paiement-captcha" className="empty:hidden" />
+
+        {/* At the foot of its side, whatever the height of the other one. */}
+        <div className="flex flex-col gap-3 md:mt-auto">
+          <button
+            type="button"
+            onClick={() => void payer()}
+            disabled={busy || !valide}
+            className="flex h-12 cursor-pointer items-center justify-center gap-2 rounded-full bg-de9-teal text-[15px] font-bold text-primary-foreground shadow-glow transition-colors hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
+          >
+            {busy ? <Loader2 className="size-5 animate-spin" /> : <ApiIcon code={enLigne.action.icone ?? 'carte'} className="size-5" />}
+            {busy ? (
+              L('Connexion à la banque…', 'جارٍ الاتصال بالبنك…')
+            ) : (
+              <span dir="ltr">
+                {enLigne.action.label}
+                {dansLimites && ` ${chip?.label ?? `${nf.format(dzd)} DA`}`}
+              </span>
+            )}
+          </button>
+
+          {/* The bank's notices: they must be on the screen, not in the way. */}
+          {(enLigne.mentionInteroperabilite || enLigne.mentionNumeroVert) && (
+            <ul className="flex flex-col gap-1.5 text-[11px] leading-snug text-de9-gray">
+              {enLigne.mentionInteroperabilite && (
+                <li className="flex items-start gap-1.5">
+                  <ShieldCheck className="mt-px size-3.5 flex-none" />
+                  {enLigne.mentionInteroperabilite}
+                </li>
+              )}
+              {enLigne.mentionNumeroVert && (
+                <li className="flex items-start gap-1.5">
+                  <PhoneCall className="mt-px size-3.5 flex-none" />
+                  {enLigne.mentionNumeroVert}
+                </li>
+              )}
+            </ul>
           )}
-        </ul>
-      )}
+        </div>
+      </div>
     </section>
   );
 }
 
 /**
- * Under the card block: the other ways in, as quiet rows — « Payer » stays the
- * one button of the sheet. The bank transfer is a row without a link: its RIB
- * comes from the client's adviser.
+ * Under the card block: the other ways in, quiet — « Payer » stays the one
+ * button of the sheet. One strip: a row each on a narrow sheet, side by side
+ * on a wide one. The bank transfer has no link: its RIB comes from the
+ * client's adviser.
  */
 function AutresMoyens({ feuille }: { feuille: FeuilleRecharge }) {
   if (feuille.canaux.length === 0 && !feuille.virement) return null;
   return (
-    <section className="flex flex-col gap-2">
+    <section className="flex min-w-0 flex-col gap-2">
       {feuille.autresMoyensTitre && <h3 className="text-[12px] font-semibold text-de9-gray">{feuille.autresMoyensTitre}</h3>}
-      <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border">
+      {/* The hairlines between the cells are the gaps: they hold however the cells wrap. */}
+      <ul className="flex flex-col gap-px overflow-hidden rounded-xl border border-border bg-border md:flex-row md:flex-wrap">
         {feuille.canaux.map((canal) => (
-          <li key={canal.href}>
+          <li key={canal.href} className="min-w-0 bg-popover md:flex-[1_0_auto]">
             <a
               href={canal.href}
               target={canal.href.startsWith('http') ? '_blank' : undefined}
               rel="noreferrer"
-              className="flex items-center gap-3 px-3.5 py-2 transition-colors hover:bg-secondary/60"
+              className="flex h-full items-center gap-3 px-3.5 py-2.5 transition-colors hover:bg-secondary/60"
             >
               <span
                 className={cn(
@@ -351,7 +366,8 @@ function AutresMoyens({ feuille }: { feuille: FeuilleRecharge }) {
           </li>
         ))}
         {feuille.virement && (
-          <li className="flex items-start gap-3 px-3.5 py-2">
+          // A channel is as wide as its label — a number is never cut; this one takes the room left.
+          <li className="flex min-w-0 items-start gap-3 bg-popover px-3.5 py-2.5 md:flex-[1_1_16rem] md:items-center">
             <span className="grid size-8 flex-none place-items-center rounded-full bg-de9-blue-tint text-de9-blue">
               <ApiIcon code={feuille.virement.icone ?? 'banque'} className="size-4" />
             </span>
@@ -368,9 +384,11 @@ function AutresMoyens({ feuille }: { feuille: FeuilleRecharge }) {
 
 /**
  * « Recharger mes crédits ». With `feuille.enLigne`: the card payment block,
- * then « Autres moyens » as quiet rows. Without it (the feature is off, de9de9
- * staff, a company outside the pilot list): the contact sheet alone — one
- * button per channel de9de9 configured and the bank-transfer tile, nothing sent.
+ * then « Autres moyens » as a quiet strip — a wide sheet, laid out across, so
+ * all of it is on screen without scrolling; a narrow one on a phone. Without it
+ * (the feature is off, de9de9 staff, a company outside the pilot list): the
+ * contact sheet alone, narrow — one button per channel de9de9 configured and
+ * the bank-transfer tile, nothing sent.
  */
 export function RechargeSheet({
   feuille,
@@ -383,15 +401,25 @@ export function RechargeSheet({
   onRefresh: () => void;
 }) {
   const [busy, setBusy] = useState(false);
+  /** The card payment has two sides to lay out across; the contact sheet alone stays narrow. */
+  const wide = !!feuille.enLigne;
   return (
     // Not closable while « Payer » talks to the bank: a second press must not get through.
     <Dialog open onOpenChange={(open) => !open && !busy && onClose()}>
-      <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-md">
-        <DialogHeader className="flex-row items-center gap-3 pe-8">
+      <DialogContent
+        // No sideways scroll, ever: when the sheet scrolls, its scrollbar takes its width from the content.
+        className={cn(
+          'max-h-[92dvh] overflow-x-hidden overflow-y-auto sm:max-w-md',
+          // Wide from a tablet up — still a margin's width away from the window's edges.
+          wide && 'md:max-w-[min(48rem,calc(100%-2rem))] lg:max-w-4xl lg:gap-5 lg:p-6',
+        )}
+      >
+        <DialogHeader className="min-w-0 flex-row items-center gap-3 pe-8">
           <span className="grid size-11 flex-none place-items-center rounded-xl bg-de9-teal-soft text-de9-teal-dark">
             <Wallet className="size-5" />
           </span>
-          <div className="flex min-w-0 flex-col items-start gap-1.5">
+          {/* The rate beside the title once there is room for both on one line. */}
+          <div className={cn('flex min-w-0 flex-col items-start gap-1.5', wide && 'md:flex-row md:items-center md:gap-3')}>
             <DialogTitle className="text-[17px] leading-tight font-bold text-de9-ink">{feuille.titre}</DialogTitle>
             {feuille.sousTitre && (
               <DialogDescription className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-0.5 text-[12px] font-semibold text-de9-slate">

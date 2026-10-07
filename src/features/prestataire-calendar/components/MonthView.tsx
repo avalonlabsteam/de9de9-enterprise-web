@@ -115,7 +115,7 @@ export function MonthView({
                       onOpen(e);
                     }}
                     style={eventStyle(e)}
-                    className="flex items-center gap-1 truncate rounded border-s-[3px] px-1 py-0.5 text-start text-[11px] leading-tight text-de9-ink hover:brightness-95"
+                    className="flex items-center gap-1 truncate rounded border px-1 py-0.5 text-start text-[11px] leading-tight text-de9-ink hover:brightness-95"
                     title={e.titre}
                   >
                     {e.heureLabel && <span className="flex-none font-bold tabular-nums">{e.heureLabel}</span>}

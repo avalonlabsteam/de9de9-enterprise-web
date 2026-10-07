@@ -31,7 +31,7 @@ export function DemandesDevisPage() {
   return (
     <div className="mx-auto w-full max-w-4xl">
       <header className="mb-5">
-        <h1 className="text-[22px] font-black text-de9-ink">{last?.titre ?? L('Demandes de devis', 'طلبات عروض الأسعار')}</h1>
+        <h1 className="text-[22px] font-extrabold text-de9-ink">{last?.titre ?? L('Demandes de devis', 'طلبات عروض الأسعار')}</h1>
         <p className="mt-1 text-[14px] text-de9-gray">
           {last?.sousTitre ??
             L('Envoyées par de9de9 pour ses clients entreprises', 'مرسلة من de9de9 لعملائها من الشركات')}

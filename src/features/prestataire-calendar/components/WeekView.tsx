@@ -98,7 +98,7 @@ export function WeekView({
                         insetInlineStart: `calc(${(lane / lanes) * 100}% + 2px)`,
                         width: `calc(${100 / lanes}% - 4px)`,
                       }}
-                      className="absolute flex flex-col gap-0.5 overflow-hidden rounded-md border-s-[3px] px-1.5 py-1 text-start text-de9-ink shadow-soft hover:brightness-95"
+                      className="absolute flex flex-col gap-0.5 overflow-hidden rounded-md border px-1.5 py-1 text-start text-de9-ink shadow-soft hover:brightness-95"
                     >
                       <span className="text-[10.5px] font-bold tabular-nums" dir="ltr">
                         {e.heureLabel}

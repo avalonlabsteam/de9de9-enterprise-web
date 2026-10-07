@@ -33,7 +33,7 @@ export function MissionsPage() {
   return (
     <div className="mx-auto w-full max-w-4xl">
       <header className="mb-5">
-        <h1 className="text-[22px] font-black text-de9-ink">{last?.titre ?? L('B2B · Entreprises', 'B2B · شركات')}</h1>
+        <h1 className="text-[22px] font-extrabold text-de9-ink">{last?.titre ?? L('B2B · Entreprises', 'B2B · شركات')}</h1>
         <p className="mt-1 text-[14px] text-de9-gray">
           {last?.sousTitre ?? L('Missions assignées par de9de9 (clients entreprises)', 'مهام مُسندة من de9de9 (عملاء شركات)')}
         </p>
@@ -98,7 +98,7 @@ function MissionCard({ m }: { m: MissionCarte }) {
         <CategoryBubble icone={m.icone ?? m.categorie?.icone} famille={m.categorie?.famille} className="flex-none" />
         <div className="min-w-0 flex-1">
           {m.client && (
-            <p className="flex items-center gap-1.5 text-xs font-semibold text-de9-teal">
+            <p className="flex items-center gap-1.5 text-xs font-semibold text-de9-teal-dark">
               <Building2 className="size-3.5 flex-none" />
               <span className="truncate">{m.client}</span>
             </p>

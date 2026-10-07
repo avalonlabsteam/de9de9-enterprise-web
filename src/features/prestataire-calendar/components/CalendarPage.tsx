@@ -95,7 +95,7 @@ export function CalendarPage() {
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-4">
       <header>
-        <h1 className="text-[22px] font-black text-de9-ink">{L('Calendrier', 'التقويم')}</h1>
+        <h1 className="text-[22px] font-extrabold text-de9-ink">{L('Calendrier', 'التقويم')}</h1>
       </header>
 
       {/* Toolbar — Aujourd'hui · ‹ › · the period · Mois / Semaine / Planning */}

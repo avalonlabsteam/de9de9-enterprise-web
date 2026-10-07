@@ -181,9 +181,9 @@ function PostBody({ post, onApply, onOpenOffer }: { post: ClientPost; onApply: (
 
       {post.mediaUrls.length > 0 && (
         <div className="flex gap-2 overflow-x-auto">
-          {post.mediaUrls.map((url) => (
+          {post.mediaUrls.map((url, i) => (
             <a key={url} href={url} target="_blank" rel="noreferrer" className="flex-none">
-              <img src={url} alt="" className="size-24 rounded-lg object-cover" />
+              <img src={url} alt={L(`Photo ${i + 1}`, `صورة ${i + 1}`)} className="size-24 rounded-lg object-cover" />
             </a>
           ))}
         </div>

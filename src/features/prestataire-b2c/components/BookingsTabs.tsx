@@ -35,7 +35,7 @@ function JobCard({ job, readOnly }: { job: CardModel; readOnly?: boolean }) {
         <div className="flex items-start gap-3">
           <ClientAvatar name={job.client} photo={job.photo} />
           <div className="min-w-0 flex-1">
-            <p className="truncate text-xs font-semibold text-de9-teal">{job.service}</p>
+            <p className="truncate text-xs font-semibold text-de9-teal-dark">{job.service}</p>
             <p className="truncate text-[15px] font-bold text-de9-ink">{job.client}</p>
             {job.sub && <p className="truncate text-xs text-de9-gray">{job.sub}</p>}
           </div>

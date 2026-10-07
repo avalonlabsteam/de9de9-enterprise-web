@@ -3,7 +3,7 @@ import { MapPin } from 'lucide-react';
 import { WorkerAvatar } from '@/components/common/WorkerAvatar';
 import { TonePill } from '@/components/actions/parts';
 import type { Evenement } from '../schemas/calendar';
-import { eventStyle, heuresOf } from './eventStyle';
+import { colourOf, heuresOf } from './eventStyle';
 
 /**
  * « Planning » — the events day after day, under each day's `jourLabel`. Also
@@ -36,8 +36,9 @@ export function PlanningList({ events, onOpen }: { events: Evenement[]; onOpen: 
                   <span className="w-[88px] flex-none pt-0.5 text-[12.5px] font-bold text-de9-ink tabular-nums" dir="ltr">
                     {heuresOf(e) ?? '—'}
                   </span>
-                  <span className="min-w-0 flex-1 rounded-md border-s-[3px] ps-2.5" style={{ borderInlineStartColor: eventStyle(e).borderInlineStartColor }}>
+                  <span className="min-w-0 flex-1">
                     <span className="flex flex-wrap items-center gap-1.5">
+                      <span className="size-2.5 flex-none rounded-full" style={{ backgroundColor: colourOf(e) }} aria-hidden />
                       {e.sourceLabel && (
                         <span className="rounded-full bg-secondary px-1.5 py-0.5 text-[10px] font-extrabold text-de9-slate">
                           {e.sourceLabel}

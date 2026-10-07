@@ -154,7 +154,7 @@ export function DemandeDevisPage() {
 
       {/* « PROCHAINE ACTION » */}
       {pa && (
-        <div className={cn('flex flex-col gap-2 rounded-2xl border-s-4 px-4 py-4', toneBox(pa.balle?.ton))}>
+        <div className={cn('flex flex-col gap-2 rounded-2xl px-4 py-4', toneBox(pa.balle?.ton))}>
           <div className="flex items-center justify-between gap-2">
             <p className="text-[11px] font-extrabold tracking-[0.12em] text-de9-slate">
               {L('PROCHAINE ACTION', 'الإجراء التالي')}
@@ -195,7 +195,7 @@ export function DemandeDevisPage() {
               {monDevis.statut && <TonePill tag={monDevis.statut} />}
             </div>
             {monDevis.montantLabel && (
-              <p className="text-[24px] font-black text-de9-ink tabular-nums">{monDevis.montantLabel}</p>
+              <p className="text-[24px] font-extrabold text-de9-ink tabular-nums">{monDevis.montantLabel}</p>
             )}
             {monDevis.validiteLabel && <p className="text-[13px] font-semibold text-de9-slate">{monDevis.validiteLabel}</p>}
             {monDevis.message && (

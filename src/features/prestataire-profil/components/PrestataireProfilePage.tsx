@@ -64,7 +64,7 @@ export function PrestataireProfilePage() {
 
   return (
     <div className="mx-auto flex max-w-[640px] flex-col gap-5">
-      <h1 className="text-[20px] font-extrabold text-de9-ink">{t('profilTitle')}</h1>
+      <h1 className="text-[22px] font-extrabold text-de9-ink">{t('profilTitle')}</h1>
 
       {/* Company card */}
       <Card>

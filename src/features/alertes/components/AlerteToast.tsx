@@ -3,11 +3,11 @@ import { cn } from '@/lib/utils';
 import { useL } from '@/lib/i18n';
 import type { Alerte } from '../schemas/alerte';
 import { cheminOf } from '../lib/chemin';
-import { tonEdge, tonTile } from '../lib/libelles';
+import { tonTile } from '../lib/libelles';
 import { AlerteIcone } from './AlerteIcone';
 
 const shell =
-  'relative flex w-[356px] max-w-[calc(100vw-32px)] items-start gap-3 rounded-xl border border-s-4 border-border bg-popover p-3.5 pe-9 text-start text-popover-foreground shadow-lift';
+  'relative flex w-[356px] max-w-[calc(100vw-32px)] items-start gap-3 rounded-xl border border-border bg-popover p-3.5 pe-9 text-start text-popover-foreground shadow-lift';
 
 function CloseButton({ onClose }: { onClose: () => void }) {
   const L = useL();
@@ -49,7 +49,7 @@ export function AlerteToast({ alerte, onOpen, onClose }: { alerte: Alerte; onOpe
             }
           : undefined
       }
-      className={cn(shell, tonEdge(alerte.ton), tappable && 'cursor-pointer', compact && 'py-2.5')}
+      className={cn(shell, tappable && 'cursor-pointer', compact && 'py-2.5')}
     >
       <span className={cn('flex flex-none items-center justify-center rounded-[10px]', compact ? 'size-7' : 'size-9', tonTile(alerte.ton))}>
         <AlerteIcone icone={alerte.icone} className={compact ? 'size-3.5' : 'size-[18px]'} />

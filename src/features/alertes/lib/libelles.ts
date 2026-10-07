@@ -22,14 +22,6 @@ export const CATEGORIE_LABEL: Record<Categorie, [fr: string, ar: string]> = {
  */
 export const tonTile = (ton: string): string => tonePill(ton === 'alerte' ? 'danger' : ton);
 
-const TON_EDGE: Record<string, string> = {
-  action: 'border-s-violet-500',
-  alerte: 'border-s-de9-red',
-  succes: 'border-s-de9-teal',
-  info: 'border-s-de9-blue',
-};
-export const tonEdge = (ton: string): string => TON_EDGE[ton] ?? TON_EDGE.info;
-
 /** How long a live alert's toast stays (common guide §7.1). */
 export const toastDuration = (ton: string): number => (ton === 'action' || ton === 'alerte' ? 8_000 : 4_000);
 

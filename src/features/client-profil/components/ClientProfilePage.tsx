@@ -93,7 +93,7 @@ export function ClientProfilePage() {
 
   return (
     <div className="mx-auto flex max-w-[720px] flex-col gap-5">
-      <h1 className="text-[22px] font-black text-de9-ink">{L('Profil', 'الملف الشخصي')}</h1>
+      <h1 className="text-[22px] font-extrabold text-de9-ink">{L('Profil', 'الملف الشخصي')}</h1>
 
       {/* Company card */}
       <Card>

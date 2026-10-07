@@ -25,7 +25,7 @@ export function HandicapSentModal({
           <span className="mx-auto mb-1 grid size-[66px] place-items-center rounded-full bg-de9-teal text-primary-foreground shadow-glow">
             <Heart className="size-7" />
           </span>
-          <DialogTitle className="text-center text-de9-teal">
+          <DialogTitle className="text-center text-de9-teal-dark">
             {L('Merci, nous vous recontacterons.', 'شكرًا، سنعاود الاتصال بك.')}
           </DialogTitle>
           <DialogDescription className="text-center text-xs font-semibold">

@@ -14,7 +14,8 @@ import { EmptyState } from '@/components/common/EmptyState';
 import { ReseauIcone } from '@/components/common/ReseauxSociaux';
 import { liensRemplis, type LiensSociaux } from '@/lib/reseauxSociaux';
 import { refreshAccueil } from '@/features/auth/api/accueil';
-import { CategorieVisual, FamilleBadge } from '@/features/client-catalogue/components/CategorieVisual';
+import { CategorieCarte } from '@/features/client-catalogue/components/CategorieCarte';
+import { CategorieVisual } from '@/features/client-catalogue/components/CategorieVisual';
 import {
   annonceKey,
   annonceRecue,
@@ -124,7 +125,6 @@ export function AnnonceB2bForm({
   const [lienFautif, setLienFautif] = useState<string | null>(null);
   const [photos, setPhotos] = useState<Photo[]>(annonce?.photos ?? []);
   const [documents, setDocuments] = useState<AnnonceDocument[]>(annonce?.documents ?? []);
-  const [famille, setFamille] = useState<string | null>(null);
   const [erreurs, setErreurs] = useState<Partial<Record<Bloc, string>>>(() => Object.fromEntries(etapes.map((e) => [e.code, e.message ?? ''])));
   const [busy, setBusy] = useState<'brouillon' | 'soumettre' | null>(null);
   /** A photo or document call is in flight with the version held: no save, no submission until it answers. */
@@ -187,7 +187,6 @@ export function AnnonceB2bForm({
   const verrouillee = annonce?.categorie?.verrouillee === true;
   // Already published (or paused): no review again — the edit applies at once and must stay complete.
   const enLigne = !!annonce && !annonce.actions.some((a) => a.code === 'soumettre');
-  const familles = [...new Map(categories.filter((c) => c.famille).map((c) => [c.famille, c])).values()];
   const modes = tarif.modes.length > 0 ? tarif.modes : [
     { code: 'sur_devis', label: L('Sur devis', 'حسب عرض السعر') },
     { code: 'fourchette', label: L('Fourchette indicative', 'نطاق تقريبي') },
@@ -412,51 +411,28 @@ export function AnnonceB2bForm({
                 <Lock className="size-4 flex-none text-de9-gray" aria-label={L('Catégorie verrouillée', 'الفئة مقفلة')} />
               </div>
             ) : (
-              <>
-                {familles.length > 1 && (
-                  <div className="flex flex-wrap gap-1.5">
-                    {/* The family is the colour group of a category, not a level to pick: these only narrow the tiles. */}
-                    {familles.map((f) => (
-                      <button
-                        key={f.famille}
-                        type="button"
-                        aria-pressed={famille === f.famille}
-                        onClick={() => setFamille(famille === f.famille ? null : (f.famille ?? null))}
-                        className={cn('rounded-full px-2.5 py-1 text-[10px] font-extrabold tracking-wider text-white transition-opacity', famille && famille !== f.famille && 'opacity-40')}
-                        style={{ backgroundColor: f.hex ?? undefined }}
-                      >
-                        {f.familleLabel ?? f.famille}
-                      </button>
-                    ))}
-                  </div>
-                )}
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                  {categories
-                    .filter((c) => !famille || c.famille === famille)
-                    .map((c) => (
-                      <button
-                        key={c.code}
-                        type="button"
-                        aria-pressed={c.code === categoryCode}
-                        onClick={() => {
-                          if (c.code === categoryCode) return;
-                          setCategoryCode(c.code);
-                          setServices([]); // the services are the category's own
-                        }}
-                        className={cn(
-                          'flex min-h-[76px] items-center gap-2.5 rounded-xl bg-de9-row px-3 py-2.5 text-start transition-shadow hover:shadow-lift',
-                          c.code === categoryCode ? 'ring-2 ring-de9-teal' : 'dark:ring-1 dark:ring-border',
-                        )}
-                      >
-                        <CategorieVisual imageUrl={c.imageUrl} icone={c.icone} className="size-9 flex-none" iconClassName="size-9 flex-none" emojiClassName="text-[20px]" />
-                        <span className="flex min-w-0 flex-col items-start gap-1">
-                          <FamilleBadge label={c.familleLabel} hex={c.hex} />
-                          <span className="text-[12.5px] font-bold break-words text-de9-ink">{L(c.libelle, c.libelleAr ?? c.libelle)}</span>
-                        </span>
-                      </button>
-                    ))}
+              // The catalogue's families as on the client's home; columns by the room the form has.
+              <div className="@container">
+                <div className="grid grid-cols-1 gap-3 @md:grid-cols-2 @[42rem]:grid-cols-3">
+                  {categories.map((c) => (
+                    <CategorieCarte
+                      key={c.code}
+                      dense
+                      code={c.code}
+                      name={L(c.libelle, c.libelleAr ?? c.libelle)}
+                      services={L(`${c.services.length} services`, `${c.services.length} خدمة`)}
+                      imageUrl={c.imageUrl}
+                      icone={c.icone}
+                      selected={c.code === categoryCode}
+                      onClick={() => {
+                        if (c.code === categoryCode) return;
+                        setCategoryCode(c.code);
+                        setServices([]); // the services are the category's own
+                      }}
+                    />
+                  ))}
                 </div>
-              </>
+              </div>
             )}
           </Section>
 

@@ -302,9 +302,39 @@
   summary {
     cursor: pointer;
     }
+  /* The keyboard's ring, for everything that draws none of its own: the bare
+     buttons, the links, the cards that are pressed. `--ring` at full strength
+     reads at 3.7:1 on white; the components with their own `focus-visible:ring-*`
+     are utilities and keep it. A mint surface re-points `--ring` to stay visible.
+     Not a menu, a list or a dialog itself: the item inside shows where the focus is. */
+  :focus-visible:not([role="menu"], [role="listbox"], [role="dialog"]) {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    }
+  /* A press is felt: one pixel down, as the app's Button does. Not the controls
+     that toggle in place, nor a trigger its popover is anchored to. */
+  :where(button, [role="button"]):where(:not(:disabled, [aria-disabled="true"], [aria-haspopup], [role="tab"], [role="checkbox"], [role="switch"], [role="combobox"], [role="menuitem"], [role="option"])):active {
+    translate: 0 1px;
+    }
+  /* Titles break into even lines, paragraphs leave no word alone on the last one. */
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+    }
+  p {
+    text-wrap: pretty;
+    }
+  /* Poppins sets wide: a page title closes up a little. Never in Arabic, whose letters join. */
+  h1 {
+    letter-spacing: -0.015em;
+    }
   [dir="rtl"] body,
   [dir="rtl"] {
     font-family: var(--font-arabic);
+    }
+  [dir="rtl"] h1 {
+    letter-spacing: normal;
     }
   ::-webkit-scrollbar {
     width: 9px;
@@ -313,5 +343,17 @@
   ::-webkit-scrollbar-thumb {
     background: var(--de9-scrollbar);
     border-radius: 9px;
+    }
+  /* « Reduce motion »: nothing slides, pulses or spins. The durations are kept
+     above zero so the `animationend` the dialogs wait for to unmount still fires. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+      }
     }
 }

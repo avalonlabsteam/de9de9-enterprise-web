@@ -126,9 +126,9 @@ function JobBody({ job, onGoConfirmes }: { job: JobDetails; onGoConfirmes: () =>
           )}
           {photos.length > 0 && (
             <div className="flex gap-2 overflow-x-auto">
-              {photos.map((url) => (
+              {photos.map((url, i) => (
                 <a key={url} href={url} target="_blank" rel="noreferrer" className="flex-none">
-                  <img src={url} alt="" className="size-20 rounded-lg object-cover" />
+                  <img src={url} alt={L(`Photo ${i + 1}`, `صورة ${i + 1}`)} className="size-20 rounded-lg object-cover" />
                 </a>
               ))}
             </div>
