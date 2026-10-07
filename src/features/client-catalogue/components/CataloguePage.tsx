@@ -14,6 +14,7 @@ import { useBlocageB2b, useCatalogueSearch, useNouvelleDemande } from '../api/no
 import type { CategorieTile, RechercheHit } from '../schemas/nouvelleDemande';
 import { useCatalogueStore, catalogueActions } from '../stores/catalogueStore';
 import { AccesB2bSuspendu } from './AccesB2bSuspendu';
+import { CategorieCarte } from './CategorieCarte';
 import { CategorieVisual } from './CategorieVisual';
 
 /** Search as the client types, once the typing pauses. */
@@ -277,11 +278,13 @@ export function CataloguePage() {
             </h2>
             <div className="grid grid-cols-1 gap-4 @lg:grid-cols-2 @3xl:grid-cols-3 @[62rem]:grid-cols-4">
               {categories.map((tile) => (
-                <CategorieCard
+                <CategorieCarte
                   key={tile.code}
-                  tile={tile}
+                  code={tile.code}
                   name={nameOf(tile)}
                   services={L(`${tile.nombreServices} services`, `${tile.nombreServices} خدمة`)}
+                  imageUrl={tile.imageUrl}
+                  icone={tile.icone}
                   onClick={() => openCategory(tile.code)}
                 />
               ))}
@@ -323,42 +326,6 @@ function FeaturedCategorieCard({
       </span>
       <span className="text-[15px] font-bold text-de9-ink">{name}</span>
       <span className="mt-0.5 text-[13px] text-de9-slate">{services}</span>
-    </button>
-  );
-}
-
-/** Compact tile — the family's name and service count, its picture in the trailing corner. */
-function CategorieCard({
-  tile,
-  name,
-  services,
-  onClick,
-}: {
-  tile: CategorieTile;
-  name: string;
-  services: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      // The trailing 80 px are the picture's: the name wraps beside it, never under it.
-      className="relative flex min-h-[140px] items-center rounded-xl bg-card py-5 ps-5 pe-20 text-start shadow-soft transition-shadow hover:shadow-lift dark:ring-1 dark:ring-border"
-    >
-      <span className="flex min-w-0 flex-col items-start gap-1.5">
-        <span className="text-[17px] leading-[1.3] font-bold text-de9-ink">{name}</span>
-        <span className="text-[13px] text-de9-slate">{services}</span>
-      </span>
-      <span className="pointer-events-none absolute end-3 bottom-3">
-        <CategorieVisual
-          key={tile.imageUrl ?? tile.code}
-          imageUrl={tile.imageUrl}
-          icone={tile.icone}
-          className="size-[60px]"
-          emojiClassName="size-[60px] text-[34px]"
-        />
-      </span>
     </button>
   );
 }
