@@ -4,7 +4,7 @@ import { appNavigate } from '@/lib/navigation';
 import { useAuthStore } from '@/stores/authStore';
 import { switchRole } from '@/features/auth/api/session';
 import { postLue, postLues } from './api/alertes';
-import { appPath } from './lib/chemin';
+import { appPath, cheminOf } from './lib/chemin';
 import { lNow } from './lib/libelles';
 import type { Alerte, Categorie } from './schemas/alerte';
 import { alertesActions } from './stores/alertesStore';
@@ -24,8 +24,8 @@ export async function openAlerte(a: Alerte): Promise<void> {
       });
   }
 
-  const chemin = a.cible.chemin;
-  if (a.cible.ecran === 'aucun' || !chemin) return; // the row only informs
+  const chemin = cheminOf(a);
+  if (!chemin) return; // the row only informs
 
   let side = useAuthStore.getState().user?.role;
   if (!side) return;

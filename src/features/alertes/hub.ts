@@ -15,6 +15,7 @@ import { dossierQueryKey } from '@/features/kyc/api/kyc';
 import { nouvelleDemandeKey } from '@/features/client-catalogue/api/keys';
 import { paiementsListeKey, portefeuilleKey } from '@/features/client-wallet/api/keys';
 import { annoncesKey } from '@/features/prestataire-annonces/api/keys';
+import { mesDemandesHandicapKey } from '@/features/prestataire-profil/api/profil';
 import { catchUp, loadVue } from './api/alertes';
 import { lNow } from './lib/libelles';
 import { alerteSchema, compteursSchema, sessionEventSchema, type Alerte } from './schemas/alerte';
@@ -82,6 +83,9 @@ function sideEffects(a: Alerte): void {
     void queryClient.invalidateQueries({ queryKey: annoncesKey });
     void refreshAccueil(); // the home's block is the published annonces
   }
+  // de9de9 called back, placed someone or ended a placement: « Mes demandes » of the handicap
+  // sheet is read again.
+  if (a.code.startsWith('handicap.')) void queryClient.invalidateQueries({ queryKey: mesDemandesHandicapKey });
   // A recharge credited, a payment refused: the wallet never reloads on its own (guide 17 §11).
   if (a.categorie === 'credits') {
     void queryClient.invalidateQueries({ queryKey: portefeuilleKey });

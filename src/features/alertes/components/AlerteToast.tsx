@@ -2,6 +2,7 @@ import { Bell, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useL } from '@/lib/i18n';
 import type { Alerte } from '../schemas/alerte';
+import { cheminOf } from '../lib/chemin';
 import { tonEdge, tonTile } from '../lib/libelles';
 import { AlerteIcone } from './AlerteIcone';
 
@@ -31,7 +32,7 @@ function CloseButton({ onClose }: { onClose: () => void }) {
  */
 export function AlerteToast({ alerte, onOpen, onClose }: { alerte: Alerte; onOpen: () => void; onClose: () => void }) {
   const L = useL();
-  const tappable = !!alerte.cible.chemin && alerte.cible.ecran !== 'aucun';
+  const tappable = cheminOf(alerte) !== null;
   const compact = alerte.ton === 'info';
   return (
     <div

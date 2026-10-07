@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { useL } from '@/lib/i18n';
 import { dirOf, useLangStore, type Lang } from '@/stores/langStore';
 import { fetchCompteurs, loadVue } from '../api/alertes';
+import { cheminOf } from '../lib/chemin';
 import { badgeCount, CATEGORIE_LABEL, depuisLabel, tonTile } from '../lib/libelles';
 import { marquerToutLu, openAlerte } from '../open';
 import { CATEGORIES, type Alerte, type Categorie } from '../schemas/alerte';
@@ -14,7 +15,7 @@ import { AlerteIcone } from './AlerteIcone';
 
 /** One alert (common guide §1.1): bold while unread, a chevron when it opens something. */
 function AlerteRow({ a, lang }: { a: Alerte; lang: Lang }) {
-  const tappable = !!a.cible.chemin && a.cible.ecran !== 'aucun';
+  const tappable = cheminOf(a) !== null;
   const body = (
     <>
       <span className={cn('mt-0.5 flex size-9 flex-none items-center justify-center rounded-[10px]', tonTile(a.ton))}>

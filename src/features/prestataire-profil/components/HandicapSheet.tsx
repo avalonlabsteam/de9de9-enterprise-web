@@ -1,64 +1,38 @@
 import { useState } from 'react';
-import { toast } from 'sonner';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-  SheetFooter,
-} from '@/components/ui/sheet';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { OngletBar } from '@/components/common/OngletBar';
 import { useL } from '@/lib/i18n';
-import { useHandicapJoin } from '../api/profil';
+import { useMesDemandesHandicap } from '../api/profil';
+import { HANDICAP_VIDE, demandeEnAttente } from '../schemas/profil';
+import { HandicapDemandes } from './HandicapDemandes';
+import { HandicapForm } from './HandicapForm';
 
+export type HandicapOnglet = 'nouvelle' | 'suivi';
+
+/**
+ * « Contracter des personnes en situation de handicap » — the company joins
+ * de9de9's list and follows what it sent: a new request, and the ones already
+ * sent with the people placed on them. The tab is the page's to set: an alert
+ * about a request opens the sheet on « Mes demandes ».
+ */
 export function HandicapSheet({
   open,
   onOpenChange,
+  onglet,
+  onOngletChange,
   onSent,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onglet: HandicapOnglet;
+  onOngletChange: (onglet: HandicapOnglet) => void;
   onSent: () => void;
 }) {
   const L = useL();
-  const join = useHandicapJoin();
-
-  const [contact, setContact] = useState('');
-  const [poste, setPoste] = useState('');
-  const [zone, setZone] = useState('');
-  const [nombre, setNombre] = useState('');
-  const [email, setEmail] = useState('');
-  const [commentaire, setCommentaire] = useState('');
-
-  function reset() {
-    setContact('');
-    setPoste('');
-    setZone('');
-    setNombre('');
-    setEmail('');
-    setCommentaire('');
-  }
-
-  function submit() {
-    if (!contact || !poste || !zone) {
-      toast(L('Renseignez contact, poste et zone', 'أدخل جهة الاتصال والمنصب والمنطقة'));
-      return;
-    }
-    join.mutate(
-      { contact, poste, zone, nombre, email, commentaire },
-      {
-        onSuccess: () => {
-          onOpenChange(false);
-          reset();
-          onSent();
-        },
-      },
-    );
-  }
+  // Held here, above the sheet's content: a sheet closed by mistake reopens on what was typed.
+  const [valeurs, setValeurs] = useState(HANDICAP_VIDE);
+  // The requests still waited on, for the tab's count — asked only once the sheet opens.
+  const enAttente = useMesDemandesHandicap(open).data?.filter(demandeEnAttente).length;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -72,44 +46,29 @@ export function HandicapSheet({
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex flex-col gap-4 px-4 pb-4">
-          <div className="flex flex-col gap-1.5">
-            <Label className="text-[12.5px] text-de9-gray">{L('Contact', 'جهة الاتصال')}</Label>
-            <Input value={contact} onChange={(e) => setContact(e.target.value)} />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label className="text-[12.5px] text-de9-gray">{L('Poste', 'المنصب')}</Label>
-            <Input value={poste} onChange={(e) => setPoste(e.target.value)} />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label className="text-[12.5px] text-de9-gray">{L('Zone', 'المنطقة')}</Label>
-            <Input value={zone} onChange={(e) => setZone(e.target.value)} placeholder="Alger" />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label className="text-[12.5px] text-de9-gray">
-              {L('Nombre (optionnel)', 'العدد (اختياري)')}
-            </Label>
-            <Input type="number" min={1} value={nombre} onChange={(e) => setNombre(e.target.value)} />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label className="text-[12.5px] text-de9-gray">
-              {L('Email (optionnel)', 'البريد الإلكتروني (اختياري)')}
-            </Label>
-            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label className="text-[12.5px] text-de9-gray">
-              {L('Commentaire (optionnel)', 'تعليق (اختياري)')}
-            </Label>
-            <Textarea value={commentaire} onChange={(e) => setCommentaire(e.target.value)} rows={3} />
-          </div>
-        </div>
+        <OngletBar
+          className="px-4"
+          active={onglet}
+          onSelect={(code) => onOngletChange(code === 'suivi' ? 'suivi' : 'nouvelle')}
+          onglets={[
+            { code: 'nouvelle', label: L('Nouvelle demande', 'طلب جديد') },
+            { code: 'suivi', label: L('Mes demandes', 'طلباتي'), count: enAttente || undefined },
+          ]}
+        />
 
-        <SheetFooter>
-          <Button className="w-full" onClick={submit} disabled={join.isPending}>
-            {L('Envoyer la demande', 'إرسال الطلب')}
-          </Button>
-        </SheetFooter>
+        {onglet === 'nouvelle' ? (
+          <HandicapForm
+            valeurs={valeurs}
+            onChange={setValeurs}
+            onSent={() => {
+              onOpenChange(false);
+              setValeurs(HANDICAP_VIDE);
+              onSent();
+            }}
+          />
+        ) : (
+          <HandicapDemandes />
+        )}
       </SheetContent>
     </Sheet>
   );

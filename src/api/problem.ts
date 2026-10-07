@@ -49,14 +49,30 @@ export function toProblem(error: unknown): ApiProblem {
   };
 }
 
-/** `{ Email: ["The Email field is required."] }` → `{ field: 'email', message }`. */
-function firstModelError(errors: unknown): { field: string; message: string } | undefined {
-  if (!errors || typeof errors !== 'object') return undefined;
+/** `{ Email: ["The Email field is required."] }` → `{ email: "The Email field is required." }`: each input's first sentence. */
+function modelErrors(errors: unknown): Record<string, string> {
+  const out: Record<string, string> = {};
+  if (!errors || typeof errors !== 'object') return out;
   for (const [key, value] of Object.entries(errors as Record<string, unknown>)) {
     const message = Array.isArray(value) ? str(value[0]) : str(value);
-    if (message) return { field: key.charAt(0).toLowerCase() + key.slice(1), message };
+    if (message) out[key.charAt(0).toLowerCase() + key.slice(1)] = message;
   }
-  return undefined;
+  return out;
+}
+
+function firstModelError(errors: unknown): { field: string; message: string } | undefined {
+  const [first] = Object.entries(modelErrors(errors));
+  return first && { field: first[0], message: first[1] };
+}
+
+/**
+ * Every input a validation 400 blames, for a form that prints each sentence
+ * under its own input — `toProblem` keeps only the first.
+ */
+export function toFieldErrors(error: unknown): Record<string, string> {
+  if (!axios.isAxiosError(error) || !error.response) return {};
+  const data: unknown = error.response.data;
+  return modelErrors(data && typeof data === 'object' ? (data as Record<string, unknown>)['errors'] : undefined);
 }
 
 /**
