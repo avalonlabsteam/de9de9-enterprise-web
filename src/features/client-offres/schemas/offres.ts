@@ -66,10 +66,26 @@ const demandeSchema = z.object({
 });
 export type OffreDemande = z.infer<typeof demandeSchema>;
 
+/** A PDF the prestataire attached to its offer: public, opened in a new tab. */
+const documentSchema = z.object({
+  id: z.string(),
+  nom: z.string(),
+  url: z.string(),
+  tailleOctets: z.number().nullish(),
+  contentType: text,
+  ajouteLe: text,
+});
+
 export const offreSchema = z.object({
   id: z.string(),
   titre: z.string(),
   photos: z.array(z.object({ url: z.string(), couverture: z.boolean().default(false) })).default([]),
+  documents: z.array(documentSchema).default([]),
+  /**
+   * The prestataire's pages. Null unless de9de9 opened them to client companies:
+   * de9de9 stands between the two, and this screen carries no direct contact.
+   */
+  liensSociaux: z.record(z.string(), z.string().nullable()).nullish(),
   prestataire: prestataireSchema,
   categorie: z
     .object({ code: z.string(), libelle: z.string(), icone: text, famille: text, familleLabel: text, hex: text })
