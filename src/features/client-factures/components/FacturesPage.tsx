@@ -1,107 +1,159 @@
-import { useState } from 'react';
-import { FileText, ArrowDown, RefreshCw } from 'lucide-react';
-import { toast } from 'sonner';
+import { useSearchParams } from 'react-router-dom';
+import { ArrowDown, FileText, Lock, RefreshCw } from 'lucide-react';
+import { toProblem } from '@/api/problem';
 import { useL } from '@/lib/i18n';
+import { tonePill } from '@/lib/tones';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/common/EmptyState';
-import { StatusBadge } from '@/components/common/StatusBadge';
-import { DocViewer } from '@/components/common/DocViewer';
+import { OngletBar } from '@/components/common/OngletBar';
+import { CategorieVisual } from '@/features/client-catalogue/components/CategorieVisual';
 import { useFactures } from '../api/useFactures';
-import type { Facture, FactureStatus } from '../schemas/facture';
+import { ONGLETS, ongletSchema, type Facture, type FactureOnglet } from '../schemas/facture';
+import { FactureSheet } from './FactureSheet';
 
-const nf = new Intl.NumberFormat('fr-FR');
-
-type Filter = 'all' | FactureStatus;
-
-const STATUS_META: Record<
-  FactureStatus,
-  { labelFr: string; labelAr: string; kind: 'wait' | 'done' | 'action' }
-> = {
-  waiting: { labelFr: 'En attente de confirmation', labelAr: 'في انتظار التأكيد', kind: 'wait' },
-  approved: { labelFr: 'Approuvée', labelAr: 'مقبولة', kind: 'done' },
-  contested: { labelFr: 'Contestée', labelAr: 'مُعترض عليها', kind: 'action' },
+/** The tabs before the first answer, and their Arabic — the API words them in French only. */
+const ONGLET_FR: Record<FactureOnglet, string> = {
+  toutes: 'Toutes',
+  a_approuver: 'À approuver',
+  approuvees: 'Approuvées',
+  contestees: 'Contestées',
+};
+const ONGLET_AR: Record<FactureOnglet, string> = {
+  toutes: 'الكل',
+  a_approuver: 'للموافقة',
+  approuvees: 'المقبولة',
+  contestees: 'المُعترض عليها',
 };
 
-function FactureCard({
-  facture,
-  onOpen,
-  L,
-}: {
-  facture: Facture;
-  onOpen: (f: Facture) => void;
-  L: (fr: string, ar: string) => string;
-}) {
-  const meta = STATUS_META[facture.status];
-  return (
-    <Card
-      role="button"
-      tabIndex={0}
-      onClick={() => onOpen(facture)}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onOpen(facture);
-        }
-      }}
-      className="cursor-pointer transition-shadow hover:shadow-lift"
-    >
-      <CardContent className="flex flex-col gap-3">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex min-w-0 items-start gap-3">
-            <div className="flex size-9 flex-none items-center justify-center rounded-full bg-de9-teal-soft text-de9-teal-dark">
-              <FileText className="size-[18px]" />
-            </div>
-            <div className="min-w-0">
-              <p className="truncate text-[14px] font-bold text-de9-ink">{facture.label}</p>
-              <p className="text-[12px] text-de9-gray">
-                {facture.id} · {facture.issuedAt}
-              </p>
-            </div>
-          </div>
-          <StatusBadge label={L(meta.labelFr, meta.labelAr)} kind={meta.kind} />
-        </div>
+/** A card's `statut`: the tone the API itself gives it on the invoice's screen, and its Arabic. */
+const STATUT: Record<string, { ton: string; ar: string }> = {
+  a_approuver: { ton: 'attention', ar: 'للموافقة' },
+  contestee: { ton: 'danger', ar: 'مُعترض عليها' },
+  confirmee: { ton: 'valide', ar: 'مقبولة' },
+};
 
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1 rounded-full bg-de9-red-soft px-2.5 py-1 text-[12px] font-bold text-de9-red">
-            <ArrowDown className="size-3.5" />−{nf.format(facture.amountDzd * 10)} {L('crédits', 'رصيد')}
-          </span>
-          {facture.occurrenceLabel && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-[12px] font-bold text-de9-slate">
-              <RefreshCw className="size-3.5" />
-              {facture.occurrenceLabel}
+function FactureCard({ facture: f, onOpen }: { facture: Facture; onOpen: () => void }) {
+  const L = useL();
+  const statut = STATUT[f.statut];
+  // Frozen behind a contest, not taken: amber and a padlock, where a debit is red.
+  const bloques = f.credits?.etat === 'bloques';
+  return (
+    <button type="button" onClick={onOpen} className="w-full rounded-lg text-start">
+      <Card className="transition-shadow hover:shadow-lift">
+        <CardContent className="flex flex-col gap-3">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <span aria-hidden className="grid size-10 flex-none place-items-center rounded-full bg-secondary">
+                <CategorieVisual icone={f.icone} iconClassName="size-7" emojiClassName="text-[18px]" />
+              </span>
+              <div className="min-w-0">
+                <p className="truncate text-[14px] font-bold text-de9-ink">
+                  <bdi>{f.titre}</bdi>
+                </p>
+                <p className="text-[12px] text-de9-gray">
+                  {f.reference && <bdi>{f.reference}</bdi>}
+                  {f.reference && f.dateLabel && ' · '}
+                  {f.dateLabel && <bdi>{f.dateLabel}</bdi>}
+                </p>
+              </div>
+            </div>
+            <span className={cn('flex-none rounded-full px-2.5 py-1 text-[11px] font-bold', tonePill(statut?.ton))}>
+              {L(f.statutLabel, statut?.ar ?? f.statutLabel)}
             </span>
-          )}
-          <span className="ms-auto text-[14px] font-black text-de9-ink tabular-nums">
-            {nf.format(facture.amountDzd)} DZD
-          </span>
-        </div>
-      </CardContent>
-    </Card>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Absent while the invoice waits for approval: nothing has moved yet. */}
+            {f.credits && (
+              <span
+                className={cn(
+                  'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[12px] font-bold tabular-nums',
+                  bloques ? 'bg-de9-orange/20 text-de9-orange-deep' : 'bg-de9-red-soft text-de9-red',
+                )}
+              >
+                {bloques ? <Lock className="size-3.5" /> : <ArrowDown className="size-3.5" />}
+                <bdi>{f.credits.label}</bdi>
+              </span>
+            )}
+            {f.occurrence && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-[12px] font-bold text-de9-slate">
+                <RefreshCw className="size-3.5" />
+                {f.occurrence.label}
+              </span>
+            )}
+            <span className="ms-auto text-[14px] font-black text-de9-ink tabular-nums">
+              <bdi>{f.montantLabel}</bdi>
+            </span>
+          </div>
+        </CardContent>
+      </Card>
+    </button>
   );
 }
 
+/**
+ * « Factures » — `GET /client/factures`: the tabs with the API's counts, and
+ * the invoices of the selected one. A card opens the invoice's own screen,
+ * where it is approved or contested.
+ */
 export function FacturesPage() {
   const L = useL();
-  const { data, isPending, isError } = useFactures();
-  const [filter, setFilter] = useState<Filter>('all');
-  const [active, setActive] = useState<Facture | null>(null);
+  const [params, setParams] = useSearchParams();
+  // The tab and the invoice on display live in the address, so the wallet (`?statut=contestees`),
+  // the home and an alert (`?facture=…`) land straight on them. An unknown tab reads « Toutes »
+  // rather than reaching the API as a 400.
+  const parsed = ongletSchema.safeParse(params.get('statut'));
+  const statut: FactureOnglet = parsed.success ? parsed.data : 'toutes';
+  const ouverte = params.get('facture');
+  const query = useFactures(statut);
 
-  const factures = data ?? [];
-  const counts = {
-    all: factures.length,
-    waiting: factures.filter((f) => f.status === 'waiting').length,
-    approved: factures.filter((f) => f.status === 'approved').length,
-    contested: factures.filter((f) => f.status === 'contested').length,
+  const pages = query.data?.pages ?? [];
+  const loaded = pages.length > 0;
+  const onglets = pages[0]?.onglets.length
+    ? pages[0].onglets
+    : ONGLETS.map((code) => ({ code, label: ONGLET_FR[code], count: 0 }));
+  const factures = pages.flatMap((page) => page.data);
+
+  const selectOnglet = (code: string) => {
+    const next = ongletSchema.safeParse(code);
+    if (next.success) setParams(next.data === 'toutes' ? {} : { statut: next.data }, { replace: true });
   };
-  const visible = filter === 'all' ? factures : factures.filter((f) => f.status === filter);
 
-  const pills: { key: Filter; labelFr: string; labelAr: string; count: number }[] = [
-    { key: 'all', labelFr: 'Toutes', labelAr: 'الكل', count: counts.all },
-    { key: 'waiting', labelFr: 'En attente', labelAr: 'قيد الانتظار', count: counts.waiting },
-    { key: 'approved', labelFr: 'Approuvées', labelAr: 'المقبولة', count: counts.approved },
-    { key: 'contested', labelFr: 'Contestées', labelAr: 'المُعترض عليها', count: counts.contested },
-  ];
+  /** Opening adds a step « Retour » closes; closing adds none. */
+  const ouvrir = (id: string | null) => {
+    const p = new URLSearchParams(params);
+    if (id) p.set('facture', id);
+    else p.delete('facture');
+    setParams(p, { replace: id === null });
+  };
+
+  const errorView = () => {
+    const problem = toProblem(query.error);
+    const autreEspace = problem.code === 'company_not_client' || problem.status === 403;
+    const description =
+      problem.code === 'company_not_client'
+        ? L("L'espace client n'est pas activé pour votre entreprise.", 'مساحة العميل غير مفعّلة لشركتك.')
+        : problem.status === 403
+          ? L('Cette page appartient à l’espace client : passez-y depuis le menu.', 'هذه الصفحة تابعة لمساحة العميل: انتقل إليها من القائمة.')
+          : problem.code === 'network'
+            ? L('Connexion impossible. Réessayez.', 'تعذّر الاتصال. أعد المحاولة.')
+            : L('Réessayez dans un instant.', 'أعد المحاولة بعد لحظة.');
+    return (
+      <EmptyState
+        title={L('Impossible de charger les factures', 'تعذّر تحميل الفواتير')}
+        description={description}
+        action={
+          autreEspace ? undefined : (
+            <Button variant="outline" size="sm" onClick={() => void query.refetch()}>
+              {L('Réessayer', 'إعادة المحاولة')}
+            </Button>
+          )
+        }
+      />
+    );
+  };
 
   return (
     <div className="mx-auto flex max-w-[880px] flex-col gap-5">
@@ -112,33 +164,21 @@ export function FacturesPage() {
         </p>
       </header>
 
-      <div className="flex flex-wrap gap-2">
-        {pills.map((p) => (
-          <button
-            key={p.key}
-            type="button"
-            onClick={() => setFilter(p.key)}
-            className={cn(
-              'inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-bold transition-all',
-              filter === p.key
-                ? 'bg-de9-teal text-primary-foreground shadow-glow'
-                : 'bg-card text-de9-teal-dark shadow-soft hover:shadow-lift dark:ring-1 dark:ring-border',
-            )}
-          >
-            {L(p.labelFr, p.labelAr)}
-            <span
-              className={cn(
-                'inline-flex min-w-5 justify-center rounded-full px-1.5 text-[11px] tabular-nums',
-                filter === p.key ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-de9-teal-tint text-de9-teal-dark',
-              )}
-            >
-              {p.count}
-            </span>
-          </button>
-        ))}
-      </div>
+      <OngletBar
+        active={statut}
+        onSelect={selectOnglet}
+        onglets={onglets.map((onglet) => {
+          const code = ongletSchema.safeParse(onglet.code);
+          return {
+            code: onglet.code,
+            label: L(onglet.label, code.success ? ONGLET_AR[code.data] : onglet.label),
+            // The API's counts, never a count of the cards on screen; none until the first answer.
+            count: loaded ? onglet.count : undefined,
+          };
+        })}
+      />
 
-      {isPending && (
+      {query.isPending && (
         <div className="flex flex-col gap-3">
           {[0, 1, 2].map((i) => (
             <div key={i} className="h-24 animate-pulse rounded-lg bg-secondary" />
@@ -146,47 +186,37 @@ export function FacturesPage() {
         </div>
       )}
 
-      {isError && (
-        <EmptyState
-          title={L('Impossible de charger les factures', 'تعذّر تحميل الفواتير')}
-          description={L('Réessayez plus tard.', 'أعد المحاولة لاحقًا.')}
-        />
-      )}
+      {query.isError && errorView()}
 
-      {data && visible.length === 0 && (
+      {!query.isError && loaded && factures.length === 0 && (
         <EmptyState
           title={L('Aucune facture', 'لا توجد فواتير')}
-          description={L('Vos factures apparaîtront ici.', 'ستظهر فواتيرك هنا.')}
+          description={statut === 'toutes' ? L('Vos factures apparaîtront ici.', 'ستظهر فواتيرك هنا.') : undefined}
           icon={<FileText className="size-6" />}
         />
       )}
 
-      {data && visible.length > 0 && (
-        <div className="flex flex-col gap-3">
-          {visible.map((f) => (
-            <FactureCard key={f.id} facture={f} onOpen={setActive} L={L} />
+      {!query.isError && factures.length > 0 && (
+        // Dimmed while another tab loads: these are still the previous tab's cards.
+        <div className={cn('flex flex-col gap-3 transition-opacity', query.isPlaceholderData && 'opacity-60')}>
+          {factures.map((f) => (
+            <FactureCard key={f.id} facture={f} onOpen={() => ouvrir(f.id)} />
           ))}
+
+          {query.hasNextPage && (
+            <Button
+              variant="outline"
+              onClick={() => void query.fetchNextPage()}
+              disabled={query.isFetchingNextPage}
+              className="self-center"
+            >
+              {query.isFetchingNextPage ? L('Chargement…', 'جارٍ التحميل…') : L('Voir plus', 'عرض المزيد')}
+            </Button>
+          )}
         </div>
       )}
 
-      <DocViewer
-        open={active !== null}
-        onOpenChange={(o) => !o && setActive(null)}
-        doc={
-          active
-            ? {
-                montant: `${nf.format(active.amountDzd)} DZD`,
-                emetteur: active.tenderId,
-                date: active.issuedAt,
-                creditsDeduits: `${nf.format(active.amountDzd * 10)} ${L('crédits', 'رصيد')}`,
-                statut: L(STATUS_META[active.status].labelFr, STATUS_META[active.status].labelAr),
-                status: active.status,
-              }
-            : {}
-        }
-        onApprove={() => toast(L('Facture approuvée', 'تمت الموافقة على الفاتورة'))}
-        onContest={() => toast(L('Facture contestée', 'تم الاعتراض على الفاتورة'))}
-      />
+      <FactureSheet id={ouverte} onClose={() => ouvrir(null)} />
     </div>
   );
 }

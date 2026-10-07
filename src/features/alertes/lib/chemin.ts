@@ -24,8 +24,9 @@ const RULES: Rule[] = [
   [/^\/client\/demandes$/, (_, q) => exact(`/client/tenders${q}`)],
   // `section=devis|commande`, `occurrence` — read by « Suivi d'une demande ».
   [/^\/client\/demandes\/([^/]+)$/, (m, q) => exact(`/client/tender/${m[1]}${q}`)],
-  // No invoice screen of its own yet: the list shows it.
-  [/^\/client\/factures(\/[^/]+)?$/, () => exact('/client/factures')],
+  // `statut` — read by the list. One invoice opens in a sheet over it (`?facture=`).
+  [/^\/client\/factures$/, (_, q) => exact(`/client/factures${q}`)],
+  [/^\/client\/factures\/([^/]+)$/, (m) => exact(`/client/factures?facture=${m[1]}`)],
   [/^\/client\/portefeuille$/, () => exact('/client/wallet')],
   [/^\/client\/portefeuille\/mouvements\/([^/]+)$/, (m) => exact(`/client/wallet/mouvements/${m[1]}`)],
   [/^\/client\/profil$/, () => exact('/client/profile')],
