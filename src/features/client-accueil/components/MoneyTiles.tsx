@@ -13,7 +13,7 @@ export function ApprovalCta({ count, amountDzd }: { count: number; amountDzd: nu
   return (
     <button
       type="button"
-      onClick={() => navigate('/client/factures')}
+      onClick={() => navigate('/client/factures?statut=a_approuver')}
       className="@container flex w-full items-center gap-3 rounded-lg bg-de9-orange/15 px-4 py-3 text-start shadow-soft transition-shadow hover:shadow-lift dark:ring-1 dark:ring-border"
     >
       <span className="grid size-10 flex-none place-items-center rounded-full bg-de9-orange-deep text-white">

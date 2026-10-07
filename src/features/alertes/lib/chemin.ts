@@ -1,4 +1,5 @@
 import type { Role } from '@/stores/authStore';
+import type { Alerte } from '../schemas/alerte';
 
 /**
  * `cible.chemin` names the screens by the API's paths (`/client/demandes/{id}`,
@@ -23,8 +24,9 @@ const RULES: Rule[] = [
   [/^\/client\/demandes$/, (_, q) => exact(`/client/tenders${q}`)],
   // `section=devis|commande`, `occurrence` — read by « Suivi d'une demande ».
   [/^\/client\/demandes\/([^/]+)$/, (m, q) => exact(`/client/tender/${m[1]}${q}`)],
-  // No invoice screen of its own yet: the list shows it.
-  [/^\/client\/factures(\/[^/]+)?$/, () => exact('/client/factures')],
+  // `statut` — read by the list. One invoice opens in a sheet over it (`?facture=`).
+  [/^\/client\/factures$/, (_, q) => exact(`/client/factures${q}`)],
+  [/^\/client\/factures\/([^/]+)$/, (m) => exact(`/client/factures?facture=${m[1]}`)],
   [/^\/client\/portefeuille$/, () => exact('/client/wallet')],
   [/^\/client\/portefeuille\/mouvements\/([^/]+)$/, (m) => exact(`/client/wallet/mouvements/${m[1]}`)],
   [/^\/client\/profil$/, () => exact('/client/profile')],
@@ -42,7 +44,8 @@ const RULES: Rule[] = [
   [/^\/pro\/annonces(\/[^/]+)?$/, (m, q) => exact(`/prestataire/annonces${m[1] ?? ''}${q}`)],
   [/^\/pro\/b2c$/, (_, q) => exact(`/prestataire/b2c${q}`)],
   [/^\/pro\/b2c\/reservations\/[^/]+$/, () => near('/prestataire/b2c?onglet=recues')],
-  [/^\/pro\/profil$/, () => exact('/prestataire/profile')],
+  // `handicap` — read by the profile, which opens its handicap sheet.
+  [/^\/pro\/profil$/, (_, q) => exact(`/prestataire/profile${q}`)],
   [/^\/pro\/profil\/.+$/, () => near('/prestataire/profile')],
   // Any other pro screen: the same path under /prestataire.
   [/^\/pro(\/.*)?$/, (m, q) => near(`/prestataire${m[1] ?? ''}${q}`)],
@@ -62,6 +65,17 @@ export function resolveChemin(chemin: string, side: Role): Resolved {
 }
 
 export const appPath = (chemin: string, side: Role): string => resolveChemin(chemin, side).path;
+
+/**
+ * Where a tap on an alert leads, in the API's paths — null when the row only
+ * informs. The handicap alerts name no screen (`ecran: aucun`): theirs is
+ * « Mes demandes » of the handicap sheet, which only the prestataire profile holds.
+ */
+export function cheminOf(a: Alerte): string | null {
+  if (a.cible.chemin && a.cible.ecran !== 'aucun') return a.cible.chemin;
+  if (a.code.startsWith('handicap.') && a.cible.app === 'prestataire') return '/pro/profil?handicap=demandes';
+  return null;
+}
 
 /**
  * The alert is about the screen on display (common guide §7.1): same path,

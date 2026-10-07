@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
   Building2,
@@ -23,7 +23,7 @@ import { authActions, useAuthStore } from '@/stores/authStore';
 import { useActiveEntreprise } from '@/stores/accueilStore';
 import { CompanyAvatar } from '@/components/common/CompanyAvatar';
 import { RecruterSheet } from './RecruterSheet';
-import { HandicapSheet } from './HandicapSheet';
+import { HandicapSheet, type HandicapOnglet } from './HandicapSheet';
 import { RecruterSentModal } from './RecruterSentModal';
 import { HandicapSentModal } from './HandicapSentModal';
 
@@ -37,9 +37,25 @@ export function PrestataireProfilePage() {
 
   const [recruterOpen, setRecruterOpen] = useState(false);
   const [handicapOpen, setHandicapOpen] = useState(false);
+  const [handicapOnglet, setHandicapOnglet] = useState<HandicapOnglet>('nouvelle');
   const [recruterSent, setRecruterSent] = useState(false);
   const [handicapSent, setHandicapSent] = useState(false);
   const [contratVisible, setContratVisible] = useState(false);
+
+  // `?handicap=demandes`: an alert about a handicap request lands on « Mes demandes » (see `cheminOf`).
+  // The address only opens the sheet: at the first tap in it the page takes over and the address is
+  // cleared — left there, the sheet would open again at every return to this page.
+  const [params, setParams] = useSearchParams();
+  const depuisAlerte = params.get('handicap') === 'demandes';
+  const handicapActif: HandicapOnglet = depuisAlerte ? 'suivi' : handicapOnglet;
+  const setHandicap = (open: boolean, onglet: HandicapOnglet) => {
+    setHandicapOpen(open);
+    setHandicapOnglet(onglet);
+    if (!depuisAlerte) return;
+    const p = new URLSearchParams(params);
+    p.delete('handicap');
+    setParams(p, { replace: true });
+  };
 
   function logout() {
     authActions.logout();
@@ -164,8 +180,10 @@ export function PrestataireProfilePage() {
         onSent={() => setRecruterSent(true)}
       />
       <HandicapSheet
-        open={handicapOpen}
-        onOpenChange={setHandicapOpen}
+        open={handicapOpen || depuisAlerte}
+        onOpenChange={(open) => setHandicap(open, handicapActif)}
+        onglet={handicapActif}
+        onOngletChange={(onglet) => setHandicap(true, onglet)}
         onSent={() => setHandicapSent(true)}
       />
       <RecruterSentModal open={recruterSent} onOpenChange={setRecruterSent} />
