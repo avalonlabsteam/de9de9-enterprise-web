@@ -7,7 +7,10 @@ import { toProblem } from '@/api/problem';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { DocumentsListe } from '@/components/common/DocumentsListe';
 import { EmptyState } from '@/components/common/EmptyState';
+import { ReseauxChips } from '@/components/common/ReseauxSociaux';
+import { liensRemplis } from '@/lib/reseauxSociaux';
 import { FamilleBadge } from '@/features/client-catalogue/components/CategorieVisual';
 import { useAnnonce } from '../api/annonces';
 import { annonceErreur } from '../lib/erreurs';
@@ -70,6 +73,9 @@ function DetailB2b({ a }: { a: AnnonceB2b }) {
       </Ligne>
       <Ligne label={L('Références', 'المراجع')}>
         {a.references && <span className="font-medium whitespace-pre-line">{a.references}</span>}
+      </Ligne>
+      <Ligne label={L('Réseaux sociaux', 'شبكات التواصل')}>
+        {liensRemplis(a.liensSociaux).length > 0 ? <ReseauxChips liens={a.liensSociaux} className="sm:justify-end" /> : null}
       </Ligne>
     </dl>
   );
@@ -201,6 +207,15 @@ function Detail({ a }: { a: Annonce }) {
           <CardContent className="flex flex-col gap-2 py-4">
             <h2 className="text-[13px] text-de9-gray">{L('Description', 'الوصف')}</h2>
             <p className="text-[13.5px] whitespace-pre-line text-de9-ink">{a.description}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {a.type === 'b2b' && a.documents.length > 0 && (
+        <Card>
+          <CardContent className="flex flex-col gap-1 py-4">
+            <h2 className="text-[13px] text-de9-gray">{L('Documents', 'المستندات')}</h2>
+            <DocumentsListe documents={a.documents} />
           </CardContent>
         </Card>
       )}

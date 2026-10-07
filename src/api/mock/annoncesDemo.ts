@@ -18,7 +18,7 @@ export const demo = { revueMs: 20_000 };
 const PREFIX = '/prestataire/annonces';
 const HREF = '/api/v1/prestataire/annonces';
 const STORE = 'de9de9.demo.annonces.v1';
-const MAX = { b2b: 20, b2c: 10, photos: 8, photoOctets: 5_242_880, zones: 300 };
+const MAX = { b2b: 20, b2c: 10, photos: 8, photoOctets: 5_242_880, zones: 300, documents: 5, documentOctets: 8_388_608, lien: 300 };
 
 let apiBase = 'https://api.entreprise.de9de9.dz/api/v1';
 
@@ -47,6 +47,8 @@ interface ContenuB2b {
   references: string | null;
   certifications: string[];
   description: string | null;
+  /** One member per network; absent on an annonce stored before the links existed. */
+  liensSociaux?: Record<string, string | null>;
 }
 interface LigneB2c {
   id: string;
@@ -76,6 +78,8 @@ interface Rec {
   publieeUneFois: boolean;
   motif?: string;
   photos: { id: string; url: string }[];
+  /** B2B: the PDFs, stored as data URLs like the photos. */
+  documents?: { id: string; nom: string; url: string; tailleOctets: number; ajouteLe: string }[];
   b2b?: ContenuB2b;
   b2c?: ContenuB2c;
 }
@@ -101,9 +105,9 @@ function sauver(): void {
   try {
     localStorage.setItem(STORE, JSON.stringify(etat));
   } catch {
-    // Photos are stored as data URLs and may not fit: the rest is kept without them.
+    // Photos and documents are stored as data URLs and may not fit: the rest is kept without them.
     try {
-      localStorage.setItem(STORE, JSON.stringify({ ...etat, annonces: etat.annonces.map((a) => ({ ...a, photos: [] })) }));
+      localStorage.setItem(STORE, JSON.stringify({ ...etat, annonces: etat.annonces.map((a) => ({ ...a, photos: [], documents: [] })) }));
     } catch {
       /* nothing kept across a reload */
     }
@@ -508,6 +512,63 @@ function bandeau(a: Rec) {
 
 const photosVue = (a: Rec) => a.photos.map((p, i) => ({ id: p.id, url: p.url, couverture: i === 0 }));
 
+/** The five networks of the B2B form, each with the hosts its address may be on. */
+const RESEAUX = [
+  { code: 'facebook', label: 'Facebook', exemple: 'https://www.facebook.com/votre-page', hotes: ['facebook.com', 'fb.com', 'fb.me'] },
+  { code: 'instagram', label: 'Instagram', exemple: 'https://www.instagram.com/votre-compte', hotes: ['instagram.com'] },
+  { code: 'tiktok', label: 'TikTok', exemple: 'https://www.tiktok.com/@votre-compte', hotes: ['tiktok.com'] },
+  { code: 'snapchat', label: 'Snapchat', exemple: 'https://www.snapchat.com/add/votre-compte', hotes: ['snapchat.com'] },
+  { code: 'linkedin', label: 'LinkedIn', exemple: 'https://www.linkedin.com/company/votre-entreprise', hotes: ['linkedin.com', 'lnkd.in'] },
+];
+const sansLien = (): Record<string, string | null> => Object.fromEntries(RESEAUX.map((r) => [r.code, null]));
+
+/**
+ * `liensSociaux` as stored. Left out or null: what was held stays. An object
+ * replaces the five — each address gets its `https://` and must be on its own
+ * network; the first that is not is refused, on its own field.
+ */
+function liensSociaux(recus: unknown, tenus: Record<string, string | null> | undefined): { liens: Record<string, string | null> } | MockResponse {
+  if (recus === undefined || recus === null || typeof recus !== 'object') return { liens: tenus ?? sansLien() };
+  const liens = sansLien();
+  for (const r of RESEAUX) {
+    const brut = (recus as Record<string, unknown>)[r.code];
+    const saisi = typeof brut === 'string' ? brut.trim() : '';
+    if (!saisi) continue;
+    const champ = `liensSociaux.${r.code}`;
+    if (/^http:\/\//i.test(saisi)) return problem(400, 'validation_failed', `Le lien ${r.label} doit commencer par https://.`, champ);
+    const adresse = /^https:\/\//i.test(saisi) ? saisi : `https://${saisi}`;
+    if (adresse.length > MAX.lien) return problem(400, 'validation_failed', `Le lien ${r.label} ne doit pas dépasser ${MAX.lien} caractères.`, champ);
+    let hote = '';
+    try {
+      hote = new URL(adresse).hostname.toLowerCase();
+    } catch {
+      /* not an address: said below */
+    }
+    if (!hote.includes('.')) return problem(400, 'validation_failed', `Le lien ${r.label} n'est pas une adresse valide. Exemple : ${r.exemple}`, champ);
+    if (!r.hotes.some((h) => hote === h || hote.endsWith(`.${h}`))) {
+      return problem(400, 'validation_failed', `Le lien ${r.label} doit être une adresse ${r.hotes[0]}. Exemple : ${r.exemple}`, champ);
+    }
+    liens[r.code] = adresse;
+  }
+  return { liens };
+}
+
+/** A stored PDF is a data URL, and a tab cannot be sent to one: each gets an object URL for the session. */
+const adresses = new Map<string, string>();
+function adresseDocument(d: { id: string; url: string }): string {
+  let hit = adresses.get(d.id);
+  if (!hit) {
+    const octets = Uint8Array.from(atob(d.url.slice(d.url.indexOf(',') + 1)), (ch) => ch.charCodeAt(0));
+    hit = URL.createObjectURL(new Blob([octets], { type: 'application/pdf' }));
+    adresses.set(d.id, hit);
+  }
+  return hit;
+}
+const documentsVue = (a: Rec) =>
+  (a.documents ?? []).map((d) => ({
+    id: d.id, nom: d.nom, url: adresseDocument(d), tailleOctets: d.tailleOctets, contentType: 'application/pdf', ajouteLe: d.ajouteLe,
+  }));
+
 function tarifLabel(t: Tarif, apartir: boolean): string {
   if (t.mode !== 'fourchette' || t.minDzd === null) return 'Sur devis';
   const unite = t.unite ? ` / ${t.unite === 'm2' ? 'm²' : t.unite}` : '';
@@ -560,6 +621,8 @@ async function detail(a: Rec): Promise<Record<string, unknown>> {
       references: c.references,
       certifications: c.certifications,
       description: c.description,
+      liensSociaux: { ...sansLien(), ...c.liensSociaux },
+      documents: documentsVue(a),
       demandesIssues: { count: 0, label: null },
       etapes: etapesVue(a, [
         ['titre', 'Titre'], ['categorie', 'Catégorie'], ['services', 'Services proposés'],
@@ -746,7 +809,9 @@ register('GET', `${PREFIX}/b2b/referentiel`, async () => {
       titreMax: 120, descriptionMin: 30, descriptionMax: 2000, capaciteMax: 200, referencesMax: 1000,
       certificationsMax: 12, certificationMax: 120, zonesMax: MAX.zones, photosMax: MAX.photos, photoMaxOctets: MAX.photoOctets,
       photoTypes: 'image/png,image/jpeg,image/webp', annoncesMax: MAX.b2b, annoncesRestantes: restantes('b2b'),
+      lienSocialMax: MAX.lien, documentsMax: MAX.documents, documentMaxOctets: MAX.documentOctets, documentTypes: 'application/pdf',
     },
+    reseauxSociaux: RESEAUX.map(({ code, label, exemple }) => ({ code, label, exemple })),
     tarif: {
       modes: [
         { code: 'sur_devis', label: 'Sur devis' },
@@ -774,7 +839,7 @@ register('GET', `${PREFIX}/b2b/referentiel`, async () => {
   });
 });
 
-async function contenuB2b(req: MockRequest): Promise<ContenuB2b | MockResponse> {
+async function contenuB2b(req: MockRequest, tenu?: ContenuB2b): Promise<ContenuB2b | MockResponse> {
   const b = body<ContenuB2b>(req);
   const titre = typeof b.titre === 'string' ? b.titre.trim() : '';
   if (!titre) return problem(400, 'validation_failed', "Le titre de l'offre est requis.", 'titre');
@@ -794,6 +859,8 @@ async function contenuB2b(req: MockRequest): Promise<ContenuB2b | MockResponse> 
   if (zones.length > MAX.zones) return problem(400, 'validation_failed', `${MAX.zones} zones au plus.`, 'zones');
   const certifications = Array.isArray(b.certifications) ? b.certifications : [];
   if (certifications.length > 12) return problem(400, 'validation_failed', '12 certifications au plus.', 'certifications');
+  const liens = liensSociaux(b.liensSociaux, tenu?.liensSociaux);
+  if ('data' in liens) return liens;
   return {
     titre,
     categoryCode: cat.code,
@@ -805,6 +872,7 @@ async function contenuB2b(req: MockRequest): Promise<ContenuB2b | MockResponse> 
     references: b.references ?? null,
     certifications,
     description: b.description ?? null,
+    liensSociaux: liens.liens,
   };
 }
 const estRefus = (x: object): x is MockResponse => 'data' in x;
@@ -835,7 +903,7 @@ const enLigne = (a: Rec) => a.statut === 'publiee' || a.statut === 'en_pause';
 register('PUT', `${PREFIX}/b2b/:id`, async (req) => {
   const a = ecriture(req, 'b2b');
   if (estRefus(a)) return a;
-  const contenu = await contenuB2b(req);
+  const contenu = await contenuB2b(req, a.b2b);
   if (estRefus(contenu)) return contenu;
   if (a.soumiseLe !== undefined && contenu.categoryCode !== a.b2b?.categoryCode) {
     return problem(400, 'validation_failed', "La catégorie d'une annonce déjà soumise ne peut plus changer.", 'categoryCode');
@@ -1084,6 +1152,46 @@ register('DELETE', `${PREFIX}/:id/photos/:photoId`, (req) => {
   return photosReponse(a);
 });
 
+// -------------------------------------------------------------- documents
+
+const documentsReponse = (a: Rec) => ok({ documents: documentsVue(a), version: a.version });
+
+/** PDFs of a B2B annonce: the same multipart and the same version as the photos, their own list. */
+register('POST', `${PREFIX}/:id/documents`, async (req) => {
+  const form = req.body instanceof FormData ? req.body : new FormData();
+  const a = photoEcriture(req, form.get('version'));
+  if (estRefus(a)) return a;
+  if (a.type !== 'b2b') return introuvable();
+  const files = form.getAll('files').filter((f): f is File => typeof f !== 'string');
+  if (files.length === 0 || files.some((f) => f.size === 0)) return problem(400, 'empty_file', 'Le fichier est vide.');
+  if (files.some((f) => f.type !== 'application/pdf')) return problem(415, 'unsupported_file_type', 'Le document doit être un fichier PDF.');
+  if (files.some((f) => f.size > MAX.documentOctets)) return problem(413, 'file_too_large', 'Le document ne doit pas dépasser 8 Mo.');
+  const tenus = a.documents ?? [];
+  if (tenus.length + files.length > MAX.documents) {
+    return problem(409, 'document_limit_reached', `${MAX.documents} documents au plus par annonce.`);
+  }
+  for (const file of files) {
+    tenus.push({ id: uid(), nom: file.name, url: await dataUrl(file), tailleOctets: file.size, ajouteLe: new Date().toISOString() });
+  }
+  a.documents = tenus;
+  a.version += 1;
+  sauver();
+  return documentsReponse(a);
+});
+
+register('DELETE', `${PREFIX}/:id/documents/:documentId`, (req) => {
+  const a = photoEcriture(req, req.query['version']);
+  if (estRefus(a)) return a;
+  const tenus = a.documents ?? [];
+  if (a.type !== 'b2b' || !tenus.some((d) => d.id === req.pathParams['documentId'])) {
+    return problem(404, 'document_not_found', 'Ce document est introuvable.');
+  }
+  a.documents = tenus.filter((d) => d.id !== req.pathParams['documentId']);
+  a.version += 1;
+  sauver();
+  return documentsReponse(a);
+});
+
 // ------------------------------------------------------------ transitions
 
 /** A transition: the annonce, when the version sent is the one held. */
@@ -1159,6 +1267,7 @@ register('POST', `${PREFIX}/:id/dupliquer`, async (req) => {
     statut: 'brouillon',
     publieeUneFois: false,
     photos: a.photos.map((p) => ({ id: uid(), url: p.url })),
+    documents: a.documents?.map((d) => ({ ...d, id: uid() })),
     b2b: a.b2b ? { ...a.b2b, titre: `${a.b2b.titre} (copie)`.slice(0, 120) } : undefined,
     b2c: a.b2c ? { ...a.b2c, lignes: a.b2c.lignes.map((l) => ({ ...l, id: uid() })) } : undefined,
   };

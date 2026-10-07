@@ -42,6 +42,24 @@ export type Photo = z.infer<typeof photoSchema>;
 /** Every photo call answers the list and the annonce's new version. */
 export const photosReponseSchema = z.object({ version: z.number(), photos: z.array(photoSchema).default([]) });
 
+/** A PDF of a B2B annonce — a brochure, a price list, a certificate. Never mixed with the photos. */
+export const documentSchema = z.object({
+  id: z.string(),
+  nom: z.string(),
+  /** Absolute and public, like a photo's: a plain link to a new tab, never a frame. */
+  url: z.string(),
+  tailleOctets: z.number().nullish(),
+  contentType: z.string().nullish(),
+  ajouteLe: z.string().nullish(),
+});
+export type AnnonceDocument = z.infer<typeof documentSchema>;
+
+/** Every document call answers the list and the annonce's new version — the one the photo calls and the PUT share. */
+export const documentsReponseSchema = z.object({ version: z.number(), documents: z.array(documentSchema).default([]) });
+
+/** The company's pages, one member per network (`facebook`, `instagram`…): null where none is given. */
+export const liensSociauxSchema = z.record(z.string(), z.string().nullable());
+
 // ----------------------------------------------------------------- the list
 
 export const annonceCarteSchema = z.object({
@@ -151,6 +169,8 @@ export const annonceB2bSchema = z.object({
   capacite: text,
   references: text,
   certifications: z.array(z.string()).default([]),
+  liensSociaux: liensSociauxSchema.nullish(),
+  documents: z.array(documentSchema).default([]),
   demandesIssues: z.object({ count: z.number().default(0), label: text }).nullish(),
 });
 export type AnnonceB2b = z.infer<typeof annonceB2bSchema>;
@@ -226,11 +246,18 @@ export const referentielB2bSchema = z.object({
       zonesMax: z.number().default(300),
       photosMax: z.number().default(8),
       photoMaxOctets: z.number().default(5_242_880),
+      lienSocialMax: z.number().default(300),
+      documentsMax: z.number().default(5),
+      documentMaxOctets: z.number().default(8_388_608),
+      documentTypes: z.string().default('application/pdf'),
     })
     .default({
       titreMax: 120, descriptionMin: 30, descriptionMax: 2000, capaciteMax: 200, referencesMax: 1000,
       certificationsMax: 12, certificationMax: 120, zonesMax: 300, photosMax: 8, photoMaxOctets: 5_242_880,
+      lienSocialMax: 300, documentsMax: 5, documentMaxOctets: 8_388_608, documentTypes: 'application/pdf',
     }),
+  /** The networks the form asks a page for, in order. Empty on an API that does not take the links yet: no block then. */
+  reseauxSociaux: z.array(z.object({ code: z.string(), label: z.string(), exemple: text })).default([]),
   tarif: z
     .object({
       modes: z.array(z.object({ code: z.string(), label: z.string() })).default([]),

@@ -1,18 +1,26 @@
 import { useRef, useState } from 'react';
-import { ChevronLeft, ChevronRight, ImagePlus, Loader2, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, FileText, ImagePlus, Loader2, Plus, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useL } from '@/lib/i18n';
-import { ajouterPhotos, ordonnerPhotos, supprimerPhoto } from '../api/annonces';
+import { tailleLabel } from '@/lib/fichiers';
+import { ajouterDocuments, ajouterPhotos, ordonnerPhotos, supprimerDocument, supprimerPhoto } from '../api/annonces';
 import { annonceErreur } from '../lib/erreurs';
-import type { Photo } from '../schemas/annonces';
+import type { AnnonceDocument, Photo } from '../schemas/annonces';
 
 const TYPES = ['image/png', 'image/jpeg', 'image/webp'];
+const mo = (octets: number) => Math.round(octets / 1_048_576);
+
+/** The codes after which what is on screen is no longer what the server holds. */
+const PERIMES = ['concurrency_conflict', 'annonce_etat_invalide', 'annonce_not_found', 'document_not_found'];
 
 /**
  * The photos of an annonce, for both kinds: add, reorder (the first one is the
  * cover), remove. Each call carries the annonce's version and answers the list
  * and the new version. Photos need an annonce: on a new form `ensureDraft`
  * saves the draft first.
+ *
+ * With `documents` (a B2B annonce) the same « Ajouter » takes PDFs too: each
+ * kind goes to its own route and has its own list — they are never mixed.
  */
 export function PhotosUploader({
   annonce,
@@ -20,6 +28,7 @@ export function PhotosUploader({
   max,
   maxOctets,
   disabled,
+  documents,
   ensureDraft,
   onChange,
   onBusyChange,
@@ -30,6 +39,15 @@ export function PhotosUploader({
   max: number;
   maxOctets: number;
   disabled?: boolean;
+  /** B2B only: the annonce's PDFs, their limits, and where the answer of a document call goes. */
+  documents?: {
+    items: AnnonceDocument[];
+    max: number;
+    maxOctets: number;
+    /** `application/pdf` */
+    types: string[];
+    onChange: (next: { id: string; version: number; documents: AnnonceDocument[] }) => void;
+  };
   /** Saves the draft when there is none yet; null when it could not (the form says why). */
   ensureDraft: () => Promise<{ id: string; version: number } | null>;
   /** The answer of a photo call, with the id of the annonce it was made on (a new form's draft is born here). */
@@ -48,40 +66,70 @@ export function PhotosUploader({
   const [erreur, setErreur] = useState<string | null>(null);
   const [dragged, setDragged] = useState<string | null>(null);
 
-  const run = async (call: (a: { id: string; version: number }) => Promise<{ version: number; photos: Photo[] }>) => {
+  /** One piece of work on the annonce — born first when the form is new — and what a refusal of it says. */
+  const run = async (work: (a: { id: string; version: number }) => Promise<void>) => {
     setBusy(true);
     onBusyChange?.(true);
     setErreur(null);
     try {
       const cible = annonce ?? (await ensureDraft());
       if (!cible) return;
-      onChange({ id: cible.id, ...(await call(cible)) });
+      await work(cible);
     } catch (error) {
       const { message, problem } = annonceErreur(error, L);
       setErreur(message);
-      if (problem.code === 'concurrency_conflict' || problem.code === 'annonce_etat_invalide' || problem.code === 'annonce_not_found') onStale();
+      if (PERIMES.includes(problem.code)) onStale();
     } finally {
       setBusy(false);
       onBusyChange?.(false);
     }
   };
+  /** A photo call: it answers the list and the new version. */
+  const photosCall = (call: (a: { id: string; version: number }) => Promise<{ version: number; photos: Photo[] }>) =>
+    run(async (a) => onChange({ id: a.id, ...(await call(a)) }));
 
   const ajouter = (files: File[]) => {
     if (files.length === 0) return;
+    const images = files.filter((f) => TYPES.includes(f.type));
+    const pdfs = documents ? files.filter((f) => documents.types.includes(f.type)) : [];
     // The same limits and sentences as the server's, said before the bytes leave.
-    if (files.some((f) => !TYPES.includes(f.type))) {
-      setErreur(L("L'image doit être au format PNG, JPEG ou WebP.", 'يجب أن تكون الصورة بصيغة PNG أو JPEG أو WebP.'));
+    if (images.length + pdfs.length < files.length) {
+      setErreur(
+        documents
+          ? L('Le fichier doit être une image PNG, JPEG ou WebP, ou un document PDF.', 'يجب أن يكون الملف صورة PNG أو JPEG أو WebP، أو مستند PDF.')
+          : L("L'image doit être au format PNG, JPEG ou WebP.", 'يجب أن تكون الصورة بصيغة PNG أو JPEG أو WebP.'),
+      );
       return;
     }
-    if (files.some((f) => f.size > maxOctets)) {
-      setErreur(L(`L'image ne doit pas dépasser ${Math.round(maxOctets / 1_048_576)} Mo.`, `يجب ألا تتجاوز الصورة ${Math.round(maxOctets / 1_048_576)} ميغابايت.`));
+    if (images.some((f) => f.size > maxOctets)) {
+      setErreur(L(`L'image ne doit pas dépasser ${mo(maxOctets)} Mo.`, `يجب ألا تتجاوز الصورة ${mo(maxOctets)} ميغابايت.`));
       return;
     }
-    if (photos.length + files.length > max) {
+    if (photos.length + images.length > max) {
       setErreur(L(`${max} photos au plus par annonce.`, `${max} صور كحد أقصى لكل إعلان.`));
       return;
     }
-    void run((a) => ajouterPhotos(a.id, a.version, files));
+    if (documents && pdfs.some((f) => f.size > documents.maxOctets)) {
+      setErreur(L(`Le document ne doit pas dépasser ${mo(documents.maxOctets)} Mo.`, `يجب ألا يتجاوز المستند ${mo(documents.maxOctets)} ميغابايت.`));
+      return;
+    }
+    if (documents && documents.items.length + pdfs.length > documents.max) {
+      setErreur(L(`${documents.max} documents au plus par annonce.`, `${documents.max} مستندات كحد أقصى لكل إعلان.`));
+      return;
+    }
+    void run(async (a) => {
+      // Each kind to its own route, one after the other: both carry the annonce's version, and
+      // the photos' answer gives the documents theirs.
+      let version = a.version;
+      if (images.length > 0) {
+        const res = await ajouterPhotos(a.id, version, images);
+        version = res.version;
+        onChange({ id: a.id, ...res });
+      }
+      if (documents && pdfs.length > 0) {
+        documents.onChange({ id: a.id, ...(await ajouterDocuments(a.id, version, pdfs)) });
+      }
+    });
   };
 
   const deplacer = (id: string, vers: number) => {
@@ -89,7 +137,7 @@ export function PhotosUploader({
     const from = ids.indexOf(id);
     if (from < 0 || vers < 0 || vers >= ids.length || vers === from) return;
     ids.splice(vers, 0, ...ids.splice(from, 1));
-    void run((a) => ordonnerPhotos(a.id, a.version, ids));
+    void photosCall((a) => ordonnerPhotos(a.id, a.version, ids));
   };
 
   const fige = disabled || busy;
@@ -119,7 +167,7 @@ export function PhotosUploader({
               <>
                 <button
                   type="button"
-                  onClick={() => void run((a) => supprimerPhoto(a.id, photo.id, a.version))}
+                  onClick={() => void photosCall((a) => supprimerPhoto(a.id, photo.id, a.version))}
                   aria-label={L('Supprimer la photo', 'حذف الصورة')}
                   className="absolute end-1.5 top-1.5 grid size-6 place-items-center rounded-full bg-de9-red text-white shadow-soft"
                 >
@@ -150,14 +198,15 @@ export function PhotosUploader({
             )}
           </div>
         ))}
-        {photos.length < max && (
+        {/* One « Ajouter » for both kinds: it stays while either list has room. */}
+        {(photos.length < max || (documents && documents.items.length < documents.max)) && (
           <button
             type="button"
             disabled={fige}
             onClick={() => input.current?.click()}
             className="flex aspect-square flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-de9-teal/60 text-de9-teal-dark transition-colors hover:bg-de9-teal-soft disabled:opacity-60"
           >
-            {busy ? <Loader2 className="size-5 animate-spin" /> : <ImagePlus className="size-5" />}
+            {busy ? <Loader2 className="size-5 animate-spin" /> : documents ? <Plus className="size-5" /> : <ImagePlus className="size-5" />}
             <span className="text-[12px] font-bold">{L('Ajouter', 'إضافة')}</span>
           </button>
         )}
@@ -165,7 +214,7 @@ export function PhotosUploader({
       <input
         ref={input}
         type="file"
-        accept={TYPES.join(',')}
+        accept={[...TYPES, ...(documents?.types ?? [])].join(',')}
         multiple
         hidden
         onChange={(e) => {
@@ -173,12 +222,62 @@ export function PhotosUploader({
           e.target.value = '';
         }}
       />
-      <p className="text-[12px] text-de9-gray">
-        {L(
-          `PNG, JPEG ou WebP · ${Math.round(maxOctets / 1_048_576)} Mo au plus · ${max} photos au plus. La première est la couverture.`,
-          `PNG أو JPEG أو WebP · ${Math.round(maxOctets / 1_048_576)} ميغابايت كحد أقصى · ${max} صور كحد أقصى. الأولى هي الغلاف.`,
-        )}
-      </p>
+      {documents && documents.items.length > 0 && (
+        <ul className="flex flex-col gap-1.5">
+          {documents.items.map((doc) => {
+            const taille = tailleLabel(doc.tailleOctets, L);
+            return (
+              <li key={doc.id} className="flex items-center gap-2.5 rounded-xl bg-secondary/60 px-3 py-2">
+                <FileText className="size-5 flex-none text-de9-red" />
+                {/* Public, like a photo: a new tab, under its own file name. */}
+                <a
+                  href={doc.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="min-w-0 flex-1 truncate text-[13px] font-semibold text-de9-ink hover:underline"
+                >
+                  {doc.nom}
+                </a>
+                {taille && <span className="flex-none text-[12px] text-de9-gray tabular-nums">{taille}</span>}
+                {!fige && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      void run(async (a) => documents.onChange({ id: a.id, ...(await supprimerDocument(a.id, doc.id, a.version)) }))
+                    }
+                    className="flex-none text-[12px] font-bold text-de9-red hover:underline"
+                  >
+                    {L('Retirer', 'إزالة')}
+                  </button>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      {documents ? (
+        <div className="flex flex-col gap-0.5 text-[12px] text-de9-gray">
+          <p>
+            {L(
+              `Photos : PNG, JPEG ou WebP · ${mo(maxOctets)} Mo au plus · ${max} au plus. La première est la couverture.`,
+              `الصور: PNG أو JPEG أو WebP · ${mo(maxOctets)} ميغابايت كحد أقصى · ${max} كحد أقصى. الأولى هي الغلاف.`,
+            )}
+          </p>
+          <p>
+            {L(
+              `Documents : PDF · ${mo(documents.maxOctets)} Mo au plus · ${documents.max} au plus.`,
+              `المستندات: PDF · ${mo(documents.maxOctets)} ميغابايت كحد أقصى · ${documents.max} كحد أقصى.`,
+            )}
+          </p>
+        </div>
+      ) : (
+        <p className="text-[12px] text-de9-gray">
+          {L(
+            `PNG, JPEG ou WebP · ${mo(maxOctets)} Mo au plus · ${max} photos au plus. La première est la couverture.`,
+            `PNG أو JPEG أو WebP · ${mo(maxOctets)} ميغابايت كحد أقصى · ${max} صور كحد أقصى. الأولى هي الغلاف.`,
+          )}
+        </p>
+      )}
       {erreur && <p className="text-[12px] text-de9-red">{erreur}</p>}
     </div>
   );

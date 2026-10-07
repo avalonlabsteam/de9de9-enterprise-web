@@ -11,6 +11,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { EmptyState } from '@/components/common/EmptyState';
+import { ReseauIcone } from '@/components/common/ReseauxSociaux';
+import { liensRemplis, type LiensSociaux } from '@/lib/reseauxSociaux';
 import { refreshAccueil } from '@/features/auth/api/accueil';
 import { CategorieVisual, FamilleBadge } from '@/features/client-catalogue/components/CategorieVisual';
 import {
@@ -26,16 +28,16 @@ import {
   type ZoneInput,
 } from '../api/annonces';
 import { annonceErreur } from '../lib/erreurs';
-import type { Annonce, AnnonceB2b, EtapeRefus, Photo } from '../schemas/annonces';
+import type { Annonce, AnnonceB2b, AnnonceDocument, EtapeRefus, Photo } from '../schemas/annonces';
 import { PhotosUploader } from './PhotosUploader';
 import { detailPath, editPath, useAnnonceFlow } from './useAnnonceFlow';
 import { ZonesPicker } from './ZonesPicker';
 
 /** The blocks of the form — also the codes a refusal names (`etapes[].code`). */
-type Bloc = 'titre' | 'categorie' | 'services' | 'zones' | 'tarif' | 'delai' | 'capacite' | 'certifications' | 'references' | 'description';
+type Bloc = 'titre' | 'categorie' | 'services' | 'zones' | 'tarif' | 'delai' | 'capacite' | 'certifications' | 'references' | 'description' | 'liens';
 
 /** The blocks from top to bottom: the first one at fault is the one scrolled to. */
-const ORDRE: Bloc[] = ['titre', 'categorie', 'services', 'zones', 'tarif', 'delai', 'capacite', 'certifications', 'references', 'description'];
+const ORDRE: Bloc[] = ['titre', 'categorie', 'services', 'zones', 'tarif', 'delai', 'capacite', 'certifications', 'references', 'description', 'liens'];
 const AUCUNE: EtapeRefus[] = [];
 
 /** A `field` of a 400 → the block that shows its sentence. */
@@ -50,9 +52,14 @@ const BLOC_OF: Record<string, Bloc> = {
   certifications: 'certifications',
   references: 'references',
   description: 'description',
+  // `liensSociaux.facebook`: the block, and under which of its inputs (see `refus`).
+  liensSociaux: 'liens',
 };
 const blocOf = (field: string | undefined): Bloc | undefined =>
   field ? (BLOC_OF[field] ?? BLOC_OF[field.split(/[.[]/)[0] ?? '']) : undefined;
+
+/** What the inputs hold: the pages given, by network code. */
+const liensDe = (liens: LiensSociaux | null | undefined): Record<string, string> => Object.fromEntries(liensRemplis(liens));
 
 const chip = (active: boolean) =>
   cn(
@@ -75,7 +82,7 @@ function Section({ id, titre, erreur, children }: { id: Bloc | 'photos'; titre: 
 /**
  * « Créer une annonce B2B » — and the same page edits one (guide 19b §4). One
  * offer in ONE category of the Entreprise catalogue: its services, zones,
- * tarification, délai, photos. « Enregistrer le brouillon » accepts partial
+ * tarification, délai, social links, photos and PDFs. « Enregistrer le brouillon » accepts partial
  * content; « Soumettre à de9de9 » sends it to the review. An annonce already
  * published has one button: an edit applies at once, and must stay complete.
  */
@@ -112,11 +119,15 @@ export function AnnonceB2bForm({
   const [certifications, setCertifications] = useState<string[]>(annonce?.certifications ?? []);
   const [certif, setCertif] = useState('');
   const [description, setDescription] = useState(annonce?.description ?? '');
+  const [liens, setLiens] = useState(() => liensDe(annonce?.liensSociaux));
+  /** The network whose address was refused: its sentence goes under that input. */
+  const [lienFautif, setLienFautif] = useState<string | null>(null);
   const [photos, setPhotos] = useState<Photo[]>(annonce?.photos ?? []);
+  const [documents, setDocuments] = useState<AnnonceDocument[]>(annonce?.documents ?? []);
   const [famille, setFamille] = useState<string | null>(null);
   const [erreurs, setErreurs] = useState<Partial<Record<Bloc, string>>>(() => Object.fromEntries(etapes.map((e) => [e.code, e.message ?? ''])));
   const [busy, setBusy] = useState<'brouillon' | 'soumettre' | null>(null);
-  /** A photo call is in flight with the version held: no save, no submission until it answers. */
+  /** A photo or document call is in flight with the version held: no save, no submission until it answers. */
   const [photosBusy, setPhotosBusy] = useState(false);
 
   // Opened on a refused submission: its first block comes into view once the form is drawn —
@@ -171,7 +182,7 @@ export function AnnonceB2bForm({
     );
   }
 
-  const { limites, categories, kyc, tarif } = referentiel.data;
+  const { limites, categories, kyc, tarif, reseauxSociaux } = referentiel.data;
   const categorie = categories.find((c) => c.code === categoryCode);
   const verrouillee = annonce?.categorie?.verrouillee === true;
   // Already published (or paused): no review again — the edit applies at once and must stay complete.
@@ -202,6 +213,11 @@ export function AnnonceB2bForm({
     references: references.trim() || null,
     certifications,
     description: description.trim() || null,
+    // The whole object, null for an empty input: it replaces every link. Left out when the form
+    // drew no input — nothing is then erased.
+    ...(reseauxSociaux.length > 0
+      ? { liensSociaux: Object.fromEntries(reseauxSociaux.map((r) => [r.code, liens[r.code]?.trim() || null])) }
+      : {}),
   });
 
   /** The rules of the form, as the backend repeats them. `complet`: those of a submission. */
@@ -262,6 +278,7 @@ export function AnnonceB2bForm({
             : 'categorie'
           : undefined);
     if (bloc) {
+      setLienFautif(bloc === 'liens' ? (problem.field?.split('.')[1] ?? null) : null);
       montrer({ [bloc]: message });
       // The catalogue moved under the form: its tiles and chips are read again.
       if (problem.status === 409 || problem.status === 422) void referentiel.refetch();
@@ -285,6 +302,8 @@ export function AnnonceB2bForm({
     annonceRecue(queryClient, result);
     const ref = { id: result.id, version: result.version };
     setSaved(ref);
+    // The addresses come back as stored (« https:// » added…): the inputs show those.
+    if (result.type === 'b2b') setLiens(liensDe(result.liensSociaux));
     return ref;
   };
 
@@ -330,12 +349,17 @@ export function AnnonceB2bForm({
     }
   };
 
-  /** Photos need an annonce: a new form saves its draft first, silently. */
+  /** Photos and documents need an annonce: a new form saves its draft first, silently. */
   const ensureDraft = async () => {
     const e = verifier(false);
     if (e.titre || e.categorie) {
       montrer({ titre: e.titre, categorie: e.categorie });
-      toast.info(L("Donnez un titre et une catégorie à l'annonce avant d'ajouter des photos.", 'أعطِ الإعلان عنوانًا وفئة قبل إضافة الصور.'));
+      toast.info(
+        L(
+          "Donnez un titre et une catégorie à l'annonce avant d'ajouter des photos ou des documents.",
+          'أعطِ الإعلان عنوانًا وفئة قبل إضافة الصور أو المستندات.',
+        ),
+      );
       return null;
     }
     try {
@@ -558,13 +582,67 @@ export function AnnonceB2bForm({
             </p>
           </Section>
 
-          <Section id="photos" titre={L('Photos', 'الصور')}>
+          {/* One input per network the API lists, in its order: a sixth one needs no release. */}
+          {reseauxSociaux.length > 0 && (
+            <Section
+              id="liens"
+              titre={L('Réseaux sociaux — facultatif', 'شبكات التواصل — اختياري')}
+              // A refusal goes under its own input; one about a network not drawn here, under the block.
+              erreur={reseauxSociaux.some((r) => r.code === lienFautif) ? undefined : erreurs.liens}
+            >
+              <div className="grid gap-3 sm:grid-cols-2">
+                {reseauxSociaux.map((r) => {
+                  const fautif = lienFautif === r.code && !!erreurs.liens;
+                  return (
+                    <div key={r.code} className="flex flex-col gap-1">
+                      <label htmlFor={`lien-${r.code}`} className="flex items-center gap-1.5 text-[12.5px] font-semibold text-de9-slate">
+                        <ReseauIcone code={r.code} className="size-3.5" />
+                        {r.label}
+                      </label>
+                      <Input
+                        id={`lien-${r.code}`}
+                        inputMode="url"
+                        autoComplete="off"
+                        dir="ltr"
+                        value={liens[r.code] ?? ''}
+                        maxLength={limites.lienSocialMax}
+                        onChange={(e) => {
+                          setLiens({ ...liens, [r.code]: e.target.value });
+                          if (fautif) setErreurs({ ...erreurs, liens: undefined });
+                        }}
+                        placeholder={r.exemple ?? undefined}
+                        aria-invalid={fautif}
+                      />
+                      {fautif && <p className="text-[12px] text-de9-red">{erreurs.liens}</p>}
+                    </div>
+                  );
+                })}
+              </div>
+            </Section>
+          )}
+
+          <Section id="photos" titre={L('Photos et documents', 'الصور والمستندات')}>
             <PhotosUploader
               annonce={saved}
               photos={photos}
               max={limites.photosMax}
               maxOctets={limites.photoMaxOctets}
               disabled={busy !== null}
+              documents={{
+                items: documents,
+                max: limites.documentsMax,
+                maxOctets: limites.documentMaxOctets,
+                types: limites.documentTypes.split(',').map((type) => type.trim()),
+                onChange: (next) => {
+                  setDocuments(next.documents);
+                  // The same version as the photos' and the form's own save.
+                  setSaved((s) => (s ? { ...s, version: next.version } : s));
+                  queryClient.setQueryData<Annonce>(annonceKey(next.id), (held) =>
+                    held?.type === 'b2b' ? { ...held, documents: next.documents, version: next.version } : held,
+                  );
+                  void queryClient.invalidateQueries({ queryKey: annoncesListeKey });
+                },
+              }}
               ensureDraft={ensureDraft}
               onStale={stale}
               onBusyChange={setPhotosBusy}
