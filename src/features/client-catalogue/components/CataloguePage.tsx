@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Clock, Search, ShieldAlert, ShieldCheck, X } from 'lucide-react';
+import { Clock, Search, ShieldAlert, X } from 'lucide-react';
 import { useL } from '@/lib/i18n';
 import { uiActions } from '@/stores/uiStore';
 import { cn } from '@/lib/utils';
@@ -14,7 +14,7 @@ import { useBlocageB2b, useCatalogueSearch, useNouvelleDemande } from '../api/no
 import type { CategorieTile, RechercheHit } from '../schemas/nouvelleDemande';
 import { useCatalogueStore, catalogueActions } from '../stores/catalogueStore';
 import { AccesB2bSuspendu } from './AccesB2bSuspendu';
-import { CategorieVisual, FamilleBadge } from './CategorieVisual';
+import { CategorieVisual } from './CategorieVisual';
 
 /** Search as the client types, once the typing pauses. */
 const SEARCH_DEBOUNCE_MS = 250;
@@ -143,15 +143,9 @@ export function CataloguePage() {
         )}
       </div>
 
-      {/* KYC gate banner — same four states as the header pill */}
-      {validated ? (
-        <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-de9-teal-soft px-4 py-2 dark:ring-1 dark:ring-border">
-          <ShieldCheck className="size-5 shrink-0 text-de9-teal-dark" />
-          <p className="text-sm font-semibold text-de9-teal-dark">
-            {L('Entreprise vérifiée', 'المؤسسة موثّقة')}
-          </p>
-        </div>
-      ) : kyc.inReview ? (
+      {/* KYC gate banner — only while something is pending. Once verified there is nothing to say
+          here: the badge by the company's name and the header pill already do. */}
+      {validated ? null : kyc.inReview ? (
         // Filed: nothing to do but wait — no call to action.
         <div className="mb-6 flex items-start gap-3 rounded-xl bg-accent px-4 py-3 dark:ring-1 dark:ring-border">
           <Clock className="mt-0.5 size-5 shrink-0 text-de9-teal-dark" />
@@ -275,12 +269,13 @@ export function CataloguePage() {
             </section>
           )}
 
-          {/* Toutes les catégories */}
-          <section>
+          {/* Toutes les catégories — columns by the room the grid has, not the viewport's: beside
+              the sidebar it is narrower, and a card must stay as wide as its title needs */}
+          <section className="@container">
             <h2 className="mb-3 text-[15px] font-bold text-de9-ink">
               {L('Toutes les catégories', 'كل الفئات')}
             </h2>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 @lg:grid-cols-2 @3xl:grid-cols-3 @[62rem]:grid-cols-4">
               {categories.map((tile) => (
                 <CategorieCard
                   key={tile.code}
@@ -298,7 +293,7 @@ export function CataloguePage() {
   );
 }
 
-/** Tall « Top catégories » tile — picture stacked above the label, family badge on top. */
+/** Tall « Top catégories » tile — picture stacked above the label. */
 function FeaturedCategorieCard({
   tile,
   name,
@@ -314,9 +309,8 @@ function FeaturedCategorieCard({
     <button
       type="button"
       onClick={onClick}
-      className="flex min-h-[232px] flex-col rounded-xl bg-de9-row p-4 text-start transition-shadow hover:shadow-lift dark:ring-1 dark:ring-border"
+      className="flex min-h-[232px] flex-col rounded-xl bg-card p-4 text-start shadow-soft transition-shadow hover:shadow-lift dark:ring-1 dark:ring-border"
     >
-      <FamilleBadge label={tile.familleLabel} hex={tile.hex} />
       <span className="flex flex-1 items-center justify-center py-2">
         <CategorieVisual
           key={tile.imageUrl ?? tile.code}
@@ -327,13 +321,13 @@ function FeaturedCategorieCard({
           emojiClassName="size-[124px] text-[52px]"
         />
       </span>
-      <span className="text-sm font-bold text-de9-ink">{name}</span>
-      <span className="mt-0.5 text-xs text-de9-gray">{services}</span>
+      <span className="text-[15px] font-bold text-de9-ink">{name}</span>
+      <span className="mt-0.5 text-[13px] text-de9-slate">{services}</span>
     </button>
   );
 }
 
-/** Compact tile — label and service count on the lead edge, picture on the trail edge. */
+/** Compact tile — the family's name and service count, its picture in the trailing corner. */
 function CategorieCard({
   tile,
   name,
@@ -349,21 +343,20 @@ function CategorieCard({
     <button
       type="button"
       onClick={onClick}
-      className="relative flex min-h-[92px] items-center rounded-xl bg-de9-row py-4 ps-4 pe-24 text-start transition-shadow hover:shadow-lift dark:ring-1 dark:ring-border"
+      // The trailing 80 px are the picture's: the name wraps beside it, never under it.
+      className="relative flex min-h-[140px] items-center rounded-xl bg-card py-5 ps-5 pe-20 text-start shadow-soft transition-shadow hover:shadow-lift dark:ring-1 dark:ring-border"
     >
-      <span className="flex min-w-0 flex-col items-start gap-1">
-        <FamilleBadge label={tile.familleLabel} hex={tile.hex} />
-        <span className="text-sm font-bold text-de9-ink">{name}</span>
-        <span className="text-xs text-de9-gray">{services}</span>
+      <span className="flex min-w-0 flex-col items-start gap-1.5">
+        <span className="text-[17px] leading-[1.3] font-bold text-de9-ink">{name}</span>
+        <span className="text-[13px] text-de9-slate">{services}</span>
       </span>
-      <span className="pointer-events-none absolute -bottom-1 -end-2 flex items-end">
+      <span className="pointer-events-none absolute end-3 bottom-3">
         <CategorieVisual
           key={tile.imageUrl ?? tile.code}
           imageUrl={tile.imageUrl}
           icone={tile.icone}
-          className="h-[86px] w-auto"
-          iconClassName="mb-3 me-3.5 size-[68px]"
-          emojiClassName="mb-3 me-4 size-14 text-[34px]"
+          className="size-[60px]"
+          emojiClassName="size-[60px] text-[34px]"
         />
       </span>
     </button>

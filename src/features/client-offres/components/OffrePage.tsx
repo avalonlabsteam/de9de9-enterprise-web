@@ -5,7 +5,10 @@ import { useL } from '@/lib/i18n';
 import { toProblem } from '@/api/problem';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { DocumentsListe } from '@/components/common/DocumentsListe';
 import { EmptyState } from '@/components/common/EmptyState';
+import { ReseauxChips } from '@/components/common/ReseauxSociaux';
+import { liensRemplis } from '@/lib/reseauxSociaux';
 import { useAccesB2b } from '@/features/auth/api/accueil';
 import { FamilleBadge } from '@/features/client-catalogue/components/CategorieVisual';
 import { catalogueActions } from '@/features/client-catalogue/stores/catalogueStore';
@@ -120,6 +123,15 @@ export function OffrePage() {
             </div>
           )}
 
+          {offre.documents.length > 0 && (
+            <Card>
+              <CardContent className="flex flex-col gap-1 py-4">
+                <h2 className="text-[13px] text-de9-gray">{L('Documents du prestataire', 'مستندات مقدّم الخدمة')}</h2>
+                <DocumentsListe documents={offre.documents} />
+              </CardContent>
+            </Card>
+          )}
+
           <Card>
             <CardContent className="px-4 py-1">
               <dl className="divide-y divide-border">
@@ -152,6 +164,10 @@ export function OffrePage() {
                 </Ligne>
                 <Ligne label={L('Références', 'المراجع')}>
                   {offre.references && <span className="font-medium whitespace-pre-line">{offre.references}</span>}
+                </Ligne>
+                {/* Sent only when de9de9 opened them to clients. */}
+                <Ligne label={L('Réseaux sociaux', 'شبكات التواصل')}>
+                  {liensRemplis(offre.liensSociaux).length > 0 ? <ReseauxChips liens={offre.liensSociaux} className="sm:justify-end" /> : null}
                 </Ligne>
               </dl>
             </CardContent>

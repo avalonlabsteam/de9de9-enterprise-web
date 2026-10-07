@@ -9,6 +9,7 @@ import {
   annonceSchema,
   annoncesListeSchema,
   categorieB2cSchema,
+  documentsReponseSchema,
   etapesRefusSchema,
   photosReponseSchema,
   referentielB2bSchema,
@@ -127,6 +128,11 @@ export interface CorpsB2b {
   references: string | null;
   certifications: string[];
   description: string | null;
+  /**
+   * The whole object, `null` for an empty input: it replaces every link. Left
+   * out, nothing changes — so it is not sent when the form has no link inputs.
+   */
+  liensSociaux?: Record<string, string | null>;
 }
 
 export function useReferentielB2b() {
@@ -239,6 +245,24 @@ export async function ordonnerPhotos(id: string, version: number, photoIds: stri
 export async function supprimerPhoto(id: string, photoId: string, version: number) {
   return photosReponseSchema.parse(
     (await apiClient.delete(`${BASE}/${key(id)}/photos/${key(photoId)}`, { params: { version } })).data,
+  );
+}
+
+// ------------------------------------------------------------- documents
+
+/** PDFs of a B2B annonce: the same multipart as the photos, and the same `version`. */
+export async function ajouterDocuments(id: string, version: number, files: File[]) {
+  const form = new FormData();
+  form.append('version', String(version));
+  for (const file of files) form.append('files', file);
+  return documentsReponseSchema.parse(
+    (await apiClient.post(`${BASE}/${key(id)}/documents`, form, { timeout: UPLOAD_TIMEOUT_MS })).data,
+  );
+}
+
+export async function supprimerDocument(id: string, documentId: string, version: number) {
+  return documentsReponseSchema.parse(
+    (await apiClient.delete(`${BASE}/${key(id)}/documents/${key(documentId)}`, { params: { version } })).data,
   );
 }
 

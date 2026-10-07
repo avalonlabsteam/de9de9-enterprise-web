@@ -111,7 +111,8 @@ function NavList({ role, onNavigate }: { role: Role | undefined; onNavigate?: ()
       {groups.map((group, gi) => (
         <div key={gi}>
           {group.title && (
-            <p className="mb-1 mt-[26px] ps-4 text-[16px] font-bold text-de9-ink">
+            // A group's label is quieter than the links it heads.
+            <p className="mb-1 mt-[26px] ps-4 text-[13px] font-medium text-de9-gray">
               {L(group.title[0], group.title[1])}
             </p>
           )}
