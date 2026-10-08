@@ -11,6 +11,7 @@ import { useB2cSessionStore } from '@/stores/b2cSessionStore';
 import { refreshAccueil } from '@/features/auth/api/accueil';
 import { sessionChecked } from '@/features/auth/api/bootstrap';
 import { switchRole } from '@/features/auth/api/session';
+import { entrepriseKey } from '@/features/entreprise/api/entreprise';
 import { dossierQueryKey } from '@/features/kyc/api/kyc';
 import { nouvelleDemandeKey } from '@/features/client-catalogue/api/keys';
 import { paiementsListeKey, portefeuilleKey } from '@/features/client-wallet/api/keys';
@@ -82,6 +83,11 @@ function sideEffects(a: Alerte): void {
   if (a.code.startsWith('annonce.')) {
     void queryClient.invalidateQueries({ queryKey: annoncesKey });
     void refreshAccueil(); // the home's block is the published annonces
+  }
+  // de9de9 edited the company's profile for it: the record is read again, and the home for its name.
+  if (a.code === 'entreprise.profil_modifie') {
+    void queryClient.invalidateQueries({ queryKey: entrepriseKey });
+    void refreshAccueil();
   }
   // de9de9 called back, placed someone or ended a placement: « Mes demandes » of the handicap
   // sheet is read again.

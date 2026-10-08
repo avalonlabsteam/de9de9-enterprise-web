@@ -1,16 +1,7 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { LucideIcon } from 'lucide-react';
-import {
-  Building2,
-  ShieldCheck,
-  CreditCard,
-  Headset,
-  Languages,
-  Bell,
-  LogOut,
-  Phone,
-  ChevronRight,
-} from 'lucide-react';
+import { Building2, ShieldCheck, CreditCard, Languages, Bell, LogOut, Phone, ChevronRight } from 'lucide-react';
 import { useL } from '@/lib/i18n';
 import { langActions } from '@/stores/langStore';
 import { uiActions } from '@/stores/uiStore';
@@ -19,8 +10,9 @@ import { useActiveEntreprise } from '@/stores/accueilStore';
 import { CompanyAvatar } from '@/components/common/CompanyAvatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { StatusBadge } from '@/components/common/StatusBadge';
-import { useKycState } from '@/features/kyc/api/kyc';
+import { alertesActions } from '@/features/alertes/stores/alertesStore';
+import { EntrepriseSheet } from '@/features/entreprise/components/EntrepriseSheet';
+import { KycBadge } from '@/features/kyc/components/KycBadge';
 
 interface Row {
   key: string;
@@ -34,8 +26,8 @@ interface Row {
 export function ClientProfilePage() {
   const L = useL();
   const navigate = useNavigate();
-  const kyc = useKycState();
   const entreprise = useActiveEntreprise();
+  const [entrepriseOpen, setEntrepriseOpen] = useState(false);
   const userName = useAuthStore((st) => st.user?.name);
   const companyName = entreprise?.nom ?? userName ?? '';
 
@@ -45,21 +37,15 @@ export function ClientProfilePage() {
       icon: Building2,
       labelFr: "Informations de l'entreprise",
       labelAr: 'معلومات الشركة',
-      onClick: () => uiActions.openSupport(),
+      onClick: () => setEntrepriseOpen(true),
     },
     {
       key: 'kyc',
       icon: ShieldCheck,
       labelFr: 'Vérification KYC',
       labelAr: 'التحقق من الهوية',
-      onClick: () => uiActions.openSupport(),
-      trailing: kyc.verified ? (
-        <StatusBadge
-          label={L('Vérifiée', 'مُتحقّق')}
-          kind="done"
-          className="gap-1"
-        />
-      ) : undefined,
+      onClick: () => navigate('/client/kyc'),
+      trailing: <KycBadge />,
     },
     {
       key: 'abo',
@@ -67,13 +53,6 @@ export function ClientProfilePage() {
       labelFr: 'Abonnement & crédits',
       labelAr: 'الاشتراك والرصيد',
       onClick: () => navigate('/client/wallet'),
-    },
-    {
-      key: 'support',
-      icon: Headset,
-      labelFr: 'Support & contact',
-      labelAr: 'الدعم والتواصل',
-      onClick: () => uiActions.openSupport(),
     },
     {
       key: 'langue',
@@ -87,7 +66,7 @@ export function ClientProfilePage() {
       icon: Bell,
       labelFr: 'Notifications',
       labelAr: 'الإشعارات',
-      onClick: () => uiActions.openSupport(),
+      onClick: () => alertesActions.openDrawer(),
     },
   ];
 
@@ -124,7 +103,9 @@ export function ClientProfilePage() {
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-[15px] font-bold">{L('Support & contact', 'الدعم والتواصل')}</p>
-          <p className="text-[13px] text-primary-foreground/80">0560 00 00 00 · 7j/7</p>
+          <p className="text-[13px] text-primary-foreground/80">
+            {L('Une question ? de9de9 vous répond.', 'لديك سؤال؟ de9de9 يجيبك.')}
+          </p>
         </div>
         <ChevronRight className="size-5 flex-none text-primary-foreground/80 rtl:rotate-180" />
       </button>
@@ -166,6 +147,8 @@ export function ClientProfilePage() {
         </span>
         {L('Se déconnecter', 'تسجيل الخروج')}
       </Button>
+
+      <EntrepriseSheet open={entrepriseOpen} onOpenChange={setEntrepriseOpen} />
     </div>
   );
 }
