@@ -14,13 +14,7 @@ import { toProblem } from "@/api/problem";
 import { useLogin } from "../api/auth";
 import { adoptSignIn } from "../api/session";
 import { useSocialSignIn, type SocialProvider } from "../api/social";
-import {
-  APPLE_CLIENT_ID,
-  GOOGLE_CLIENT_ID,
-  getAppleCredentials,
-  preloadAppleSignIn,
-  renderGoogleButton,
-} from "../lib/socialProviders";
+import { GOOGLE_CLIENT_ID, renderGoogleButton } from "../lib/socialProviders";
 import { routeForStep } from "@/features/onboarding/lib/registerFlow";
 import { useT, useL } from "@/lib/i18n";
 import { useLangStore } from "@/stores/langStore";
@@ -188,20 +182,6 @@ export function LoginPage() {
     finishSocialRef.current = finishSocial;
   });
 
-  // Apple's popup must open inside the click: load its script ahead of it.
-  useEffect(() => {
-    if (APPLE_CLIENT_ID) preloadAppleSignIn();
-  }, []);
-
-  const signInWithApple = async () => {
-    try {
-      const credentials = await getAppleCredentials();
-      await finishSocialRef.current("apple", credentials);
-    } catch (error) {
-      reportSocialError("apple", error);
-    }
-  };
-
   const goSignup = () => {
     authActions.setMode("signup");
     navigate("/role");
@@ -332,33 +312,31 @@ export function LoginPage() {
               <span className="h-px flex-1 bg-de9-line" />
             </div>
 
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {GOOGLE_CLIENT_ID ? (
-                <GoogleButton
-                  busy={socialSignIn.isPending || login.isPending}
-                  onCredential={(idToken) =>
-                    void finishSocialRef.current("google", { idToken })
-                  }
-                  onError={(error) => reportSocialError("google", error)}
-                />
-              ) : (
-                <SocialButton label="Google" disabled onClick={() => {}} />
-              )}
-              <SocialButton
-                label="Apple"
-                disabled={
-                  !APPLE_CLIENT_ID || socialSignIn.isPending || login.isPending
+            {/* Google alone for now: « Se connecter avec Apple » is not offered (its client half
+                stays in lib/socialProviders for the day it is). */}
+            {GOOGLE_CLIENT_ID ? (
+              <GoogleButton
+                busy={socialSignIn.isPending || login.isPending}
+                onCredential={(idToken) =>
+                  void finishSocialRef.current("google", { idToken })
                 }
-                onClick={() => void signInWithApple()}
+                onError={(error) => reportSocialError("google", error)}
               />
-            </div>
-            {!GOOGLE_CLIENT_ID && !APPLE_CLIENT_ID && (
-              <p className="mt-2 text-center text-[12px] text-de9-gray">
-                {L(
-                  "Connexion Google / Apple à configurer (VITE_GOOGLE_CLIENT_ID, VITE_APPLE_CLIENT_ID).",
-                  "يجب تهيئة الدخول عبر Google / Apple.",
-                )}
-              </p>
+            ) : (
+              <>
+                <SocialButton
+                  label="Google"
+                  disabled
+                  onClick={() => {}}
+                  className="w-full"
+                />
+                <p className="mt-2 text-center text-[12px] text-de9-gray">
+                  {L(
+                    "Connexion Google à configurer (VITE_GOOGLE_CLIENT_ID).",
+                    "يجب تهيئة الدخول عبر Google.",
+                  )}
+                </p>
+              </>
             )}
 
             <p className="mt-6 text-center text-[13px] text-de9-slate">
@@ -442,8 +420,10 @@ function GoogleButton({
     <div
       ref={box}
       aria-busy={busy}
+      // Google's frame is a light document: on a dark page the browser paints a white box behind
+      // it, wider than the button. Declared light here, the frame stays see-through.
       className={cn(
-        "flex h-11 items-center justify-center",
+        "flex h-11 items-center justify-center [color-scheme:light]",
         busy && "pointer-events-none opacity-60",
       )}
     />
