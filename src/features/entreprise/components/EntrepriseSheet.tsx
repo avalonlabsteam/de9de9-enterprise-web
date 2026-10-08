@@ -56,7 +56,7 @@ export function EntrepriseSheet({ open, onOpenChange }: { open: boolean; onOpenC
         className="gap-0 bg-background p-0 outline-none data-[side=left]:w-full data-[side=right]:w-full data-[side=left]:sm:max-w-[480px] data-[side=right]:sm:max-w-[480px]"
       >
         <SheetHeader className="pe-12">
-          <SheetTitle>{L("Informations de l'entreprise", 'معلومات المؤسسة')}</SheetTitle>
+          <SheetTitle>{L("Informations de l'entreprise", 'معلومات الشركة')}</SheetTitle>
           {query.data && !edition && lectureSeule && (
             <SheetDescription>
               {L(
