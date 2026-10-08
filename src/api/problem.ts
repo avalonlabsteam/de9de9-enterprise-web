@@ -21,6 +21,8 @@ export interface ApiProblem {
   code: string;
   /** The offending input, when the API blames one. */
   field?: string;
+  /** Every offending input, when the API names them all (`field` is then the first). */
+  fields?: string[];
   /** User-facing message from the API. */
   detail?: string;
 }
@@ -45,6 +47,7 @@ export function toProblem(error: unknown): ApiProblem {
     status,
     code: str(body['code']) ?? (first ? 'validation_failed' : `http_${status}`),
     field: str(body['field']) ?? first?.field,
+    fields: Array.isArray(body['fields']) ? body['fields'].filter((f): f is string => typeof f === 'string') : undefined,
     detail: str(body['detail']) ?? str(body['message']) ?? first?.message,
   };
 }
