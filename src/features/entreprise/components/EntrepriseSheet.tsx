@@ -28,6 +28,31 @@ type Erreurs = Partial<Record<EntrepriseChamp, string>>;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const idOf = (champ: EntrepriseChamp) => `entreprise-${champ}`;
 
+/** The three legal numbers the API checks the format of (guide 36). */
+const IDENTIFIANTS = ['rc', 'nif', 'nis'] as const;
+type Identifiant = (typeof IDENTIFIANTS)[number];
+const estIdentifiant = (champ: unknown): champ is Identifiant => IDENTIFIANTS.includes(champ as Identifiant);
+
+/** Digits a NIF and a NIS hold: the usual length, then a secondary establishment's. The RC's spellings are the server's to read. */
+const LONGUEURS = { nif: [15, 20], nis: [15, 18] } as const;
+
+/** A number as the API compares it: spaces and dots never count. */
+const sansEspaces = (value: string | null | undefined) => (value ?? '').replace(/[\s.]/g, '');
+
+/**
+ * The refusal of several numbers carries one sentence each in `detail`, every
+ * one opening with its number's name (« NIF : … NIS : … »): each goes under its
+ * own input.
+ */
+function phrasesParIdentifiant(detail: string): Partial<Record<Identifiant, string>> {
+  const out: Partial<Record<Identifiant, string>> = {};
+  for (const part of detail.split(/(?=\b(?:RC|NIF|NIS) : )/)) {
+    const nom = /^(RC|NIF|NIS) : /.exec(part.trim())?.[1].toLowerCase();
+    if (estIdentifiant(nom)) out[nom] = part.trim();
+  }
+  return out;
+}
+
 /**
  * « Informations de l'entreprise » — the company's own record, the same sheet
  * on the client and the prestataire profile. Read by any seat; rewritten by an
@@ -56,7 +81,7 @@ export function EntrepriseSheet({ open, onOpenChange }: { open: boolean; onOpenC
         className="gap-0 bg-background p-0 outline-none data-[side=left]:w-full data-[side=right]:w-full data-[side=left]:sm:max-w-[480px] data-[side=right]:sm:max-w-[480px]"
       >
         <SheetHeader className="pe-12">
-          <SheetTitle>{L("Informations de l'entreprise", 'معلومات المؤسسة')}</SheetTitle>
+          <SheetTitle>{L("Informations de l'entreprise", 'معلومات الشركة')}</SheetTitle>
           {query.data && !edition && lectureSeule && (
             <SheetDescription>
               {L(
@@ -251,6 +276,21 @@ function Formulaire({
         `أدخل عددًا من 1 إلى ${ENTREPRISE_MAX.proCount}.`,
       );
     }
+    // A NIF or a NIS of the wrong length is said here, in the API's own words, without a round trip.
+    // Only one being changed: a number sent back as it is stored is kept, even an old one that
+    // would not pass today. Anything but plain digits (a label, Arabic digits) is the API's to tidy.
+    for (const champ of ['nif', 'nis'] as const) {
+      const saisi = sansEspaces(valeurs[champ]);
+      if (!saisi || saisi === sansEspaces(entreprise[champ])) continue;
+      const [usuelle, secondaire] = LONGUEURS[champ];
+      if (/^\d+$/.test(saisi) && saisi.length !== usuelle && saisi.length !== secondaire) {
+        const nom = champ.toUpperCase();
+        e[champ] = L(
+          `${nom} : ${usuelle} chiffres attendus (${secondaire} pour un établissement secondaire), ${saisi.length} saisis.`,
+          `${nom}: المطلوب ${usuelle} رقمًا (${secondaire} لمؤسسة ثانوية)، المُدخل ${saisi.length}.`,
+        );
+      }
+    }
     setErreurs(e);
     setRefus(null);
     if (Object.keys(e).length > 0) return;
@@ -262,9 +302,16 @@ function Formulaire({
       },
       onError: (error) => {
         const problem = toProblem(error);
-        // This route words its field rules in English: the input is marked, in the form's own words.
         const refuses: Erreurs = {};
-        if (problem.status === 400) {
+        if (problem.code === 'kyc_identifier_invalid') {
+          // A number in a format the API does not recognise: its sentence, in French, under its input.
+          const phrases = phrasesParIdentifiant(problem.detail ?? '');
+          const champs = (problem.fields?.length ? problem.fields : [problem.field]).filter(estIdentifiant);
+          champs.forEach((champ, i) => {
+            refuses[champ] = phrases[champ] ?? ((i === 0 && problem.detail) || L('Numéro refusé.', 'رقم مرفوض.'));
+          });
+        } else if (problem.status === 400) {
+          // The other field rules of this route are worded in English: the input is marked, in the form's own words.
           for (const key of Object.keys(toFieldErrors(error))) {
             const champ = key.split('.')[0];
             if (champ in ENTREPRISE_MAX) refuses[champ as EntrepriseChamp] = L('Valeur refusée.', 'قيمة مرفوضة.');
@@ -318,6 +365,7 @@ function Formulaire({
                 <Champ champ={champ} label={champ.toUpperCase()} error={erreurs[champ]}>
                   <Input
                     {...input(champ)}
+                    placeholder={champ === 'rc' ? '16/00-0123456 B 21' : undefined}
                     dir="ltr"
                     disabled={numerosFermes || enregistrer.isPending}
                     onChange={(e) => set({ [champ]: e.target.value })}
